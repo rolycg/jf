@@ -1,16 +1,25 @@
 import os
 from queue import Queue
 from threading import Thread
+import data_layer
+
+finished = True
 
 
 def dfs(path, q):
     for path, dirs, files in os.walk(path):
         q.put((path, dirs, files))
+    finished = False
 
 
-def save_to_disk(q):
-    path, dirs, files = q.get()
-    pass
+def save_to_disk(engine, q):
+    while not q.empty() and finished:
+        path, dirs, files = q.get()
+        for x in dirs:
+            data_layer.insert_data(engine=engine, file_name=x, file_type='Folder', paren=path)
+        for x in files:
+            data_layer.insert_data(engine=engine, file_name=x, file_type='File', paren=path)
+
 
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
@@ -18,7 +27,7 @@ if __name__ == '__main__':
     _queue = Queue()
     t = Thread(target=dfs, args=(path, _queue))
     t.start()
-
-    t2 = Thread(target=save_to_disk, args=(_queue,))
+    engine = data_layer.get_engine()
+    t2 = Thread(target=save_to_disk, args=(engine, _queue))
     t2.start()
 

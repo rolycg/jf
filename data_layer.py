@@ -21,7 +21,7 @@ class File(Base):
 
 
 def __create_database__():
-    engine = create_engine('’sqlite:///database/')
+    engine = create_engine('sqlite:///database/database.db')
     return engine
 
 

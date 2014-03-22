@@ -3,6 +3,7 @@ import queue
 import time
 import threading
 
+
 def try_os_path(path):
     for pathname, dirname, filename in os.walk(path):
         print(pathname + ':')
