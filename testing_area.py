@@ -2,7 +2,7 @@ import os
 import queue
 import time
 import threading
-
+import data_layer
 
 def try_os_path(path):
     for pathname, dirname, filename in os.walk(path):
@@ -31,9 +31,13 @@ def try_queue_get(my_queue):
 if __name__ == '__main__':
     #path = '/media/roly/Extra/Series/'
     #try_os_path(path)
-    pass
+
     #q = queue.Queue()
     #t = threading.Thread(target=try_queue_put, args=(q,))
     #t2 = threading.Thread(target=try_queue_get, args=(q,))
     #t.start()
     #t2.start()
+
+    engine = data_layer.get_engine()
+    for x in data_layer.get_database_all_elements(engine):
+        print(x)
