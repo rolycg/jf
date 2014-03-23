@@ -28,6 +28,24 @@ def try_queue_get(my_queue):
         print(tmp)
         time.sleep(0.5)
 
+paint = True
+
+def printing():
+    count = 0
+    while paint:
+        if count % 3 == 0:
+            print('Indexing.', end='\r')
+            count += 1
+            time.sleep(0.5)
+        elif count % 3 == 1:
+            print('Indexing..', end='\r')
+            count += 1
+            time.sleep(0.5)
+        if count % 3 == 2:
+            print('Indexing...', end='\r')
+            count += 1
+            time.sleep(0.5)
+    print('', end='\r')
 
 if __name__ == '__main__':
     #path = '/media/roly/Extra/Series/'
@@ -42,6 +60,7 @@ if __name__ == '__main__':
     #import sqlalchemy
     #print(sqlalchemy.__version__)
     pass
-    engine = data_layer.get_engine()
-    for x in data_layer.get_database_all_elements(engine):
-        print(x)
+    #engine = data_layer.get_engine()
+    #for x in data_layer.get_database_all_elements(engine):
+    #    print(x)
+    printing()
