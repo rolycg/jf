@@ -56,6 +56,9 @@ if __name__ == '__main__':
     _queue = Queue()
     t = Thread(target=dfs, args=(path, _queue))
     t.start()
+
+
+
     engine = data_layer.create_database()
     t2 = Thread(target=save_to_disk, args=(engine, _queue, path))
     t2.start()
