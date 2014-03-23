@@ -4,6 +4,7 @@ import time
 import threading
 import data_layer
 
+
 def try_os_path(path):
     for pathname, dirname, filename in os.walk(path):
         print(pathname + ':')
@@ -38,6 +39,9 @@ if __name__ == '__main__':
     #t.start()
     #t2.start()
 
+    #import sqlalchemy
+    #print(sqlalchemy.__version__)
+    pass
     engine = data_layer.get_engine()
     for x in data_layer.get_database_all_elements(engine):
         print(x)
