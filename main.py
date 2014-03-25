@@ -26,7 +26,8 @@ def save_to_disk(engine, q, path):
         for x in dirs:
             data_layer.insert_data(engine=engine, file_name=x, file_type='Folder', paren=path)
         for x in files:
-            data_layer.insert_data(engine=engine, file_name=x, file_type='Files', paren=path)
+            _type = x.split('.')
+            data_layer.insert_data(engine=engine, file_name=x, file_type='File: ' + _type[len(_type) - 1], paren=path)
     paint = False
 
 
@@ -53,8 +54,9 @@ def printing():
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
     path = '/media/roly/Extra/Series/Modern Family'
-    engine = data_layer.create_database()
+    engine = ''
     if not os.path.exists('./database.db'):
+        engine = data_layer.create_database()
         _queue = Queue()
         t = Thread(target=dfs, args=(path, _queue))
         t.start()
@@ -64,10 +66,13 @@ if __name__ == '__main__':
         t3.start()
         while paint:
             sleep(0.5)
-    print('Enter keywords:')
-    words = input()
-    collection = data_layer.find_data(engine, words.split(' '))
-    for x, y in collection:
-        print('Name: ' + str(x) + ' Address: ' + str(y))
-
-
+    engine = data_layer.get_engine()
+    while 1:
+        print('Enter keywords:')
+        words = input()
+        for x, y, z in data_layer.find_data(engine, words.split(' ')):
+            print('>Name: ' + str(x) + '\n' + '>File Type: ' + str(y) + '\n' + '>Address: ' + str(z) + '\n')
+        print('Press any key for continue or write exit to finish')
+        end = input()
+        if end.lower() == 'exit':
+            break
