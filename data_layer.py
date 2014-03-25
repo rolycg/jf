@@ -11,7 +11,7 @@ class File(Base):
     __tablename__ = 'File'
 
     _id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String)
+    name = Column(String, index=True)
     root = Column(String)
     file_type = Column(String)
     parent_id = Column(Integer, ForeignKey('File._id'))
@@ -64,6 +64,30 @@ def insert_data(engine, file_name, file_type, paren, first=False):
     session.add(tmp)
     session.commit()
     session.close()
+
+
+def get_address(engine, item):
+    address = ''
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    while 1:
+        address = str(item.name) + '/' + address
+        if item.parent_id == -1:
+            break
+        item = session.query(File).filter_by(_id=item.parent_id).first()
+    if item.root:
+        address = str(item.root) + '/' + address
+    return address[:len(address) - 1]
+
+
+def find_data(engine, words_list):
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    collection = session.query(File).filter(File.name.like('%' + words_list[0] + '%'))
+    final_collection = []
+    for item in collection:
+        final_collection.append((item.name, get_address(engine, item)))
+    return final_collection
 
 
 

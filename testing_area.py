@@ -30,6 +30,7 @@ def try_queue_get(my_queue):
 
 paint = True
 
+
 def printing():
     count = 0
     while paint:
@@ -63,4 +64,6 @@ if __name__ == '__main__':
     #engine = data_layer.get_engine()
     #for x in data_layer.get_database_all_elements(engine):
     #    print(x)
-    printing()
+
+    #printing()
+

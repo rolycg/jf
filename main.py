@@ -53,13 +53,21 @@ def printing():
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
     path = '/media/roly/Extra/Series/Modern Family'
-    _queue = Queue()
-    t = Thread(target=dfs, args=(path, _queue))
-    t.start()
     engine = data_layer.create_database()
-    t2 = Thread(target=save_to_disk, args=(engine, _queue, path))
-    t2.start()
-    t3 = Thread(target=printing)
-    t3.start()
+    if not os.path.exists('./database.db'):
+        _queue = Queue()
+        t = Thread(target=dfs, args=(path, _queue))
+        t.start()
+        t2 = Thread(target=save_to_disk, args=(engine, _queue, path))
+        t2.start()
+        t3 = Thread(target=printing)
+        t3.start()
+        while paint:
+            sleep(0.5)
+    print('Enter keywords:')
+    words = input()
+    collection = data_layer.find_data(engine, words.split(' '))
+    for x, y in collection:
+        print('Name: ' + str(x) + ' Address: ' + str(y))
 
 
