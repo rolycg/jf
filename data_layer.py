@@ -66,6 +66,23 @@ def insert_data(engine, file_name, file_type, paren, first=False):
     session.close()
 
 
+def get_session(engine):
+    Session = sessionmaker(bind=engine)
+    return Session()
+
+
+def dynamic_insert_data(engine, values, session=None):
+    import time
+    time1 = time.time()
+    if not session:
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        session.add_all(values)
+    session.commit()
+    #session.close()
+    return time.time() - time1
+
+
 def get_address(engine, item):
     address = ''
     Session = sessionmaker(bind=engine)
@@ -83,9 +100,8 @@ def get_address(engine, item):
 def find_data(engine, words_list):
     Session = sessionmaker(bind=engine)
     session = Session()
-    collection = session.query(File).filter(File.name.like('%' + words_list[0] + '%'))
     final_collection = []
-    for item in collection:
+    for item in session.query(File).filter(File.name.like('%' + words_list[0] + '%')):
         final_collection.append((item.name, item.file_type, get_address(engine, item)))
     return final_collection
 

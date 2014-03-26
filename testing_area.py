@@ -28,6 +28,7 @@ def try_queue_get(my_queue):
         print(tmp)
         time.sleep(0.5)
 
+
 paint = True
 
 
@@ -61,9 +62,11 @@ if __name__ == '__main__':
     #import sqlalchemy
     #print(sqlalchemy.__version__)
     pass
-    #engine = data_layer.get_engine()
-    #for x in data_layer.get_database_all_elements(engine):
-    #    print(x)
+    engine = data_layer.get_engine()
+    count = 0
+    for x in data_layer.get_database_all_elements(engine):
+        count += 1
+    print(count)
 
     #printing()
 
