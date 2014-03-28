@@ -142,6 +142,3 @@ def find_data(engine, words_list):
     for item in session.query(File).filter(File.name.like('%' + words_list[0] + '%')):
         final_collection.append((item.name, item.file_type, get_address(engine, item)))
     return final_collection
-
-
-

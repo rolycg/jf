@@ -1,7 +1,5 @@
 import os
-import queue
 import time
-import threading
 import data_layer
 
 
@@ -72,4 +70,3 @@ if __name__ == '__main__':
     #print(pyinotify.__version__)
 
     #printing()
-
