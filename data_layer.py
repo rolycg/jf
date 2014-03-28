@@ -1,6 +1,7 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, create_engine, ForeignKey
 from sqlalchemy.orm import relationship, sessionmaker, backref
+import time
 
 
 engine = None
@@ -71,16 +72,53 @@ def get_session(engine):
     return Session()
 
 
-def dynamic_insert_data(engine, values, session=None):
-    import time
+def do_commit(session):
     time1 = time.time()
-    if not session:
-        Session = sessionmaker(bind=engine)
-        session = Session()
-        session.add_all(values)
     session.commit()
-    #session.close()
     return time.time() - time1
+
+
+def dynamic_insert_data(session, path, dirs, files, f, session_count, total_files, count):
+    for x in dirs:
+        parent = session.query(File).filter_by(name=path).first()
+        if not parent:
+            a = do_commit(session)
+            f.write('Elements: ' + str(session_count) + ' time: ' + str(a) + ' prop: ' + str(a / session_count) +
+                    ' prop2: ' +
+                    str(session_count / a) + '\n')
+            session_count = 0
+            parent = session.query(File).filter_by(name=path).first()
+        tmp = File(name=x, file_type='Folder', parent=parent._id)
+        session.add(tmp)
+        total_files += 1
+        session_count += 1
+        if session_count == count:
+            a = do_commit(session)
+            f.write('Elements: ' + str(count) + ' time: ' + str(a) + ' prop: ' + str(a / count) + ' prop2: ' +
+                    str(count / a) + '\n')
+            count += 1
+            session_count = 0
+    for x in files:
+        _type = x.split('.')
+        parent = session.query(File).filter_by(name=path).first()
+        if not parent:
+            a = do_commit(session)
+            f.write('Elements: ' + str(session_count) + ' time: ' + str(a) + ' prop: ' + str(a / session_count) +
+                    ' prop2: ' +
+                    str(session_count / a) + '\n')
+            session_count = 0
+            parent = session.query(File).filter_by(name=path).first()
+        tmp = File(name=x, file_type='File: ' + _type[len(_type) - 1], parent=parent._id)
+        total_files += 1
+        session.add(tmp)
+        session_count += 1
+        if session_count == count:
+            a = do_commit(session)
+            f.write('Elements: ' + str(count) + ' time: ' + str(a) + ' prop: ' + str(a / count) + ' prop2: ' +
+                    str(count / a) + '\n')
+            count += 1
+            session_count = 0
+    return session, session_count, total_files, count
 
 
 def get_address(engine, item):

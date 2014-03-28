@@ -2,7 +2,9 @@ import os
 from queue import Queue
 from threading import Thread
 import data_layer
+import watch_layer
 from time import sleep
+
 
 finished = True
 paint = False
@@ -23,63 +25,19 @@ def save_to_disk(engine, q, path):
     path2 = path.split('/')
     path2 = path2[len(path2) - 1]
     data_layer.insert_data(engine, path2, 'Folder', path, True)
-    f = open('time_test.txt', 'w')
+    f = open('time_test3.txt', 'w')
     session = data_layer.get_session(engine)
-    l = []
     count = 1
     total_files = 1
     session_count = 0
-    while not q.empty() and finished:
+    while not q.empty() or finished:
         path, dirs, files = q.get()
         path = path.split('/')
         path = path[len(path) - 1]
-        for x in dirs:
-            parent = session.query(data_layer.File).filter_by(name=path).first()
-            if not parent:
-                a = data_layer.dynamic_insert_data(engine, l, session=None)
-                f.write('Elements: ' + str(session_count) + ' time: ' + str(a) + ' prop: ' + str(a / session_count) +
-                        ' prop2: ' +
-                        str(session_count / a) + '\n')
-                session_count = 0
-                l = []
-                parent = session.query(data_layer.File).filter_by(name=path).first()
-            tmp = data_layer.File(name=x, file_type='Folder', parent=parent._id)
-            l.append(tmp)
-            #session.add(tmp)
-            total_files += 1
-            session_count += 1
-            if session_count == count:
-                a = data_layer.dynamic_insert_data(engine, l, session=None)
-                f.write('Elements: ' + str(count) + ' time: ' + str(a) + ' prop: ' + str(a / count) + ' prop2: ' +
-                        str(count / a) + '\n')
-                count += 1
-                session_count = 0
-                l = []
-        for x in files:
-            _type = x.split('.')
-            parent = session.query(data_layer.File).filter_by(name=path).first()
-            if not parent:
-                a = data_layer.dynamic_insert_data(engine, l, session=None)
-                f.write('Elements: ' + str(session_count) + ' time: ' + str(a) + ' prop: ' + str(a / session_count) +
-                        ' prop2: ' +
-                        str(session_count / a) + '\n')
-                session_count = 0
-                l = []
-                parent = session.query(data_layer.File).filter_by(name=path).first()
-            tmp = data_layer.File(name=x, file_type='File: ' + _type[len(_type) - 1], parent=parent._id)
-            l.append(tmp)
-            total_files += 1
-            #session.add(tmp)
-            session_count += 1
-            if session_count == count:
-                a = data_layer.dynamic_insert_data(engine, l, session=None)
-                f.write('Elements: ' + str(count) + ' time: ' + str(a) + ' prop: ' + str(a / count) + ' prop2: ' +
-                        str(count / a) + '\n')
-                count += 1
-                session_count = 0
-                l = []
+        session, session_count, total_files, count = data_layer.dynamic_insert_data(session, path, dirs, files, f,
+                                                                                    session_count, total_files, count)
     if session_count > 0:
-        a = data_layer.dynamic_insert_data(engine, l, session=None)
+        a = data_layer.do_commit(session)
         f.write('Elements: ' + str(session_count) + ' time: ' + str(a) + '\n')
     paint = False
     f.write('Total time: ' + str(time.time() - total) + ' Total elements: ' + str(total_files))
@@ -121,6 +79,8 @@ if __name__ == '__main__':
         while paint:
             sleep(0.8)
     engine = data_layer.get_engine()
+    t4 = Thread(target=watch_layer.add_linux_watch, args=(path,))
+    t4.start()
     while 1:
         print('Enter keywords:')
         words = input()

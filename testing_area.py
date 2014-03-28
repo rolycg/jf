@@ -68,5 +68,8 @@ if __name__ == '__main__':
         count += 1
     print(count)
 
+    #import pyinotify
+    #print(pyinotify.__version__)
+
     #printing()
 
