@@ -11,9 +11,9 @@ def handle_events(x):
     if x.mask == 1073742336:
         print('folder was deleted')
     if x.mask == 64 or x.mask == 1073741888:
-        print('file was moved from here')
+        print('file or folder was moved from here')
     if x.mask == 128 or x.mask == 1073741952:
-        print(x.pathname + 'file was moved to here')
+        print(x.pathname + 'file or folder was moved to here')
 
 
 def add_linux_watch(path):
