@@ -79,15 +79,8 @@ def do_commit(session):
 
 
 def dynamic_insert_data(session, path, dirs, files, f, session_count, total_files, count):
+    parent = session.query(File).filter_by(name=path).first()
     for x in dirs:
-        parent = session.query(File).filter_by(name=path).first()
-        if not parent:
-            a = do_commit(session)
-            f.write('Elements: ' + str(session_count) + ' time: ' + str(a) + ' prop: ' + str(a / session_count) +
-                    ' prop2: ' +
-                    str(session_count / a) + '\n')
-            session_count = 0
-            parent = session.query(File).filter_by(name=path).first()
         tmp = File(name=x, file_type='Folder', parent=parent._id)
         session.add(tmp)
         total_files += 1
@@ -100,14 +93,6 @@ def dynamic_insert_data(session, path, dirs, files, f, session_count, total_file
             session_count = 0
     for x in files:
         _type = x.split('.')
-        parent = session.query(File).filter_by(name=path).first()
-        if not parent:
-            a = do_commit(session)
-            f.write('Elements: ' + str(session_count) + ' time: ' + str(a) + ' prop: ' + str(a / session_count) +
-                    ' prop2: ' +
-                    str(session_count / a) + '\n')
-            session_count = 0
-            parent = session.query(File).filter_by(name=path).first()
         tmp = File(name=x, file_type='File: ' + _type[len(_type) - 1], parent=parent._id)
         total_files += 1
         session.add(tmp)

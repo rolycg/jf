@@ -25,7 +25,7 @@ def save_to_disk(engine, q, path):
     path2 = path.split('/')
     path2 = path2[len(path2) - 1]
     data_layer.insert_data(engine, path2, 'Folder', path, True)
-    f = open('time_test3.txt', 'w')
+    f = open('time_test4.txt', 'w')
     session = data_layer.get_session(engine)
     count = 1
     total_files = 1
