@@ -22,20 +22,25 @@ def save_to_disk(engine, q, path):
     total = time.time()
     global paint
     global finished
+    list_file_tmp = {}
     path2 = path.split('/')
     path2 = path2[len(path2) - 1]
     data_layer.insert_data(engine, path2, 'Folder', path, True)
     f = open('time_test4.txt', 'w')
     session = data_layer.get_session(engine)
     count = 1
-    total_files = 1
+    total_files = 2
     session_count = 0
+    list_file_tmp[path2] = 1
     while not q.empty() or finished:
         path, dirs, files = q.get()
         path = path.split('/')
         path = path[len(path) - 1]
-        session, session_count, total_files, count = data_layer.dynamic_insert_data(session, path, dirs, files, f,
-                                                                                    session_count, total_files, count)
+        session, session_count, total_files, count, list_file_tmp = data_layer.dynamic_insert_data(session, path, dirs,
+                                                                                                   files, f,
+                                                                                                   session_count,
+                                                                                                   total_files, count,
+                                                                                                   list_file_tmp)
     if session_count > 0:
         a = data_layer.do_commit(session)
         f.write('Elements: ' + str(session_count) + ' time: ' + str(a) + '\n')
@@ -65,7 +70,7 @@ def printing():
 
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
-    path = '/media/roly/Extra/Info'
+    path = '/media/roly/Extra/Series'
     engine = ''
     if not os.path.exists('./database.db'):
         engine = data_layer.create_database()
@@ -79,13 +84,16 @@ if __name__ == '__main__':
         while paint:
             sleep(0.8)
     engine = data_layer.get_engine()
-    t4 = Thread(target=watch_layer.add_linux_watch, args=(path,))
-    t4.start()
+
+    #t4 = Thread(target=watch_layer.add_linux_watch, args=(path,))
+    #t4.start()
+    watch_layer.add_linux_watch(path)
     while 1:
         print('Enter keywords:')
         words = input()
-        for x, y, z in data_layer.find_data(engine, words.split(' ')):
-            print('>Name: ' + str(x) + '\n' + '>File Type: ' + str(y) + '\n' + '>Address: ' + str(z) + '\n')
+        for item in data_layer.find_data(engine, words.split(' ')):
+            print('>Name: ' + str(item.name) + '\n' + '>File Type: ' + str(item.file_type) + '\n' + '>Address: '
+                  + str(data_layer.get_address(engine, item)) + '\n')
         print('Press any key for continue or write exit to finish')
         end = input()
         if end.lower() == 'exit':

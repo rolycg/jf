@@ -78,10 +78,12 @@ def do_commit(session):
     return time.time() - time1
 
 
-def dynamic_insert_data(session, path, dirs, files, f, session_count, total_files, count):
-    parent = session.query(File).filter_by(name=path).first()
+def dynamic_insert_data(session, path, dirs, files, f, session_count, total_files, count, list_file_tmp):
+    #parent = session.query(File).filter_by(name=path).first()
+    parent = list_file_tmp[path]
     for x in dirs:
-        tmp = File(name=x, file_type='Folder', parent=parent._id)
+        tmp = File(name=x, file_type='Folder', parent=parent)
+        list_file_tmp[x] = total_files
         session.add(tmp)
         total_files += 1
         session_count += 1
@@ -93,7 +95,8 @@ def dynamic_insert_data(session, path, dirs, files, f, session_count, total_file
             session_count = 0
     for x in files:
         _type = x.split('.')
-        tmp = File(name=x, file_type='File: ' + _type[len(_type) - 1], parent=parent._id)
+        tmp = File(name=x, file_type='File: ' + _type[len(_type) - 1], parent=parent)
+        list_file_tmp[x] = total_files
         total_files += 1
         session.add(tmp)
         session_count += 1
@@ -103,7 +106,7 @@ def dynamic_insert_data(session, path, dirs, files, f, session_count, total_file
                     str(count / a) + '\n')
             count += 1
             session_count = 0
-    return session, session_count, total_files, count
+    return session, session_count, total_files, count, list_file_tmp
 
 
 def get_address(engine, item):
@@ -123,7 +126,7 @@ def get_address(engine, item):
 def find_data(engine, words_list):
     Session = sessionmaker(bind=engine)
     session = Session()
-    final_collection = []
-    for item in session.query(File).filter(File.name.like('%' + words_list[0] + '%')):
-        final_collection.append((item.name, item.file_type, get_address(engine, item)))
-    return final_collection
+    #final_collection = []
+    #for item in session.query(File).filter(File.name.like('%' + words_list[0] + '%')):
+    #    final_collection.append((item.name, item.file_type, get_address(engine, item)))
+    return session.query(File).filter(File.name.like('%' + words_list[0] + '%'))

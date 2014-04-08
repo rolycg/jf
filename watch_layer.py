@@ -1,7 +1,8 @@
 from pyinotify import WatchManager, ALL_EVENTS, ThreadedNotifier
+#from watchdog import
 
 
-def handle_events(x):
+def handle_linux_events(x):
     if x.mask == 256:
         print('file was created')
     if x.mask == 512:
@@ -18,6 +19,10 @@ def handle_events(x):
 
 def add_linux_watch(path):
     watch = WatchManager()
-    watch.add_watch(path, ALL_EVENTS, lambda x: handle_events(x), True, True, quiet=True)
     t = ThreadedNotifier(watch)
-    t.run()
+    t.start()
+    watch.add_watch(path, ALL_EVENTS, lambda x: handle_linux_events(x), True, True, quiet=True)
+
+
+def add_windows_watch(path):
+    pass
