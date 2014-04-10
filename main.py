@@ -12,8 +12,8 @@ paint = False
 
 def dfs(path, q):
     global finished
-    for path, dirs, files in os.walk(path):
-        q.put((path, dirs, files))
+    for _path, dirs, files in os.walk(path):
+        q.put((_path, dirs, files))
     finished = False
 
 
@@ -26,7 +26,8 @@ def save_to_disk(engine, q, path):
     path2 = path.split('/')
     path2 = path2[len(path2) - 1]
     data_layer.insert_data(engine, path2, 'Folder', path, True)
-    f = open('time_test4.txt', 'w')
+    name_txt = path2 + '.txt'
+    f = open(name_txt, 'w')
     session = data_layer.get_session(engine)
     count = 1
     total_files = 2
@@ -70,7 +71,7 @@ def printing():
 
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
-    path = '/media/roly/Extra/Series'
+    path = '/media/roly/Extra/Info'
     engine = ''
     if not os.path.exists('./database.db'):
         engine = data_layer.create_database()
@@ -85,9 +86,8 @@ if __name__ == '__main__':
             sleep(0.8)
     engine = data_layer.get_engine()
 
-    #t4 = Thread(target=watch_layer.add_linux_watch, args=(path,))
-    #t4.start()
-    watch_layer.add_linux_watch(path)
+    t4 = Thread(target=watch_layer.add_linux_watch, args=(path,))
+    t4.start()
     while 1:
         print('Enter keywords:')
         words = input()

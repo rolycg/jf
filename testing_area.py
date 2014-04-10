@@ -66,6 +66,12 @@ if __name__ == '__main__':
         count += 1
     print(count)
 
+    tim = time.time()
+    path = '/media/roly/Extra'
+    for _path, dirs, files in os.walk(path):
+        pass
+    print(str(time.time() - tim))
+
     #import pyinotify
     #print(pyinotify.__version__)
 
