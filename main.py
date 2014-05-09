@@ -71,7 +71,7 @@ def printing():
 
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
-    path = '/media/roly/Extra/Info'
+    path = '/media/roly/Extra'
     engine = ''
     if not os.path.exists('./database.db'):
         engine = data_layer.create_database()
@@ -86,7 +86,7 @@ if __name__ == '__main__':
             sleep(0.8)
     engine = data_layer.get_engine()
 
-    t4 = Thread(target=watch_layer.add_linux_watch, args=(path,))
+    t4 = Thread(target=watch_layer.add_windows_watch, args=(path,))
     t4.start()
     while 1:
         print('Enter keywords:')
