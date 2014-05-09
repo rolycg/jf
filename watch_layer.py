@@ -1,7 +1,47 @@
 from pyinotify import WatchManager, ALL_EVENTS, ThreadedNotifier
 from watchdog import observers
-from watchdog.events import FileCreatedEvent, DirCreatedEvent, DirModifiedEvent, DirDeletedEvent, FileDeletedEvent, \
-    FileMovedEvent, FileSystemEventHandler
+from watchdog.events import FileSystemEventHandler
+import data_layer
+
+
+class MyFileSystemWatcher (FileSystemEventHandler):
+    def __int__(self):
+        super(FileSystemEventHandler).__init__()
+
+    def on_created(self, event):
+        engine = data_layer.connect_database()
+        if event.dest_path:
+            path = str(event.dest_path).split('/')
+        else:
+            path = str(event.src_path).split('/')
+        if event.is_directory:
+            data_layer.insert_data(engine, path[len(path) - 1], 'Folder', path[len(path) - 2])
+        else:
+            _type = path[len(path) - 1].split('.')
+            if len(_type) > 1:
+                _type = _type[len(_type) - 1]
+            else:
+                _type = ''
+            data_layer.insert_data(engine, path[len(path) - 1], _type, path[len(path) - 2])
+
+    def on_deleted(self, event):
+        engine = data_layer.connect_database()
+        path = str(event.src_path).split('/')
+        data_layer.delete_data(engine, path[len(path) - 1])
+
+    def on_moved(self, event):
+        self.on_deleted(event)
+        self.on_created(event)
+
+    def dispatch(self, event):
+        if event.event_type == 'created':
+            self.on_created(event)
+        elif event.event_type == 'deleted':
+            self.on_deleted(event)
+        elif event.event_type == 'moved':
+            self.on_moved(event)
+        else:
+            print(event.event_type)
 
 
 def handle_linux_events(x):
@@ -27,26 +67,7 @@ def add_linux_watch(path):
     watch.add_watch(path, ALL_EVENTS, lambda x: handle_linux_events(x), True, True, quiet=True)
 
 
-class test (FileSystemEventHandler):
-    def __int__(self):
-        super(FileSystemEventHandler).__init__()
-    def on_created(self, event):
-        print('se uso on created')
-    def on_deleted(self, event):
-        print('se uso on deleted')
-    def on_moved(self, event):
-        print('se uso on moved')
-    def dispatch(self, event):
-        if event.event_type == 'created':
-            self.on_created(event)
-        elif event.event_type == 'deleted':
-            self.on_deleted(event)
-        elif event.event_type == 'moved':
-            self.on_moved(event)
-        else:
-            print(event.event_type)
-
-def add_windows_watch(path):
+def add_multi_platform_watch(path):
     watch = observers.Observer()
-    watch.schedule(test(), path, recursive=True)
+    watch.schedule(MyFileSystemWatcher(), path, recursive=True)
     watch.start()

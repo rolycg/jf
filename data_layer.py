@@ -67,6 +67,13 @@ def insert_data(engine, file_name, file_type, paren, first=False):
     session.close()
 
 
+def delete_data(engine, file_name):
+    session = get_session(engine)
+    session.query(File).filter_by(name=file_name).delete()
+    session.commit()
+    session.close()
+
+
 def get_session(engine):
     Session = sessionmaker(bind=engine)
     return Session()
@@ -114,9 +121,9 @@ def get_address(engine, item):
     Session = sessionmaker(bind=engine)
     session = Session()
     while 1:
-        address = str(item.name) + '/' + address
         if item.parent_id == -1:
             break
+        address = str(item.name) + '/' + address
         item = session.query(File).filter_by(_id=item.parent_id).first()
     if item.root:
         address = str(item.root) + '/' + address
