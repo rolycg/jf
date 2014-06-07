@@ -86,7 +86,6 @@ def do_commit(session):
 
 
 def dynamic_insert_data(session, path, dirs, files, f, session_count, total_files, count, list_file_tmp):
-    #parent = session.query(File).filter_by(name=path).first()
     parent = list_file_tmp[path]
     for x in dirs:
         tmp = File(name=x, file_type='Folder', parent=parent)
@@ -103,7 +102,6 @@ def dynamic_insert_data(session, path, dirs, files, f, session_count, total_file
     for x in files:
         _type = x.split('.')
         tmp = File(name=x, file_type='File: ' + _type[len(_type) - 1], parent=parent)
-    #    list_file_tmp[x] = total_files
         total_files += 1
         session.add(tmp)
         session_count = len(session.new)
