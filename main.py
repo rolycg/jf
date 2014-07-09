@@ -1,9 +1,11 @@
 import os
 from queue import Queue
 from threading import Thread
+from time import sleep
+
 import data_layer
 import watch_layer
-from time import sleep
+import comunication_layer as cl
 
 
 finished = True
@@ -19,6 +21,7 @@ def dfs(path, q):
 
 def save_to_disk(engine, q, path):
     import time
+
     total = time.time()
     global paint
     global finished
@@ -88,6 +91,8 @@ if __name__ == '__main__':
     t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(path,))
     t4.start()
     while 1:
+        t5 = Thread(target=cl.broadcast, args=())
+        t5.start()
         print('Enter keywords:')
         words = input()
         for item in data_layer.find_data(engine, words.split(' ')):

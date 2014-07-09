@@ -20,8 +20,10 @@ def broadcast():
                 break
             if buf == b'I coming':
                 checking_client(ssl_socket, address, 10101)
+                break
         except ssl_socket.timeout:
             break
+    start_broadcast_server()
 
 
 def start_broadcast_server(port=10101):
