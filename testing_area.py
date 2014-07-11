@@ -1,6 +1,7 @@
 import os
 import time
-import data_layer
+
+from Crypto.Cipher import AES
 
 
 def try_os_path(path):
@@ -47,7 +48,13 @@ def printing():
             time.sleep(0.5)
     print('', end='\r')
 
+
 if __name__ == '__main__':
+    import extra_functions
+    cipher = AES.new('1234567891234567')
+    cipher2 = AES.new('1234567891234568')
+    a=cipher.encrypt('hola'*16)
+    print(extra_functions.random_string(16))
     #path = '/media/roly/Extra/Series/'
     #try_os_path(path)
 
@@ -59,18 +66,18 @@ if __name__ == '__main__':
 
     #import sqlalchemy
     #print(sqlalchemy.__version__)
-    pass
-    engine = data_layer.get_engine()
-    count = 0
-    for x in data_layer.get_database_all_elements(engine):
-        count += 1
-    print(count)
 
-    tim = time.time()
-    path = '/media/roly/Extra'
-    for _path, dirs, files in os.walk(path):
-        pass
-    print(str(time.time() - tim))
+    # engine = data_layer.get_engine()
+    # count = 0
+    # for x in data_layer.get_database_all_elements(engine):
+    #     count += 1
+    # print(count)
+    #
+    # tim = time.time()
+    # path = '/media/roly/Extra'
+    # for _path, dirs, files in os.walk(path):
+    #     pass
+    # print(str(time.time() - tim))
 
     #import pyinotify
     #print(pyinotify.__version__)

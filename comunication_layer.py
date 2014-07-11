@@ -1,6 +1,8 @@
 import socket
 import ssl
-import hashlib as hashl
+
+import extra_functions as ef
+
 
 username = 'bla'
 password = 'bla2'
@@ -13,7 +15,7 @@ def broadcast():
     s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     ssl_socket = ssl.wrap_socket(s)
     ssl_socket.sendto(msg, dest)
-    ssl_socket.settimeout(10)
+    ssl_socket.settimeout(5)
     while 1:
         try:
             (buf, address) = ssl_socket.recvfrom(10104)
@@ -50,20 +52,26 @@ def start_broadcast_server(port=10101):
 
 
 def checking_client(sock, address):
-    print(str(address))
-    sock.sendto(username.encode() + '!!__'.encode() + str(hashl.sha1(password.encode()).hexdigest()).encode(), address)
-    print('i send ' + str(username))
-    answer = sock.recv(100)
+    cipher = ef.get_cipher(password)
+    sock.sendto(username.encode(), address)
+    #print('i send ' + str(username))
+    answer = sock.recvfrom(100)
     if answer == b'OK':
-        switch_data(sock, address)
+        ran_str = ef.random_string()
+        sock.sendto(ran_str.encode(), address)
+        value = sock.recvfrom(1024)
+        if cipher.decrypt(value) == ran_str:
+            switch_data(sock, address)
 
 
 def checking_server(sock, address):
-    user, passw = sock.recvfrom(1000)
-    if user == username and hashl.sha1(password).hexdigest() == passw:
+    cipher = ef.get_cipher(password)
+    user = sock.recvfrom(1000)
+    if user == username:
         sock.sendto(b'OK', address)
-        switch_data(sock, address)
-    sock.sendto(b'NOT', address)
+        plain_text = sock.recvfrom()
+        sol = cipher.encrypt(plain_text)
+        sock.sendto(sol.enconde(), address)
 
 
 def switch_data(sock, address):
