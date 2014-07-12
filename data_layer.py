@@ -1,7 +1,9 @@
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, create_engine, ForeignKey
-from sqlalchemy.orm import relationship, sessionmaker, backref
 import time
+import socket
+
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, String, create_engine, ForeignKey, BigInteger, Integer
+from sqlalchemy.orm import relationship, sessionmaker, backref
 
 
 engine = None
@@ -11,22 +13,43 @@ Base = declarative_base()
 class File(Base):
     __tablename__ = 'File'
 
-    _id = Column(Integer, primary_key=True, autoincrement=True)
+    _id = Column(BigInteger, primary_key=True, autoincrement=True)
     name = Column(String, index=True)
     root = Column(String)
     file_type = Column(String)
-    parent_id = Column(Integer, ForeignKey('File._id'))
+    parent_id = Column(BigInteger, ForeignKey('File._id'))
     parent = relationship('File', backref=backref('child_folder', remote_side=[_id]))
+    generation = Column(BigInteger)
 
-    def __init__(self, name, file_type, parent, root=None):
+    def __init__(self, name, file_type, parent, generation, root=None):
         self.name = name
         self.parent_id = parent
         self.file_type = file_type
         self.root = root
+        self.generation = generation
 
     def __repr__(self):
         return "<File: \n Name=’%s’,\n Type=’%s’ \n Parent: '%s'>" % (
             self.name, self.file_type, self.parent_id)
+
+
+class Metadata(Base):
+    __tablename__ = 'Metadata'
+    _id = Column(Integer, primary_key=True, autoincrement=True)
+    uuid = Column(String)
+    pc_name = Column(String)
+    ip_address = Column(String)
+    last_generation = Column(BigInteger)
+
+    def __int__(self, uuid, pc_name, ip_address, generation=-1):
+        self.uuid = uuid
+        self.pc_name = pc_name
+        self.ip_address = ip_address
+        self.last_generation = generation
+
+    def __repr__(self):
+        return "<Metadata: \n PC Name=’%s’,\n IP=’%s’>" % (
+            self.pc_name, self.ip_address)
 
 
 def create_database():
@@ -37,7 +60,7 @@ def create_database():
 
 def connect_database():
     engine = create_engine('sqlite:///database.db')
-    return  engine
+    return engine
 
 
 def get_database_all_elements(engine):
@@ -52,16 +75,34 @@ def get_engine():
     return engine if engine else connect_database()
 
 
-def insert_data(engine, file_name, file_type, paren, first=False):
-    Session = sessionmaker(bind=engine)
-    session = Session()
+def insert_peer(engine, uuid=None, pc_name=None, ip=None):
+    session = get_session(engine)
+    peer = None
+    if not uuid and not pc_name and not ip:
+        peer = Metadata(str(uuid.uuid4()), socket.gethostname(), '127.0.0.1')
+    else:
+        peer = Metadata(uuid, pc_name, ip)
+    session.add(peer)
+    session.commit()
+    session.close()
+
+
+def edit_generation(engine, uuid, generation):
+    session = get_session(engine)
+    session.query(Metadata).filter(uuid).update({'last_generation': generation})
+    session.commit()
+    session.close()
+
+
+def insert_data(engine, file_name, file_type, paren, generation, first=False):
+    session = get_session(engine)
     if not first:
         parent = None
         for x in session.query(File).filter_by(name=paren):
             parent = x
-        tmp = File(name=file_name, file_type=file_type, parent=parent._id)
+        tmp = File(name=file_name, file_type=file_type, parent=parent._id, generation=generation)
     else:
-        tmp = File(name=file_name, file_type=file_type, parent=-1, root=paren)
+        tmp = File(name=file_name, file_type=file_type, parent=-1, root=paren, generation=generation)
     session.add(tmp)
     session.commit()
     session.close()
@@ -88,7 +129,7 @@ def do_commit(session):
 def dynamic_insert_data(session, path, dirs, files, f, session_count, total_files, count, list_file_tmp):
     parent = list_file_tmp[path]
     for x in dirs:
-        tmp = File(name=x, file_type='Folder', parent=parent)
+        tmp = File(name=x, file_type='Folder', parent=parent, generation=0)
         list_file_tmp[x] = total_files
         session.add(tmp)
         total_files += 1
@@ -101,7 +142,7 @@ def dynamic_insert_data(session, path, dirs, files, f, session_count, total_file
             session_count = 0
     for x in files:
         _type = x.split('.')
-        tmp = File(name=x, file_type='File: ' + _type[len(_type) - 1], parent=parent)
+        tmp = File(name=x, file_type='File: ' + _type[len(_type) - 1], parent=parent, generation=0)
         total_files += 1
         session.add(tmp)
         session_count = len(session.new)
@@ -133,3 +174,5 @@ def find_data(engine, words_list):
     session = Session()
     a = session.query(File).filter(File.name.like('%' + words_list[0] + '%'))
     return a
+
+

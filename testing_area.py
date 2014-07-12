@@ -1,6 +1,6 @@
 import os
 import time
-
+import data_layer
 from Crypto.Cipher import AES
 
 
@@ -50,11 +50,17 @@ def printing():
 
 
 if __name__ == '__main__':
-    import extra_functions
+    import socket
     cipher = AES.new('1234567891234567')
     cipher2 = AES.new('1234567891234568')
     a=cipher.encrypt('hola'*16)
-    print(extra_functions.random_string(16))
+    #print(extra_functions.random_string(16))
+    import uuid
+    print(str(uuid.uuid4()))
+    print(socket.getfqdn())
+    #print(socket.gethostbyname(socket.gethostname()))
+    session = data_layer.get_session(data_layer.connect_database())
+    generation = max(session.query(data_layer.File._id).all())
     #path = '/media/roly/Extra/Series/'
     #try_os_path(path)
 

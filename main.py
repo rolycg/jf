@@ -2,6 +2,7 @@ import os
 from queue import Queue
 from threading import Thread
 from time import sleep
+import time
 
 import data_layer
 import watch_layer
@@ -20,8 +21,6 @@ def dfs(path, q):
 
 
 def save_to_disk(engine, q, path):
-    import time
-
     total = time.time()
     global paint
     global finished

@@ -1,33 +1,43 @@
+from threading import Thread
+import time
+
 from pyinotify import WatchManager, ALL_EVENTS, ThreadedNotifier
 from watchdog import observers
 from watchdog.events import FileSystemEventHandler
+
+import extra_functions
+
 import data_layer
 
 
-class MyFileSystemWatcher (FileSystemEventHandler):
+class MyFileSystemWatcher(FileSystemEventHandler):
     def __int__(self):
         super(FileSystemEventHandler).__init__()
+        self.cache = []
 
     def on_created(self, event):
-        engine = data_layer.connect_database()
+        #engine = data_layer.connect_database()
         if event.dest_path:
             path = str(event.dest_path).split('/')
         else:
             path = str(event.src_path).split('/')
         if event.is_directory:
-            data_layer.insert_data(engine, path[len(path) - 1], 'Folder', path[len(path) - 2])
+            #data_layer.insert_data(engine, path[len(path) - 1], 'Folder', path[len(path) - 2])
+            self.cache.append((0, path[len(path) - 1], 'Folder', path[len(path) - 2]))
         else:
             _type = path[len(path) - 1].split('.')
             if len(_type) > 1:
                 _type = _type[len(_type) - 1]
             else:
                 _type = ''
-            data_layer.insert_data(engine, path[len(path) - 1], _type, path[len(path) - 2])
+            #data_layer.insert_data(engine, path[len(path) - 1], _type, path[len(path) - 2])
+            self.cache.append((0, path[len(path) - 1], _type, path[len(path) - 2]))
 
     def on_deleted(self, event):
         engine = data_layer.connect_database()
         path = str(event.src_path).split('/')
-        data_layer.delete_data(engine, path[len(path) - 1])
+        #data_layer.delete_data(engine, path[len(path) - 1])
+        self.cache.append((1, path[len(path) - 1]))
 
     def on_moved(self, event):
         self.on_deleted(event)
@@ -69,5 +79,16 @@ def add_linux_watch(path):
 
 def add_multi_platform_watch(path):
     watch = observers.Observer()
-    watch.schedule(MyFileSystemWatcher(), path, recursive=True)
-    watch.start()
+    obj = MyFileSystemWatcher()
+    watch.schedule(obj, path, recursive=True)
+    t = Thread(target=watch.start)
+    t.start()
+    engine = data_layer.connect_database()
+    session = data_layer.get_session(engine)
+    generation = max(session.query(data_layer.File.generation).all()) + 1
+    while 1:
+        time.sleep(60)
+        with obj.cache:
+            extra_functions.copy_data(engine, obj.cache, generation)
+            obj.cache = []
+        generation += 1
