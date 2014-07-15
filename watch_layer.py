@@ -11,7 +11,7 @@ import data_layer
 
 
 class MyFileSystemWatcher(FileSystemEventHandler):
-    def __int__(self):
+    def __init__(self):
         super(FileSystemEventHandler).__init__()
         self.cache = []
 
@@ -32,6 +32,14 @@ class MyFileSystemWatcher(FileSystemEventHandler):
                 _type = ''
             #data_layer.insert_data(engine, path[len(path) - 1], _type, path[len(path) - 2])
             self.cache.append((0, path[len(path) - 1], _type, path[len(path) - 2]))
+
+    def __del__(self):
+        with self.cache:
+            engine = data_layer.get_engine()
+            session = data_layer.get_session(engine)
+            generation = max(session.query(data_layer.File.generation).all()) + 1
+            extra_functions.copy_data(engine, self.cache, generation)
+            self.cache = []
 
     def on_deleted(self, event):
         engine = data_layer.connect_database()
@@ -67,7 +75,7 @@ def handle_linux_events(x):
         print('file or folder was moved from here')
     if x.mask == 128 or x.mask == 1073741952:
         print(x.pathname + 'file or folder was moved to here')
-    print('HOla')
+    #print('Hola')
 
 
 def add_linux_watch(path):
