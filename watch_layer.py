@@ -6,7 +6,6 @@ from watchdog import observers
 from watchdog.events import FileSystemEventHandler
 
 import extra_functions
-
 import data_layer
 
 
@@ -17,7 +16,7 @@ class MyFileSystemWatcher(FileSystemEventHandler):
 
     def on_created(self, event):
         #engine = data_layer.connect_database()
-        if event.dest_path:
+        if hasattr(event, 'dest_path'):
             path = str(event.dest_path).split('/')
         else:
             path = str(event.src_path).split('/')
@@ -33,16 +32,15 @@ class MyFileSystemWatcher(FileSystemEventHandler):
             #data_layer.insert_data(engine, path[len(path) - 1], _type, path[len(path) - 2])
             self.cache.append((0, path[len(path) - 1], _type, path[len(path) - 2]))
 
-    def __del__(self):
-        with self.cache:
-            engine = data_layer.get_engine()
-            session = data_layer.get_session(engine)
-            generation = max(session.query(data_layer.File.generation).all()) + 1
-            extra_functions.copy_data(engine, self.cache, generation)
-            self.cache = []
+    def __delete__(self):
+        engine = data_layer.get_engine()
+        generation = extra_functions.get_max_generation() + 1
+        extra_functions.copy_data(engine, self.cache, generation)
+        print('I pass over here')
+        self.cache.clear()
 
     def on_deleted(self, event):
-        engine = data_layer.connect_database()
+        #engine = data_layer.connect_database()
         path = str(event.src_path).split('/')
         #data_layer.delete_data(engine, path[len(path) - 1])
         self.cache.append((1, path[len(path) - 1]))
@@ -75,7 +73,7 @@ def handle_linux_events(x):
         print('file or folder was moved from here')
     if x.mask == 128 or x.mask == 1073741952:
         print(x.pathname + 'file or folder was moved to here')
-    #print('Hola')
+        #print('Hola')
 
 
 def add_linux_watch(path):
@@ -91,12 +89,12 @@ def add_multi_platform_watch(path):
     watch.schedule(obj, path, recursive=True)
     t = Thread(target=watch.start)
     t.start()
-    engine = data_layer.connect_database()
-    session = data_layer.get_session(engine)
-    generation = max(session.query(data_layer.File.generation).all()) + 1
+    engine = data_layer.get_engine()
+    generation = extra_functions.get_max_generation() + 1
     while 1:
-        time.sleep(60)
-        with obj.cache:
-            extra_functions.copy_data(engine, obj.cache, generation)
-            obj.cache = []
-        generation += 1
+        time.sleep(20)
+        l = obj.cache.copy()
+        obj.cache.clear()
+        s = extra_functions.copy_data(engine, l, generation)
+        if s:
+            generation += 1

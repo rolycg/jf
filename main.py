@@ -6,7 +6,6 @@ import time
 
 import data_layer
 import watch_layer
-import comunication_layer as cl
 
 
 finished = True
@@ -27,7 +26,7 @@ def save_to_disk(engine, q, path):
     list_file_tmp = {}
     path2 = path.split('/')
     path2 = path2[len(path2) - 1]
-    data_layer.insert_data(engine, path2, 'Folder', path, True)
+    data_layer.insert_data(engine, path2, 'Folder', path, generation=0, first=True)
     name_txt = path2 + '.txt'
     f = open(name_txt, 'w')
     session = data_layer.get_session(engine)
@@ -73,7 +72,7 @@ def printing():
 
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
-    path = '/media/roly/Extra/Movies'
+    path = '/media/roly/Extra/Series'
     engine = ''
     if not os.path.exists('./database.db'):
         engine = data_layer.create_database()
@@ -86,12 +85,13 @@ if __name__ == '__main__':
         t3.start()
         while paint:
             sleep(0.8)
+    data_layer.insert_peer(engine)
     engine = data_layer.get_engine()
     t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(path,))
     t4.start()
+    #t5 = Thread(target=cl.broadcast, args=())
+    #t5.start()
     while 1:
-        t5 = Thread(target=cl.broadcast, args=())
-        t5.start()
         print('Enter keywords:')
         words = input()
         for item in data_layer.find_data(engine, words.split(' ')):
@@ -101,3 +101,5 @@ if __name__ == '__main__':
         end = input()
         if end.lower() == 'exit':
             break
+    t4._stop()
+    #t5.stop()

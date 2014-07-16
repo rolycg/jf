@@ -1,7 +1,9 @@
 import time
 import socket
+import uuid as uu
 
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.pool import StaticPool
 from sqlalchemy import Column, String, create_engine, ForeignKey, BigInteger, Integer
 from sqlalchemy.orm import relationship, sessionmaker, backref
 
@@ -13,11 +15,11 @@ Base = declarative_base()
 class File(Base):
     __tablename__ = 'File'
 
-    _id = Column(BigInteger, primary_key=True, autoincrement=True)
+    _id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, index=True)
     root = Column(String)
     file_type = Column(String)
-    parent_id = Column(BigInteger, ForeignKey('File._id'))
+    parent_id = Column(Integer, ForeignKey('File._id'))
     parent = relationship('File', backref=backref('child_folder', remote_side=[_id]))
     generation = Column(BigInteger)
 
@@ -35,13 +37,14 @@ class File(Base):
 
 class Metadata(Base):
     __tablename__ = 'Metadata'
+
     _id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String)
     pc_name = Column(String)
     ip_address = Column(String)
     last_generation = Column(BigInteger)
 
-    def __int__(self, uuid, pc_name, ip_address, generation=-1):
+    def __init__(self, uuid, pc_name, ip_address, generation=-1):
         self.uuid = uuid
         self.pc_name = pc_name
         self.ip_address = ip_address
@@ -53,13 +56,13 @@ class Metadata(Base):
 
 
 def create_database():
-    engine = create_engine('sqlite:///database.db')
+    engine = create_engine('sqlite:///database.db', connect_args={'check_same_thread': False}, poolclass=StaticPool)
     Base.metadata.create_all(engine)
     return engine
 
 
 def connect_database():
-    engine = create_engine('sqlite:///database.db')
+    engine = create_engine('sqlite:///database.db', connect_args={'check_same_thread': False}, poolclass=StaticPool)
     return engine
 
 
@@ -79,7 +82,7 @@ def insert_peer(engine, uuid=None, pc_name=None, ip=None):
     session = get_session(engine)
     peer = None
     if not uuid and not pc_name and not ip:
-        peer = Metadata(str(uuid.uuid4()), socket.gethostname(), '127.0.0.1')
+        peer = Metadata(str(uu.uuid4()), socket.gethostname(), '127.0.0.1')
     else:
         peer = Metadata(uuid, pc_name, ip)
     session.add(peer)
