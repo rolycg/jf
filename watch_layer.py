@@ -1,49 +1,43 @@
 from threading import Thread
-import time
 
 from pyinotify import WatchManager, ALL_EVENTS, ThreadedNotifier
 from watchdog import observers
 from watchdog.events import FileSystemEventHandler
 
-import extra_functions
 import data_layer
 
 
 class MyFileSystemWatcher(FileSystemEventHandler):
     def __init__(self):
         super(FileSystemEventHandler).__init__()
-        self.cache = []
 
     def on_created(self, event):
-        #engine = data_layer.connect_database()
+        engine = data_layer.connect_database()
+        generation = data_layer.get_max_generation() + 1
         if hasattr(event, 'dest_path'):
             path = str(event.dest_path).split('/')
         else:
             path = str(event.src_path).split('/')
         if event.is_directory:
-            #data_layer.insert_data(engine, path[len(path) - 1], 'Folder', path[len(path) - 2])
-            self.cache.append((0, path[len(path) - 1], 'Folder', path[len(path) - 2]))
+            data_layer.insert_data(engine, path[len(path) - 1], 'Folder', path[len(path) - 2], generation)
+            #extra_functions.copy_data(1, (0, path[len(path) - 1], 'Folder', path[len(path) - 2]),)
+            #self.cache.append((0, path[len(path) - 1], 'Folder', path[len(path) - 2]))
         else:
             _type = path[len(path) - 1].split('.')
             if len(_type) > 1:
                 _type = _type[len(_type) - 1]
             else:
                 _type = ''
-            #data_layer.insert_data(engine, path[len(path) - 1], _type, path[len(path) - 2])
-            self.cache.append((0, path[len(path) - 1], _type, path[len(path) - 2]))
-
-    def __delete__(self):
-        engine = data_layer.get_engine()
-        generation = extra_functions.get_max_generation() + 1
-        extra_functions.copy_data(engine, self.cache, generation)
-        print('I pass over here')
-        self.cache.clear()
+            data_layer.insert_data(engine, path[len(path) - 1], _type, path[len(path) - 2], generation)
+            #extra_functions.wite_data_in_disk(self.f, (0, path[len(path) - 1], _type, path[len(path) - 2]))
+            #self.cache.append((0, path[len(path) - 1], _type, path[len(path) - 2]))
 
     def on_deleted(self, event):
-        #engine = data_layer.connect_database()
+        engine = data_layer.connect_database()
         path = str(event.src_path).split('/')
-        #data_layer.delete_data(engine, path[len(path) - 1])
-        self.cache.append((1, path[len(path) - 1]))
+        data_layer.delete_data(engine, path[len(path) - 1])
+        #extra_functions.wite_data_in_disk(self.f, (1, path[len(path) - 1]))
+        #self.cache.append((1, path[len(path) - 1]))
 
     def on_moved(self, event):
         self.on_deleted(event)
@@ -73,7 +67,6 @@ def handle_linux_events(x):
         print('file or folder was moved from here')
     if x.mask == 128 or x.mask == 1073741952:
         print(x.pathname + 'file or folder was moved to here')
-        #print('Hola')
 
 
 def add_linux_watch(path):
@@ -89,12 +82,4 @@ def add_multi_platform_watch(path):
     watch.schedule(obj, path, recursive=True)
     t = Thread(target=watch.start)
     t.start()
-    engine = data_layer.get_engine()
-    generation = extra_functions.get_max_generation() + 1
-    while 1:
-        time.sleep(20)
-        l = obj.cache.copy()
-        obj.cache.clear()
-        s = extra_functions.copy_data(engine, l, generation)
-        if s:
-            generation += 1
+

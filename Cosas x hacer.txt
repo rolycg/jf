@@ -1,0 +1,2 @@
+** Arreglar que cuando se inicie revise si no hubo cambios en el sitema de ficheros
+*Ex: Se creo un file con el prog cerrado, o se borro, y el programa no se entera

@@ -73,7 +73,6 @@ def printing():
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
     path = '/media/roly/Extra/Series'
-    engine = ''
     if not os.path.exists('./database.db'):
         engine = data_layer.create_database()
         _queue = Queue()
@@ -85,7 +84,7 @@ if __name__ == '__main__':
         t3.start()
         while paint:
             sleep(0.8)
-    data_layer.insert_peer(engine)
+#   data_layer.insert_peer(engine)
     engine = data_layer.get_engine()
     t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(path,))
     t4.start()

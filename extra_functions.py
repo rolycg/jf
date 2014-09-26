@@ -21,8 +21,3 @@ def copy_data(engine, lista, generation):
         else:
             data_layer.delete_data(engine, x[1])
     return len(lista)
-
-
-def get_max_generation():
-    session = data_layer.get_session(data_layer.get_engine())
-    return max([x[0] for x in session.query(data_layer.File.generation).all()])

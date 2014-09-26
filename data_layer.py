@@ -12,6 +12,7 @@ engine = None
 Base = declarative_base()
 
 
+
 class File(Base):
     __tablename__ = 'File'
 
@@ -39,13 +40,13 @@ class Metadata(Base):
     __tablename__ = 'Metadata'
 
     _id = Column(Integer, primary_key=True, autoincrement=True)
-    uuid = Column(String)
+    _uuid = Column(String)
     pc_name = Column(String)
     ip_address = Column(String)
     last_generation = Column(BigInteger)
 
-    def __init__(self, uuid, pc_name, ip_address, generation=-1):
-        self.uuid = uuid
+    def __init__(self, _uuid, pc_name, ip_address, generation=-1):
+        self._uuid = _uuid
         self.pc_name = pc_name
         self.ip_address = ip_address
         self.last_generation = generation
@@ -76,6 +77,15 @@ def get_database_all_elements(engine):
 
 def get_engine():
     return engine if engine else connect_database()
+
+
+def get_max_generation():
+    session = get_session(get_engine())
+    l = [x[0] for x in session.query(File.generation).all()]
+    if len(l):
+        return max(l)
+    else:
+        return -1
 
 
 def insert_peer(engine, uuid=None, pc_name=None, ip=None):
