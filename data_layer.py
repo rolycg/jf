@@ -12,7 +12,6 @@ engine = None
 Base = declarative_base()
 
 
-
 class File(Base):
     __tablename__ = 'File'
 
@@ -34,6 +33,18 @@ class File(Base):
     def __repr__(self):
         return "<File: \n Name=’%s’,\n Type=’%s’ \n Parent: '%s'>" % (
             self.name, self.file_type, self.parent_id)
+
+
+class Login(Base):
+    __tablename__ = 'Login'
+
+    username = Column(String)
+    password = Column(String)
+
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
 
 
 class Metadata(Base):
