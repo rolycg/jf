@@ -73,8 +73,15 @@ def printing():
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
     path = '/media/roly/Extra/Series'
+    print('Username:')
+    user_name = input()
+    print('Password:')
+    password = input()
+    jump = 1
     if not os.path.exists('./database.db'):
+        jump = 0
         engine = data_layer.create_database()
+        data_layer.insert_username_password(user_name, password)
         _queue = Queue()
         t = Thread(target=dfs, args=(path, _queue))
         t.start()
@@ -84,6 +91,15 @@ if __name__ == '__main__':
         t3.start()
         while paint:
             sleep(0.8)
+    while jump:
+        u_p = data_layer.get_username_password()
+        if user_name == u_p[0].user_name and password == u_p[0].password:
+            break
+        print('Username:')
+        user_name = input()
+        print('Password:')
+        password = input()
+
 #   data_layer.insert_peer(engine)
     engine = data_layer.get_engine()
     t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(path,))

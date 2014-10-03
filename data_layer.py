@@ -38,13 +38,13 @@ class File(Base):
 class Login(Base):
     __tablename__ = 'Login'
 
+    _id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String)
     password = Column(String)
 
     def __init__(self, username, password):
         self.username = username
         self.password = password
-
 
 
 class Metadata(Base):
@@ -97,6 +97,23 @@ def get_max_generation():
         return max(l)
     else:
         return -1
+
+
+def insert_username_password(username, password):
+    engine = get_engine()
+    session = get_session(engine)
+    login = Login(username=username, password=password)
+    session.add(login)
+    session.commit()
+    session.close()
+
+
+def get_username_password():
+    engine = get_engine()
+    session = get_session(engine)
+    var = session.query(Login).all()
+    session.close()
+    return var
 
 
 def insert_peer(engine, uuid=None, pc_name=None, ip=None):
