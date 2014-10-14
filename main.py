@@ -97,8 +97,7 @@ if __name__ == '__main__':
             break
         print('Username:')
         user_name = input()
-        print('Password:')
-        password = input()
+        password = getpass.getpass()
 
 #   data_layer.insert_peer(engine)
     engine = data_layer.get_engine()
