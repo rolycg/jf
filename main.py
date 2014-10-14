@@ -3,6 +3,7 @@ from queue import Queue
 from threading import Thread
 from time import sleep
 import time
+import getpass
 
 import data_layer
 import watch_layer
@@ -75,8 +76,7 @@ if __name__ == '__main__':
     path = '/media/roly/Extra/Series'
     print('Username:')
     user_name = input()
-    print('Password:')
-    password = input()
+    password = getpass.getpass()
     jump = 1
     if not os.path.exists('./database.db'):
         jump = 0
@@ -93,7 +93,7 @@ if __name__ == '__main__':
             sleep(0.8)
     while jump:
         u_p = data_layer.get_username_password()
-        if user_name == u_p[0].user_name and password == u_p[0].password:
+        if user_name == u_p[0].username and password == u_p[0].password:
             break
         print('Username:')
         user_name = input()

@@ -5,3 +5,5 @@
 **No es necesario guardar el ip, este puede variar y ser la misma maquina
 
 **Crear la tabla de username and password
+
+**Crear los certificates
