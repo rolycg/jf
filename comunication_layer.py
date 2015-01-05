@@ -1,8 +1,6 @@
 import socket
-import ssl
 
 import data_layer
-
 import extra_functions as ef
 
 
@@ -11,24 +9,24 @@ password = 'bla2'
 
 
 def broadcast():
-    msg = b'Send your username'
+    msg = b'I am everything'
     dest = ('255.255.255.255', 10101)
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    ssl_socket = ssl.wrap_socket(s)
-    ssl_socket.sendto(msg, dest)
-    ssl_socket.settimeout(5)
+    s.sendto(msg, dest)
+    s.settimeout(5)
     while 1:
         try:
-            (buf, address) = ssl_socket.recvfrom(10104)
+            buf, address = s.recvfrom(1024)
             if not buf:
                 break
-            if buf == b'I coming':
-                checking_client(ssl_socket, address)
+            if buf == b'Mee too':
+                checking_client(s, address)
                 break
-        except ssl.socket_error:
+        except socket.error:
             break
-    start_broadcast_server()
+        except socket.timeout:
+            break
 
 
 def start_broadcast_server(port=10101):
@@ -37,26 +35,34 @@ def start_broadcast_server(port=10101):
             host = ''
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            ssl_socket = ssl.wrap_socket(s)
-            ssl_socket.bind((host, port))
+            # s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            s.bind((host, port))
+            s.timeout(15)
             while 1:
-                message, address = ssl_socket.recvfrom(10104)
+                message, address = s.recvfrom(1024)
                 if not message:
-                    ssl_socket.close()
+                    s.close()
                     break
-                if message == b'Send your username':
-                    ssl_socket.sendto(b'I coming', address)
-                    checking_server(ssl_socket, address)
-        except:
-            ssl_socket.close()
+                if message == b'I am everything':
+                    s.sendto(b'Mee too', address)
+                    checking_server(s, address)
+        except socket.error:
+            s.close()
+            print('Socket Error')
             continue
+        except socket.timeout:
+            continue
+
+
+def start():
+    while 1:
+        broadcast()
+        start_broadcast_server()
 
 
 def checking_client(sock, address):
     cipher = ef.get_cipher(password)
     sock.sendto(username.encode(), address)
-    #print('i send ' + str(username))
     answer = sock.recvfrom(100)
     if answer == b'OK':
         ran_str = ef.random_string()
@@ -101,7 +107,7 @@ def receiver(sock, address):
         data = sock.recvfrom(1024)
         if data == b'finish':
             break
-            #ver que llega a data
+            # ver que llega a data
     gen = sock.recvfrom(1024)
     session = data_layer.get_session(data_layer.get_engine())
     session.query(data_layer.Metadata).filter(data_layer.Metadata.ip_address == str(address[0])).update(

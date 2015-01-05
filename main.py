@@ -73,7 +73,7 @@ def printing():
 
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
-    path = '/media/roly/Extra/Series'
+    path = '/media/roly/Extra'
     print('Username:')
     user_name = input()
     password = getpass.getpass()
@@ -103,7 +103,7 @@ if __name__ == '__main__':
     engine = data_layer.get_engine()
     t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(path,))
     t4.start()
-    #t5 = Thread(target=cl.broadcast, args=())
+    #t5 = Thread(target=cl.connect, args=())
     #t5.start()
     while 1:
         print('Enter keywords:')

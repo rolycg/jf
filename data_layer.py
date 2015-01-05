@@ -169,6 +169,7 @@ def do_commit(session):
 
 def dynamic_insert_data(session, path, dirs, files, f, session_count, total_files, count, list_file_tmp):
     parent = list_file_tmp[path]
+    session.autoflush = False
     for x in dirs:
         tmp = File(name=x, file_type='Folder', parent=parent, generation=0)
         list_file_tmp[x] = total_files
