@@ -1,4 +1,5 @@
 import socket
+import random
 
 import data_layer
 import extra_functions as ef
@@ -49,11 +50,13 @@ def start_broadcast_server(port=10101):
                 if message == b'I am everything':
                     s.sendto(b'Mee too', address)
                     checking_server(s, address)
-        except socket.error as e:
-            s.close()
-            print('Socket Error ' + str(e))
-            continue
         except socket.timeout:
+            r = random.uniform(1, 8)
+            if r == 3:
+                break
+            continue
+        except socket.error:
+            s.close()
             continue
 
 
@@ -66,12 +69,15 @@ def start():
 def checking_client(sock, address):
     cipher = ef.get_cipher(password)
     sock.sendto(username.encode(), address)
-    answer = sock.recvfrom(100)
+    answer, _ = sock.recvfrom(100)
     if answer == b'OK':
         ran_str = ef.random_string()
-        sock.sendto(ran_str.encode(), address)
-        value = sock.recvfrom(1024)
-        if cipher.decrypt(value) == ran_str:
+        sol = cipher.encrypt(ran_str)
+        sock.settimeout(2)
+        sock.sendto(sol.enconde(), address)
+        value, _ = sock.recvfrom(1000)
+        sock.settimeout(15)
+        if cipher.decrypt(value.decode()) == ran_str:
             sock.sendto(b'OK', addr=address)
             generation = int(sock.recvfrom(1024))
             switch_data(sock, address, generation)
@@ -79,27 +85,20 @@ def checking_client(sock, address):
 
 def checking_server(sock, address):
     cipher = ef.get_cipher(password)
-    user = sock.recvfrom(1000)
-    if user == username:
+    user, _ = sock.recvfrom(1000)
+    if user.decode() == username:
         sock.sendto(b'OK', address)
-        plain_text = sock.recvfrom()
-        sol = cipher.encrypt(plain_text)
-        sock.sendto(sol.enconde(), address)
-        sock.timeout(2)
+        plain_text = sock.recvfrom(1000)
+        value = cipher.decrypt(plain_text)
+        sock.sendto(value.encode(), addr=address)
         conf = sock.recvfrom(1024)
         if conf == b'OK':
             receiver(sock, address)
-            generation = int(sock.recvfrom(1024))
-            sock.connectto(address)
-            ip = sock.getsockname()[0]
-            sender(sock, address, generation)
 
 
 def switch_data(sock, address, generation):
     sock.connectto(address)
-    ip = sock.getsockname()[0]
     sender(sock, address, generation)
-    receiver(sock, address)
 
 
 def receiver(sock, address):
