@@ -5,6 +5,7 @@ from time import sleep
 import time
 import getpass
 
+import comunication_layer as cl
 import data_layer
 import watch_layer
 
@@ -73,7 +74,7 @@ def printing():
 
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
-    path = '/media/roly/Extra'
+    path = '/media/roly/Extra/Series'
     print('Username:')
     user_name = input()
     password = getpass.getpass()
@@ -99,12 +100,12 @@ if __name__ == '__main__':
         user_name = input()
         password = getpass.getpass()
 
-#   data_layer.insert_peer(engine)
+    # data_layer.insert_peer(engine)
     engine = data_layer.get_engine()
     t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(path,))
     t4.start()
-    #t5 = Thread(target=cl.connect, args=())
-    #t5.start()
+    t5 = Thread(target=cl.start, args=())
+    t5.start()
     while 1:
         print('Enter keywords:')
         words = input()
@@ -116,4 +117,4 @@ if __name__ == '__main__':
         if end.lower() == 'exit':
             break
     t4._stop()
-    #t5.stop()
+    t5._stop()

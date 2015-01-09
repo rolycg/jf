@@ -9,24 +9,27 @@ password = 'bla2'
 
 
 def broadcast():
-    msg = b'I am everything'
-    dest = ('255.255.255.255', 10101)
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    s.sendto(msg, dest)
-    s.settimeout(5)
-    while 1:
-        try:
-            buf, address = s.recvfrom(1024)
-            if not buf:
+    try:
+        msg = b'I am everything'
+        dest = ('255.255.255.255', 10101)
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        s.sendto(msg, dest)
+        s.settimeout(5)
+        while 1:
+            try:
+                buf, address = s.recvfrom(1024)
+                if not buf:
+                    break
+                if buf == b'Mee too':
+                    checking_client(s, address)
+                    break
+            except socket.error:
                 break
-            if buf == b'Mee too':
-                checking_client(s, address)
+            except socket.timeout:
                 break
-        except socket.error:
-            break
-        except socket.timeout:
-            break
+    except OSError:
+        pass
 
 
 def start_broadcast_server(port=10101):
@@ -37,7 +40,7 @@ def start_broadcast_server(port=10101):
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             # s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             s.bind((host, port))
-            s.timeout(15)
+            s.settimeout(15)
             while 1:
                 message, address = s.recvfrom(1024)
                 if not message:
@@ -46,9 +49,9 @@ def start_broadcast_server(port=10101):
                 if message == b'I am everything':
                     s.sendto(b'Mee too', address)
                     checking_server(s, address)
-        except socket.error:
+        except socket.error as e:
             s.close()
-            print('Socket Error')
+            print('Socket Error ' + str(e))
             continue
         except socket.timeout:
             continue

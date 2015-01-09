@@ -1,6 +1,5 @@
 from threading import Thread
 
-from pyinotify import WatchManager, ALL_EVENTS, ThreadedNotifier
 from watchdog import observers
 from watchdog.events import FileSystemEventHandler
 
