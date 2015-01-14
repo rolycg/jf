@@ -26,7 +26,7 @@ def save_to_disk(engine, q, path):
     global paint
     global finished
     list_file_tmp = {}
-    path2 = path.split('/')
+    path2 = path.split(os.sep)
     path2 = path2[len(path2) - 1]
     data_layer.insert_data(engine, path2, 'Folder', path, generation=0, first=True)
     name_txt = path2 + '.txt'
@@ -38,7 +38,7 @@ def save_to_disk(engine, q, path):
     list_file_tmp[path2] = 1
     while not q.empty() or finished:
         path, dirs, files = q.get()
-        path = path.split('/')
+        path = path.split(os.sep)
         path = path[len(path) - 1]
         session, session_count, total_files, count, list_file_tmp = data_layer.dynamic_insert_data(session, path, dirs,
                                                                                                    files, f,
@@ -50,6 +50,7 @@ def save_to_disk(engine, q, path):
         f.write('Elements: ' + str(session_count) + ' time: ' + str(a) + '\n')
     paint = False
     f.write('Total time: ' + str(time.time() - total) + ' Total elements: ' + str(total_files))
+    data_layer.insert_peer(engine)
 
 
 def printing():
@@ -78,6 +79,9 @@ if __name__ == '__main__':
     print('Username:')
     user_name = input()
     password = getpass.getpass()
+    while len(password) > 32:
+        print('Password must be smaller than 32 characters')
+        password = getpass.getpass()
     jump = 1
     if not os.path.exists('./database.db'):
         jump = 0

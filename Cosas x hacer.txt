@@ -1,10 +1,9 @@
 ** Arreglar que cuando se inicie revise si no hubo cambios en el sitema de ficheros
 *Ex: Se creo un file con el prog cerrado, o se borro, y el programa no se entera !!!!!!!!!!!! No se resuelve x el momento
 
-**Probar autoflush para ver si resuelve el problema de la escritura *** No
 **Ver el error en las modificaciones de los archivos(Solo paso en la maquina de Andy) probado en la terminal
-**Arreglar communication layer
-**Rehacer data layer con sqlite
+**Arreglar communication layer ** Solo terminar de revisar
+**Rehacer data layer con sqlite ** Importante probar
 **Rehacer codigo con clases y objetos
 
 

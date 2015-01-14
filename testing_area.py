@@ -48,12 +48,18 @@ def printing():
             time.sleep(0.5)
     print('', end='\r')
 
+import  re
 
 if __name__ == '__main__':
     import socket
     cipher = AES.new('1234567891234567')
     cipher2 = AES.new('1234567891234568')
     a=cipher.encrypt('hola'*16)
+    value = ('(212,dsdadasd,asdasd,sad,asd,fsdfsdf,dfsdfsdf)')
+    elements = re.split(',+', value)
+    elements[0] = elements[0][1:]
+    elements[len(elements) - 1] = elements[len(elements) - 1][0:len(elements) - 1]
+    print(elements)
     #print(extra_functions.random_string(16))
     import uuid
     print(str(uuid.uuid4()))

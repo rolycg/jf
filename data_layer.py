@@ -113,7 +113,8 @@ def get_username_password():
     session = get_session(engine)
     var = session.query(Login).all()
     session.close()
-    return var
+    for x in var:
+        return x[0], x[1]
 
 
 def insert_peer(engine, uuid=None, pc_name=None, ip=None):

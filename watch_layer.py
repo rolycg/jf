@@ -1,5 +1,5 @@
 from threading import Thread
-
+import os
 from watchdog import observers
 from watchdog.events import FileSystemEventHandler
 
@@ -14,9 +14,9 @@ class MyFileSystemWatcher(FileSystemEventHandler):
         engine = data_layer.connect_database()
         generation = data_layer.get_max_generation() + 1
         if hasattr(event, 'dest_path'):
-            path = str(event.dest_path).split('/')
+            path = str(event.dest_path).split(os.sep)
         else:
-            path = str(event.src_path).split('/')
+            path = str(event.src_path).split(os.sep)
         if event.is_directory:
             data_layer.insert_data(engine, path[len(path) - 1], 'Folder', path[len(path) - 2], generation)
             #extra_functions.copy_data(1, (0, path[len(path) - 1], 'Folder', path[len(path) - 2]),)
@@ -33,7 +33,7 @@ class MyFileSystemWatcher(FileSystemEventHandler):
 
     def on_deleted(self, event):
         engine = data_layer.connect_database()
-        path = str(event.src_path).split('/')
+        path = str(event.src_path).split(os.sep)
         data_layer.delete_data(engine, path[len(path) - 1])
         #extra_functions.wite_data_in_disk(self.f, (1, path[len(path) - 1]))
         #self.cache.append((1, path[len(path) - 1]))
