@@ -2,8 +2,7 @@
 *Ex: Se creo un file con el prog cerrado, o se borro, y el programa no se entera !!!!!!!!!!!! No se resuelve x el momento
 
 **Ver el error en las modificaciones de los archivos(Solo paso en la maquina de Andy) probado en la terminal
-**Arreglar communication layer ** Solo terminar de revisar
-**Rehacer data layer con sqlite ** Importante probar
+**Check data layer con sqlite ** Listo pa probar
 **Rehacer codigo con clases y objetos
 
 

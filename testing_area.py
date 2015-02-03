@@ -1,6 +1,6 @@
 import os
 import time
-import data_layer
+import data_layer_old
 from Crypto.Cipher import AES
 
 
@@ -65,8 +65,8 @@ if __name__ == '__main__':
     print(str(uuid.uuid4()))
     print(socket.getfqdn())
     #print(socket.gethostbyname(socket.gethostname()))
-    session = data_layer.get_session(data_layer.connect_database())
-    generation = max(session.query(data_layer.File._id).all())
+    session = data_layer_old.get_session(data_layer_old.connect_database())
+    generation = max(session.query(data_layer_old.File._id).all())
     #path = '/media/roly/Extra/Series/'
     #try_os_path(path)
 

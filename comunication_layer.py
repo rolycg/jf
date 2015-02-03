@@ -1,13 +1,13 @@
 import socket
 import random
-import json
 import re
 
 import data_layer
+
 import extra_functions as ef
 
 
-def broadcast():
+def broadcast(data_obj):
     try:
         msg = b'I am everything'
         dest = ('255.255.255.255', 10101)
@@ -21,7 +21,7 @@ def broadcast():
                 if not buf:
                     break
                 if buf == b'Mee too':
-                    checking_client(s, address)
+                    checking_client(s, address, data_obj)
                     break
             except socket.error:
                 break
@@ -31,7 +31,7 @@ def broadcast():
         pass
 
 
-def start_broadcast_server(port=10101):
+def start_broadcast_server(data_obj, port=10101):
     while 1:
         try:
             host = ''
@@ -47,7 +47,7 @@ def start_broadcast_server(port=10101):
                     break
                 if message == b'I am everything':
                     s.sendto(b'Mee too', address)
-                    checking_server(s, address)
+                    checking_server(s, address, data_obj)
         except socket.timeout:
             r = random.uniform(1, 8)
             if r == 3:
@@ -60,12 +60,13 @@ def start_broadcast_server(port=10101):
 
 def start():
     while 1:
-        broadcast()
-        start_broadcast_server()
+        data_obj = data_layer.DataLayer('database.db')
+        broadcast(data_obj)
+        start_broadcast_server(data_obj=data_obj)
 
 
-def checking_client(sock, address):
-    username, password = data_layer.get_username_password()
+def checking_client(sock, address, data_obj):
+    username, password = data_obj.get_username_password()
     cipher = ef.get_cipher(password)
     sock.sendto(username.encode(), address)
     answer, _ = sock.recvfrom(100)
@@ -78,18 +79,14 @@ def checking_client(sock, address):
         sock.settimeout(15)
         if value.decode() == ran_str:
             sock.sendto(b'OK', address)
-            session = data_layer.get_session(data_layer.get_engine())
-            machine = session.query(data_layer.Metadata).filter(data_layer.Metadata._id == 1)
-            tmp = None
-            for x in machine:
-                tmp = x
-            sock.sendto(str(tmp._uuid).encode(), address)
+            machine = data_obj.get_uuid_from_peer()
+            sock.sendto(str(machine).encode(), address)
             generation, _ = sock.recvfrom(1024)
-            sender(sock, address, int(generation))
+            sender(sock, address, int(generation), data_obj)
 
 
-def checking_server(sock, address):
-    username, password = data_layer.get_username_password()
+def checking_server(sock, address, data_obj):
+    username, password = data_obj.get_username_password()
     cipher = ef.get_cipher(password)
     user, _ = sock.recvfrom(1000)
     if user.decode() == username:
@@ -100,54 +97,52 @@ def checking_server(sock, address):
         conf, _ = sock.recvfrom(1024)
         if conf == b'OK':
             uuid, _ = sock.recvfrom(1024)
-            receiver(sock, address, uuid)
+            receiver(sock, address, uuid, data_obj)
 
 
-def receiver(sock, address, uuid):
-    _, password = data_layer.get_username_password()
-    engine = data_layer.get_engine()
-    session = data_layer.get_session(engine)
-    gen = session.query(data_layer.Metadata).filter(data_layer.Metadata._uuid == uuid)
-    machine = None
-    for x in gen:
-        machine = x
-    if machine:
-        sock.sendto(str(machine.last_generation).encode(), address)
+def receiver(sock, address, uuid, data_obj):
+    _, password = data_obj.get_username_password()
+    # gen = session.query(data_layer_old.Metadata).filter(data_layer_old.Metadata._uuid == uuid)
+    last_generation = data_obj.get_last_generation(uuid)
+    if last_generation:
+        sock.sendto(str(last_generation).encode(), address)
     else:
-        data_layer.insert_peer(engine, uuid, socket.gethostbyname(address[0]), '127.0.0.1')
+        data_obj.insert_peer(uuid, socket.gethostbyname(address[0]), '127.0.0.1')
         sock.sendto(str(-1).encode(), address)
     cipher = ef.get_cipher(password)
     while 1:
-        data, _ = sock.recvfrom(1024)
+        data, _ = sock.recvfrom(10024)
         if data == b'finish':
             break
         else:
-            _dict = json.loads(data.decode())
-            for x in _dict.keys():
-                value = cipher.decrypt(_dict[x])
-                elements = re.split(',+', value)
-                elements[0] = elements[0][1:]
-                elements[len(elements) - 1] = elements[len(elements) - 1][0:len(elements) - 1]
-                if elements[2]:
-                    data_layer.insert_data(engine, elements[1], elements[3], elements[2], elements[6], True)
-                else:
-                    data_layer.insert_data(engine, elements[1], elements[3], elements[2], elements[6], False)
+            value = cipher.decrypt(data)
+            elements = re.split(',+', value.decode())
+            elements[0] = elements[0][1:]
+            elements[len(elements) - 1] = ef.unpad(elements[len(elements) - 1])
+            elements = [x.strip() for x in elements]
+
+            if elements[3] == '-1':
+                data_obj.insert_data(elements[0], elements[2], elements[1], elements[4], True)
+            else:
+                data_obj.insert_data(elements[0], elements[2], elements[3], elements[4], False)
     gen, _ = sock.recvfrom(1024)
-    session.query(data_layer.Metadata).filter(data_layer.Metadata._uuid == uuid).update({'last_generation': int(gen)})
+    data_obj.edit_generation(uuid, gen)
+    # session.query(data_layer_old.Metadata).filter(data_layer_old.Metadata._uuid == uuid).update(
+    # {'last_generation': int(gen)})
 
 
-def sender(sock, address, generation):
-    _, password = data_layer.get_username_password()
-    session = data_layer.get_session(data_layer.get_engine())
-    query = session.query(data_layer.File).filter(data_layer.File.generation > generation)
+def sender(sock, address, generation, data_obj):
+    _, password = data_obj.get_username_password()
+    query = data_obj.get_files(generation)
+    # session.query(data_layer_old.File).filter(data_layer_old.File.generation > generation)
     _max = -1
     cipher = ef.get_cipher(password)
-    _dict = {}
     cont = 0
     for x in query:
-        _dict[cont] = cipher.encrypt(str(x))
+        send = cipher.encrypt(ef.convert_to_str(x))
+        sock.sendto(send, address)
         cont += 1
-        _max = max(_max, x.generation)
-    sock.sendto(json.dumps(_dict).encode(), address)
+        _max = max(_max, x[5])
+
     sock.sendto(b'finish', address)
     sock.sendto(str(_max).encode(), address)

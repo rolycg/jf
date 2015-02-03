@@ -1,221 +1,131 @@
-import time
-import socket
+import sqlite3
 import uuid as uu
+import socket
+import os
 
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.pool import StaticPool
-from sqlalchemy import Column, String, create_engine, ForeignKey, BigInteger, Integer
-from sqlalchemy.orm import relationship, sessionmaker, backref
-
-
-engine = None
-Base = declarative_base()
+__author__ = 'roly'
 
 
-class File(Base):
-    __tablename__ = 'File'
+class DataLayer():
+    def __init__(self, database_url):
+        self.database_url = database_url
+        self.database = sqlite3.connect(self.database_url, check_same_thread=False)
+        self.cursor = self.database.cursor()
 
-    _id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, index=True)
-    root = Column(String)
-    file_type = Column(String)
-    parent_id = Column(Integer, ForeignKey('File._id'))
-    parent = relationship('File', backref=backref('child_folder', remote_side=[_id]))
-    generation = Column(BigInteger)
+    def create_databases(self):
+        self.cursor.execute(
+            'CREATE TABLE Login (username VARCHAR, password VARCHAR)')
+        self.cursor.execute(
+            'CREATE TABLE File (id INTEGER PRIMARY KEY AUTOINCREMENT, name_ext VARCHAR , root VARCHAR, '
+            'file_type VARCHAR, parent INTEGER REFERENCES File(id), generation  INTEGER, '
+            'machine VARCHAR REFERENCES Metadata(uuid))')
+        self.cursor.execute('CREATE INDEX name_index ON  File (name_ext)')
+        self.cursor.execute(
+            'CREATE TABLE Metadata (uuid VARCHAR, pc_name VARCHAR, last_generation INTEGER, own INTEGER)')
+        self.database.commit()
 
-    def __init__(self, name, file_type, parent, generation, root=None):
-        self.name = name
-        self.parent_id = parent
-        self.file_type = file_type
-        self.root = root
-        self.generation = generation
+    def get_last_generation(self, uuid):
+        for value in self.cursor.execute('SELECT last_generation FROM Metadata WHERE uuid =?', (uuid,)):
+            return value[0]
 
-    def __repr__(self):
-        return "<File: \n Name=’%s’,\n Type=’%s’ \n Parent: '%s'>" % (
-            self.name, self.file_type, self.parent_id)
+    def get_all_databases_elements(self, table):
+        execute = 'SELECT * FROM ' + table
+        self.cursor.execute(execute)
+        return self.cursor
 
+    def get_max_generation(self):
+        for value in self.cursor.execute('SELECT max(generation) FROM File'):
+            return value[0]
 
-class Login(Base):
-    __tablename__ = 'Login'
+    def insert_username_password(self, username, password):
+        self.cursor.execute('INSERT INTO Login VALUES (?,?)', (username, password))
+        self.database.commit()
 
-    _id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String)
-    password = Column(String)
+    def get_username_password(self):
+        for value, value2 in self.cursor.execute('SELECT username, password FROM Login'):
+            return value, value2
 
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
+    def get_files(self, generation):
+        return self.cursor.execute('SELECT * FROM File WHERE genration>?', (generation,))
 
+    def insert_peer(self, uuid=None, pc_name=None, ip=None):
+        if not uuid and not pc_name and not ip:
+            self.cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?)',
+                                (str(uu.uuid4()), socket.gethostname(), -1, 1))
+        else:
+            self.cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?)',
+                                (str(uuid), pc_name, ip, 0))
+        self.database.commit()
 
-class Metadata(Base):
-    __tablename__ = 'Metadata'
+    def edit_generation(self, uuid, generation):
+        # execute = 'UPDATE Metadata SET last_generation = '' + str(generation) + ' WHERE uuid = ' + str(uuid)
+        self.cursor.execute('UPDATE Metadata SET last_generation = ?   WHERE uuid = ?', (generation, str(uuid)))
+        self.database.commit()
 
-    _id = Column(Integer, primary_key=True, autoincrement=True)
-    _uuid = Column(String)
-    pc_name = Column(String)
-    ip_address = Column(String)
-    last_generation = Column(BigInteger)
+    def get_uuid_from_peer(self, owner=1):
+        for value in self.cursor.execute('SELECT uuid FROM Metadata WHERE own =?', (owner,)):
+            return value[0]
 
-    def __init__(self, _uuid, pc_name, ip_address, generation=-1):
-        self._uuid = _uuid
-        self.pc_name = pc_name
-        self.ip_address = ip_address
-        self.last_generation = generation
+    def insert_file(self, file_name, parent, file_type, root, generation, peer):
+        self.cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?)',
+                            (None, file_name, root, file_type, parent, generation, peer))
 
-    def __repr__(self):
-        return "<Metadata: \n PC Name=’%s’,\n IP=’%s’>" % (
-            self.pc_name, self.ip_address)
+    def insert_data(self, file_name, file_type, parent, generation, peer=None, first=False):
+        if not first:
+            paren = None
+            for value in self.cursor.execute('SELECT * FROM File WHERE name_ext=? AND machine=?', (parent, peer)):
+                paren = value
+                break
+            self.insert_file(file_name, paren[0], file_type, '', generation, peer)
+        else:
+            self.insert_file(file_name, -1, file_type, parent, generation, peer)
+        self.database.commit()
 
+    def delete_data(self, name):
+        peer = self.get_uuid_from_peer()
+        self.cursor.execute('DELETE FROM File WHERE name_ext=? AND machine = ?', (name, peer))
+        self.database.commit()
 
-def create_database():
-    engine = create_engine('sqlite:///database.db', connect_args={'check_same_thread': False}, poolclass=StaticPool)
-    Base.metadata.create_all(engine)
-    return engine
+    def dynamic_insert_data(self, path, dirs, files, session_count, total_files, count, list_file_tmp, peer):
+        parent = list_file_tmp[path]
+        for dir in dirs:
+            self.insert_file(dir, parent=parent, file_type='Folder', generation=0, root='', peer=peer)
+            list_file_tmp[dir] = total_files
+            total_files += 1
+        for file in files:
+            _type = file.split('.')
+            self.insert_file(file_name=file, file_type='File: ' + _type[len(_type) - 1], parent=parent, generation=0,
+                             root='', peer=peer)
+            total_files += 1
+        return session_count, total_files, count, list_file_tmp
 
+    def get_element(self, item, peer):
+        for x in self.cursor.execute('SELECT * FROM File WHERE id=? AND machine=?', (item, peer)):
+            return x
 
-def connect_database():
-    engine = create_engine('sqlite:///database.db', connect_args={'check_same_thread': False}, poolclass=StaticPool)
-    return engine
+    def get_address(self, item, peer):
+        item = self.get_element(item, peer)
+        address = ''
+        while 1:
+            if item[4] == -1:
+                break
+            address += str(item[1]) + os.sep + address
+            item = self.get_element(item[4], item[6])
+            if item[2]:
+                address = str(item[2]) + os.sep + address
+        return address[:len(address) - 1]
 
+    def find_data(self, word_list):
+        return self.cursor.execute('SELECT * FROM File WHERE name_ext LIKE ?', ('%' + word_list[0] + '%',))
 
-def get_database_all_elements(engine):
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    var = session.query(File).all()
-    session.close()
-    return var
-
-
-def get_engine():
-    return engine if engine else connect_database()
-
-
-def get_max_generation():
-    session = get_session(get_engine())
-    l = [x[0] for x in session.query(File.generation).all()]
-    if len(l):
-        return max(l)
-    else:
-        return -1
-
-
-def insert_username_password(username, password):
-    engine = get_engine()
-    session = get_session(engine)
-    login = Login(username=username, password=password)
-    session.add(login)
-    session.commit()
-    session.close()
-
-
-def get_username_password():
-    engine = get_engine()
-    session = get_session(engine)
-    var = session.query(Login).all()
-    session.close()
-    for x in var:
-        return x[0], x[1]
-
-
-def insert_peer(engine, uuid=None, pc_name=None, ip=None):
-    session = get_session(engine)
-    peer = None
-    if not uuid and not pc_name and not ip:
-        peer = Metadata(str(uu.uuid4()), socket.gethostname(), '127.0.0.1')
-    else:
-        peer = Metadata(uuid, pc_name, ip)
-    session.add(peer)
-    session.commit()
-    session.close()
-
-
-def edit_generation(engine, uuid, generation):
-    session = get_session(engine)
-    session.query(Metadata).filter(uuid).update({'last_generation': generation})
-    session.commit()
-    session.close()
+    def get_peer_from_uuid(self, name):
+        for value in self.cursor.execute('SELECT pc_name FROM Metadata WHERE uuid == ?', (name,)):
+            return value[0]
 
 
-def insert_data(engine, file_name, file_type, paren, generation, first=False):
-    session = get_session(engine)
-    if not first:
-        parent = None
-        for x in session.query(File).filter_by(name=paren):
-            parent = x
-        tmp = File(name=file_name, file_type=file_type, parent=parent._id, generation=generation)
-    else:
-        tmp = File(name=file_name, file_type=file_type, parent=-1, root=paren, generation=generation)
-    session.add(tmp)
-    session.commit()
-    session.close()
+if __name__ == '__main__':
+    data = DataLayer('database.db')
+    print(data.get_last_generation(data.get_uuid_from_peer()))
 
-
-def delete_data(engine, file_name):
-    session = get_session(engine)
-    session.query(File).filter_by(name=file_name).delete()
-    session.commit()
-    session.close()
-
-
-def get_session(engine):
-    Session = sessionmaker(bind=engine)
-    return Session()
-
-
-def do_commit(session):
-    time1 = time.time()
-    session.commit()
-    return time.time() - time1
-
-
-def dynamic_insert_data(session, path, dirs, files, f, session_count, total_files, count, list_file_tmp):
-    parent = list_file_tmp[path]
-    session.autoflush = False
-    for x in dirs:
-        tmp = File(name=x, file_type='Folder', parent=parent, generation=0)
-        list_file_tmp[x] = total_files
-        session.add(tmp)
-        total_files += 1
-        session_count = len(session.new)
-        if session_count == count:
-            a = do_commit(session)
-            f.write('Elements: ' + str(session_count) + ' time: ' + str(a) + ' prop: ' + str(a / count) + ' prop2: '
-                    + str(count / a) + '\n')
-            count += 1
-            session_count = 0
-    for x in files:
-        _type = x.split('.')
-        tmp = File(name=x, file_type='File: ' + _type[len(_type) - 1], parent=parent, generation=0)
-        total_files += 1
-        session.add(tmp)
-        session_count = len(session.new)
-        if session_count == count:
-            a = do_commit(session)
-            f.write('Elements: ' + str(session_count) + ' time: ' + str(a) + ' prop: ' + str(a / count) + ' prop2: '
-                    + str(count / a) + '\n')
-            count += 1
-            session_count = 0
-    return session, session_count, total_files, count, list_file_tmp
-
-
-def get_address(engine, item):
-    address = ''
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    while 1:
-        if item.parent_id == -1:
-            break
-        address = str(item.name) + '/' + address
-        item = session.query(File).filter_by(_id=item.parent_id).first()
-    if item.root:
-        address = str(item.root) + '/' + address
-    return address[:len(address) - 1]
-
-
-def find_data(engine, words_list):
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    a = session.query(File).filter(File.name.like('%' + words_list[0] + '%'))
-    return a
 
 
