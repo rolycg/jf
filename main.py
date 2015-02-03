@@ -6,7 +6,6 @@ import time
 import getpass
 
 import watch_layer
-
 import data_layer as data_layer_py
 
 
@@ -39,13 +38,14 @@ def save_to_disk(engine, q, path):
     list_file_tmp[path2] = 1
     while not q.empty() or finished:
         path, dirs, files = q.get()
+        complete_path = path
         path = path.split(os.sep)
         path = path[len(path) - 1]
-        session_count, total_files, count, list_file_tmp = data_layer.dynamic_insert_data(path, dirs, files,
-                                                                                          session_count,
-                                                                                          total_files, count,
-                                                                                          list_file_tmp,
-                                                                                          peer=peer)
+        session_count, total_files, count = data_layer.dynamic_insert_data(path, dirs, files,
+                                                                           session_count,
+                                                                           total_files, count,
+                                                                           complete_path,
+                                                                           peer=peer)
     if session_count > 0:
         pass
         # a = data_layer.do_commit(session)
@@ -77,7 +77,7 @@ def printing():
 
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
-    path = '/media/roly/Extra/Series'
+    path = '/media/roly/Extra/Installs'
     print('Username:')
     user_name = input()
     password = getpass.getpass()
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(path,))
     t4.start()
     # t5 = Thread(target=cl.start, args=())
-    #t5.start()
+    # t5.start()
     data_layer_2 = data_layer_py.DataLayer('database.db')
     while 1:
         print('Enter keywords:')

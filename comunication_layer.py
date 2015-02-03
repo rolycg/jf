@@ -3,7 +3,6 @@ import random
 import re
 
 import data_layer
-
 import extra_functions as ef
 
 
@@ -122,27 +121,27 @@ def receiver(sock, address, uuid, data_obj):
             elements = [x.strip() for x in elements]
 
             if elements[3] == '-1':
-                data_obj.insert_data(elements[0], elements[2], elements[1], elements[4], True)
+                data_obj.insert_data(elements[0], elements[2], elements[1], elements[4], elements[5], True)
             else:
-                data_obj.insert_data(elements[0], elements[2], elements[3], elements[4], False)
-    gen, _ = sock.recvfrom(1024)
-    data_obj.edit_generation(uuid, gen)
-    # session.query(data_layer_old.Metadata).filter(data_layer_old.Metadata._uuid == uuid).update(
-    # {'last_generation': int(gen)})
+                data_obj.insert_data(elements[0], elements[2], elements[3], elements[4], elements[5], False)
+        gen, _ = sock.recvfrom(1024)
+        data_obj.edit_generation(uuid, gen)
+        # session.query(data_layer_old.Metadata).filter(data_layer_old.Metadata._uuid == uuid).update(
+        # {'last_generation': int(gen)})
 
 
-def sender(sock, address, generation, data_obj):
-    _, password = data_obj.get_username_password()
-    query = data_obj.get_files(generation)
-    # session.query(data_layer_old.File).filter(data_layer_old.File.generation > generation)
-    _max = -1
-    cipher = ef.get_cipher(password)
-    cont = 0
-    for x in query:
-        send = cipher.encrypt(ef.convert_to_str(x))
-        sock.sendto(send, address)
-        cont += 1
-        _max = max(_max, x[5])
+    def sender(sock, address, generation, data_obj):
+        _, password = data_obj.get_username_password()
+        query = data_obj.get_files(generation)
+        # session.query(data_layer_old.File).filter(data_layer_old.File.generation > generation)
+        _max = -1
+        cipher = ef.get_cipher(password)
+        cont = 0
+        for x in query:
+            send = cipher.encrypt(ef.convert_to_str(x))
+            sock.sendto(send, address)
+            cont += 1
+            _max = max(_max, x[5])
 
-    sock.sendto(b'finish', address)
-    sock.sendto(str(_max).encode(), address)
+        sock.sendto(b'finish', address)
+        sock.sendto(str(_max).encode(), address)

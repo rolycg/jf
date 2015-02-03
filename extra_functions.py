@@ -3,7 +3,7 @@ import random
 
 from Crypto.Cipher import AES
 
-import data_layer_old
+import data_layer
 
 
 def random_string(length=16):
@@ -43,12 +43,23 @@ def get_cipher(password):
     return aes
 
 
-def copy_data(engine, lista, generation):
-    for x in lista:
-        if not x[0]:
-            data_layer_old.insert_data(engine, x[1], x[2], x[3], generation=generation)
-        else:
-            data_layer_old.delete_data(engine, x[1])
-    return len(lista)
+def check_paths(list_parents, real_path, peer):
+    data_obj = data_layer.DataLayer('database.db')
+    for j in range(0, len(real_path)):
+        path = real_path[j]
+        tmp = []
+        for i in range(0, len(list_parents)):
+            if path != list_parents[i]:
+                list_parents.remove(i)
+            else:
+                for x in data_obj.cursor.execute('SELECT * FROM File WHERE name_ext=? AND machine=?',
+                                                 (list_parents[i], peer)):
+                    tmp.append(x[1])
+
+        if len(list_parents) == 1:
+            return list_parents[0]
+        list_parents = tmp
+
+
 
 

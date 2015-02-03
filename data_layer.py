@@ -3,6 +3,7 @@ import uuid as uu
 import socket
 import os
 
+
 __author__ = 'roly'
 
 
@@ -70,13 +71,12 @@ class DataLayer():
         self.cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?)',
                             (None, file_name, root, file_type, parent, generation, peer))
 
-    def insert_data(self, file_name, file_type, parent, generation, peer=None, first=False):
-        if not first:
-            paren = None
-            for value in self.cursor.execute('SELECT * FROM File WHERE name_ext=? AND machine=?', (parent, peer)):
-                paren = value
-                break
-            self.insert_file(file_name, paren[0], file_type, '', generation, peer)
+    def insert_data(self, file_name, file_type, parent, generation, peer=None, first=False, real_path=None):
+        if not first and real_path:
+            paren = self.get_parent(parent, real_path, peer)
+            self.insert_file(file_name, paren, file_type, '', generation, peer)
+        elif not real_path and not first:
+            self.insert_file(file_name, parent, file_type, '', generation, peer)
         else:
             self.insert_file(file_name, -1, file_type, parent, generation, peer)
         self.database.commit()
@@ -86,18 +86,30 @@ class DataLayer():
         self.cursor.execute('DELETE FROM File WHERE name_ext=? AND machine = ?', (name, peer))
         self.database.commit()
 
-    def dynamic_insert_data(self, path, dirs, files, session_count, total_files, count, list_file_tmp, peer):
-        parent = list_file_tmp[path]
+    def get_parent(self, path, real_path, peer):
+        tmp = []
+        for value in self.cursor.execute('SELECT * FROM File WHERE name_ext=? AND machine=?', (path, peer)):
+            tmp.append(value)
+        if len(tmp) > 1:
+            real_paths = [self.get_address(x[0], peer) for x in tmp]
+            for x in range(len(real_paths) - 1, -1, -1):
+                if real_paths[x] == real_path:
+                    return tmp[x][0]
+            raise Exception('Error')
+        else:
+            return tmp[0][0]
+
+    def dynamic_insert_data(self, path, dirs, files, session_count, total_files, count, real_path, peer):
+        parent = self.get_parent(path, real_path, peer)
         for dir in dirs:
             self.insert_file(dir, parent=parent, file_type='Folder', generation=0, root='', peer=peer)
-            list_file_tmp[dir] = total_files
             total_files += 1
         for file in files:
             _type = file.split('.')
             self.insert_file(file_name=file, file_type='File: ' + _type[len(_type) - 1], parent=parent, generation=0,
                              root='', peer=peer)
             total_files += 1
-        return session_count, total_files, count, list_file_tmp
+        return session_count, total_files, count
 
     def get_element(self, item, peer):
         for x in self.cursor.execute('SELECT * FROM File WHERE id=? AND machine=?', (item, peer)):
@@ -109,7 +121,7 @@ class DataLayer():
         while 1:
             if item[4] == -1:
                 break
-            address += str(item[1]) + os.sep + address
+            address = str(item[1]) + os.sep + address
             item = self.get_element(item[4], item[6])
             if item[2]:
                 address = str(item[2]) + os.sep + address
