@@ -3,7 +3,10 @@
 
 **Ver el error en las modificaciones de los archivos(Solo paso en la maquina de Andy) probado en la terminal
 **Arreglar:
-*Direcciones problemas con los padres Ex: mama\Series\ y Series
+* Algoritmo para obtener el camino al padre verdadero
+* Algoritmo para obtner los resultados de otras maquinas q yo tengo guardados
+* Crear una cache para los ficheros agregados por el watcher
+* Ver como quitar el database is locked en python sqlite
 **Rehacer codigo con clases y objetos
 
 

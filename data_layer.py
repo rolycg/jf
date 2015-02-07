@@ -46,20 +46,25 @@ class DataLayer():
         for value, value2 in self.cursor.execute('SELECT username, password FROM Login'):
             return value, value2
 
-    def get_files(self, generation):
-        return self.cursor.execute('SELECT * FROM File WHERE genration>?', (generation,))
+    def get_files(self, generation, peer):
+        return self.cursor.execute('SELECT * FROM File WHERE generation>=? AND machine=?', (generation, peer))
 
-    def insert_peer(self, uuid=None, pc_name=None, ip=None):
-        if not uuid and not pc_name and not ip:
+    def insert_peer(self, uuid=None, pc_name=None):
+        if not uuid and not pc_name:
             self.cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?)',
                                 (str(uu.uuid4()), socket.gethostname(), -1, 1))
         else:
-            self.cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?)',
-                                (str(uuid), pc_name, ip, 0))
+            try:
+                self.cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?)',
+                                    (uuid.decode(), pc_name, -1, 0))
+            except AttributeError:
+                self.cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?)',
+                                    (str(uuid), pc_name, -1, 0))
         self.database.commit()
 
     def edit_generation(self, uuid, generation):
         # execute = 'UPDATE Metadata SET last_generation = '' + str(generation) + ' WHERE uuid = ' + str(uuid)
+        generation = int(generation) + 1
         self.cursor.execute('UPDATE Metadata SET last_generation = ?   WHERE uuid = ?', (generation, str(uuid)))
         self.database.commit()
 
@@ -79,7 +84,7 @@ class DataLayer():
             self.insert_file(file_name, parent, file_type, '', generation, peer)
         else:
             self.insert_file(file_name, -1, file_type, parent, generation, peer)
-        self.database.commit()
+            # self.database.commit()
 
     def delete_data(self, name):
         peer = self.get_uuid_from_peer()

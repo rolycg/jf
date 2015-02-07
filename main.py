@@ -5,6 +5,7 @@ from time import sleep
 import time
 import getpass
 
+import comunication_layer as cl
 import watch_layer
 import data_layer as data_layer_py
 
@@ -77,7 +78,7 @@ def printing():
 
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
-    path = '/media/roly/Extra/Installs'
+    path = '/media/roly/Extra/Work 2'
     print('Username:')
     user_name = input()
     password = getpass.getpass()
@@ -111,17 +112,16 @@ if __name__ == '__main__':
         password = getpass.getpass()
     t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(path,))
     t4.start()
-    # t5 = Thread(target=cl.start, args=())
-    # t5.start()
+    t5 = Thread(target=cl.start, args=())
+    t5.start()
     data_layer_2 = data_layer_py.DataLayer('database.db')
     while 1:
         print('Enter keywords:')
         words = input()
         for item in data_layer.find_data(words.split()):
             print('>Name: ' + str(item[1]) + '\n' + '>File Type: ' + str(item[3]) + '\n' + '>Address: '
-                  + str(
-                data_layer_2.get_address(item[0], item[6])) + '\n' + '>Machine: ' + data_layer_2.get_peer_from_uuid(
-                item[6]) + '\n')
+                  + str(data_layer_2.get_address(item[0], item[6])) + '\n' + '>Machine: ' +
+                  data_layer_2.get_peer_from_uuid(item[6]) + '\n')
         print('Press any key for continue or write exit to finish')
         end = input()
         if end.lower() == 'exit':

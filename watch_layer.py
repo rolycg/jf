@@ -31,12 +31,11 @@ class MyFileSystemWatcher(FileSystemEventHandler):
                                       generation, peer=self.data_obj.get_uuid_from_peer())
             # extra_functions.wite_data_in_disk(self.f, (0, path[len(path) - 1], _type, path[len(path) - 2]))
             # self.cache.append((0, path[len(path) - 1], _type, path[len(path) - 2]))
+        self.data_obj.database.commit()
 
     def on_deleted(self, event):
         path = str(event.src_path).split(os.sep)
         self.data_obj.delete_data(path[len(path) - 1])
-            # extra_functions.wite_data_in_disk(self.f, (1, path[len(path) - 1]))
-            # self.cache.append((1, path[len(path) - 1]))
 
     def on_moved(self, event):
         self.on_deleted(event)
