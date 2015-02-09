@@ -5,7 +5,6 @@ from threading import Semaphore
 from watchdog import observers
 from watchdog.events import FileSystemEventHandler
 
-import data_layer
 import extra_functions
 
 
@@ -91,8 +90,9 @@ class MyFileSystemWatcher(FileSystemEventHandler):
 # watch.add_watch(path, ALL_EVENTS, lambda x: handle_linux_events(x), True, True, quiet=True)
 
 
-def add_multi_platform_watch(path):
-    data_obj = data_layer.DataLayer('database.db')
+def add_multi_platform_watch(path, data_obj_param):
+    # data_obj = data_layer.DataLayer('database.db')
+    data_obj = data_obj_param
     watch = observers.Observer()
     obj = MyFileSystemWatcher(data_obj)
     watch.schedule(obj, path, recursive=True)

@@ -31,8 +31,6 @@ def save_to_disk(engine, q, path):
     engine.insert_peer()
     peer = engine.get_uuid_from_peer()
     engine.insert_data(file_name=path2, file_type='Folder', parent=path, generation=0, first=True, peer=peer)
-    name_txt = path2 + '.txt'
-    f = open(name_txt, 'w')
     count = 1
     total_files = 2
     session_count = 0
@@ -110,9 +108,9 @@ if __name__ == '__main__':
         print('Username:')
         user_name = input()
         password = getpass.getpass()
-    t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(path,))
+    t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(path, data_layer))
     t4.start()
-    t5 = Thread(target=cl.start, args=())
+    t5 = Thread(target=cl.start, args=(data_layer,))
     t5.start()
     data_layer_2 = data_layer_py.DataLayer('database.db')
     while 1:

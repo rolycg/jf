@@ -2,8 +2,6 @@ import socket
 import random
 import re
 
-import data_layer
-
 import extra_functions as ef
 
 
@@ -58,9 +56,10 @@ def start_broadcast_server(data_obj, port=10101):
             continue
 
 
-def start():
+def start(data_obj_param):
     while 1:
-        data_obj = data_layer.DataLayer('database.db')
+        # data_obj = data_layer.DataLayer('database.db')
+        data_obj = data_obj_param
         broadcast(data_obj)
         start_broadcast_server(data_obj=data_obj)
 
