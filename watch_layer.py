@@ -6,6 +6,7 @@ from watchdog import observers
 from watchdog.events import FileSystemEventHandler
 
 import data_layer
+import extra_functions
 
 
 semaphore = Semaphore()
@@ -20,13 +21,13 @@ class MyFileSystemWatcher(FileSystemEventHandler):
     def on_created(self, event):
         generation = self.data_obj.get_max_generation() + 1
         if hasattr(event, 'dest_path'):
-            path = str(event.dest_path).split(os.sep)
+            path = extra_functions.split_paths(event.src_path)
         else:
-            path = str(event.src_path).split(os.sep)
+            path = extra_functions.split_paths(event.src_path)
         if event.is_directory:
             with semaphore:
                 cache.append(('created', path[len(path) - 1], 'Folder', path[len(path) - 2], generation,
-                              self.data_obj.get_uuid_from_peer(), event.src_path))
+                              self.data_obj.get_uuid_from_peer(), os.path.join(*path[:len(path) - 1])))
 
                 # self.data_obj.insert_data(path[len(path) - 1], 'Folder', path[len(path) - 2], generation,
                 # peer=self.data_obj.get_uuid_from_peer())
@@ -40,17 +41,17 @@ class MyFileSystemWatcher(FileSystemEventHandler):
                 _type = ''
             with semaphore:
                 cache.append(('created', path[len(path) - 1], _type, path[len(path) - 2],
-                              generation, self.data_obj.get_uuid_from_peer(), event.src_path))
+                              generation, self.data_obj.get_uuid_from_peer(), os.path.join(*path[:len(path) - 1])))
                 # self.data_obj.insert_data(path[len(path) - 1], _type, path[len(path) - 2],
                 # generation, peer=self.data_obj.get_uuid_from_peer())
                 # extra_functions.wite_data_in_disk(self.f, (0, path[len(path) - 1], _type, path[len(path) - 2]))
                 # self.cache.append((0, path[len(path) - 1], _type, path[len(path) - 2]))
-        #self.data_obj.database.commit()
+                # self.data_obj.database.commit()
 
     def on_deleted(self, event):
-        path = str(event.src_path).split(os.sep)
+        path = extra_functions.split_paths(event.src_path)
         with semaphore:
-            cache.append(('deleted', path[len(path) - 1]))
+            cache.append(('deleted', path[len(path) - 1], os.path.join(*path[:len(path) - 1])))
             # self.data_obj.delete_data(path[len(path) - 1])
 
     def on_moved(self, event):
@@ -79,15 +80,15 @@ class MyFileSystemWatcher(FileSystemEventHandler):
 # print('folder was deleted')
 # if x.mask == 64 or x.mask == 1073741888:
 # print('file or folder was moved from here')
-#         if x.mask == 128 or x.mask == 1073741952:
-#             print(x.pathname + 'file or folder was moved to here')
+# if x.mask == 128 or x.mask == 1073741952:
+# print(x.pathname + 'file or folder was moved to here')
 
 
 # def add_linux_watch(path):
-#     watch = WatchManager()
-#     t = ThreadedNotifier(watch)
-#     t.start()
-#     watch.add_watch(path, ALL_EVENTS, lambda x: handle_linux_events(x), True, True, quiet=True)
+# watch = WatchManager()
+# t = ThreadedNotifier(watch)
+# t.start()
+# watch.add_watch(path, ALL_EVENTS, lambda x: handle_linux_events(x), True, True, quiet=True)
 
 
 def add_multi_platform_watch(path):
@@ -103,7 +104,8 @@ def add_multi_platform_watch(path):
                 if x[0] == 'created':
                     data_obj.insert_data(x[1], x[2], x[3], x[4], x[5], real_path=x[6])
                 else:
-                    data_obj.delete_data(x[1])
+                    data_obj.delete_data(x[1], x[2])
+            cache.clear()
             data_obj.database.commit()
 
 

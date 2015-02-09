@@ -1,5 +1,6 @@
 import string
 import random
+import os
 
 from Crypto.Cipher import AES
 
@@ -59,6 +60,13 @@ def check_paths(list_parents, real_path, peer):
         if len(list_parents) == 1:
             return list_parents[0]
         list_parents = tmp
+
+
+def split_paths(path):
+    tmp = path.decode().split(os.sep)
+    if not tmp[0]:
+        tmp[0] = os.sep
+    return tmp
 
 
 

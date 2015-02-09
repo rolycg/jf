@@ -86,10 +86,11 @@ class DataLayer():
             self.insert_file(file_name, -1, file_type, parent, generation, peer)
             # self.database.commit()
 
-    def delete_data(self, name):
+    def delete_data(self, name, real_path):
         peer = self.get_uuid_from_peer()
-        self.cursor.execute('DELETE FROM File WHERE name_ext=? AND machine = ?', (name, peer))
-        #self.database.commit()
+        parent = self.get_parent(name, real_path, peer)
+        self.cursor.execute('DELETE FROM File WHERE name_ext=? AND parent=? AND machine = ?', (name, parent, peer))
+        # self.database.commit()
 
     def get_parent(self, path, real_path, peer):
         tmp = []
