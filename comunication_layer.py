@@ -119,7 +119,6 @@ def receiver(sock, address, uuid, data_obj):
             elements = re.split('\\?+', value.decode())
             elements[0] = elements[0][1:]
             elements[len(elements) - 1] = ef.unpad(elements[len(elements) - 1])
-            print(str(elements))
             elements = [x.strip() for x in elements]
 
             if elements[4] == '-1':

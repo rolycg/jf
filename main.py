@@ -78,7 +78,7 @@ def printing():
 
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
-    path = '/media/roly/Extra/Work 2'
+    path = '/media/roly/Extra/Series'
     print('Username:')
     user_name = input()
     password = getpass.getpass()

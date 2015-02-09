@@ -89,7 +89,7 @@ class DataLayer():
     def delete_data(self, name):
         peer = self.get_uuid_from_peer()
         self.cursor.execute('DELETE FROM File WHERE name_ext=? AND machine = ?', (name, peer))
-        self.database.commit()
+        #self.database.commit()
 
     def get_parent(self, path, real_path, peer):
         tmp = []
