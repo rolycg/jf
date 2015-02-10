@@ -1,7 +1,7 @@
 import socket
 import random
 import re
-
+import data_layer
 import extra_functions as ef
 
 
@@ -56,10 +56,9 @@ def start_broadcast_server(data_obj, port=10101):
             continue
 
 
-def start(data_obj_param):
+def start():
     while 1:
-        # data_obj = data_layer.DataLayer('database.db')
-        data_obj = data_obj_param
+        data_obj = data_layer.DataLayer('database.db')
         broadcast(data_obj)
         start_broadcast_server(data_obj=data_obj)
 
@@ -121,9 +120,9 @@ def receiver(sock, address, uuid, data_obj):
             elements = [x.strip() for x in elements]
 
             if elements[4] == '-1':
-                data_obj.insert_data(elements[1], elements[3], elements[2], elements[5], elements[6], True)
+                data_obj.insert_data(elements[1], elements[2], elements[4], elements[3], elements[6], elements[7], True)
             else:
-                data_obj.insert_data(elements[1], elements[3], elements[4], elements[5], elements[6], False)
+                data_obj.insert_data(elements[1], elements[2], elements[4], elements[4], elements[6], elements[7], False)
     data_obj.database.commit()
     gen, _ = sock.recvfrom(1024)
     data_obj.edit_generation(uuid, gen.decode())

@@ -6,6 +6,7 @@ import time
 import getpass
 
 import comunication_layer as cl
+import extra_functions as ef
 import watch_layer
 import data_layer as data_layer_py
 
@@ -30,7 +31,7 @@ def save_to_disk(engine, q, path):
     path2 = path2[len(path2) - 1]
     engine.insert_peer()
     peer = engine.get_uuid_from_peer()
-    engine.insert_data(file_name=path2, file_type='Folder', parent=path, generation=0, first=True, peer=peer)
+    engine.insert_data(id=1, file_name=path2, file_type='Folder', parent=path, generation=0, first=True, peer=peer)
     count = 1
     total_files = 2
     session_count = 0
@@ -76,7 +77,8 @@ def printing():
 
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
-    path = '/media/roly/Extra/Series'
+    path = ef.get_initials_paths()
+    #path = '/'
     print('Username:')
     user_name = input()
     password = getpass.getpass()
@@ -108,18 +110,18 @@ if __name__ == '__main__':
         print('Username:')
         user_name = input()
         password = getpass.getpass()
-    t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(path, data_layer))
-    t4.start()
-    t5 = Thread(target=cl.start, args=(data_layer,))
+    #t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(path,))
+    #t4.start()
+    t5 = Thread(target=cl.start, args=())
     t5.start()
     data_layer_2 = data_layer_py.DataLayer('database.db')
     while 1:
         print('Enter keywords:')
         words = input()
         for item in data_layer.find_data(words.split()):
-            print('>Name: ' + str(item[1]) + '\n' + '>File Type: ' + str(item[3]) + '\n' + '>Address: '
-                  + str(data_layer_2.get_address(item[0], item[6])) + '\n' + '>Machine: ' +
-                  data_layer_2.get_peer_from_uuid(item[6]) + '\n')
+            print('>Name: ' + str(item[2]) + '\n' + '>File Type: ' + str(item[4]) + '\n' + '>Address: '
+                  + str(data_layer_2.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
+                  data_layer_2.get_peer_from_uuid(item[7]) + '\n')
         print('Press any key for continue or write exit to finish')
         end = input()
         if end.lower() == 'exit':

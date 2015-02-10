@@ -1,6 +1,7 @@
 import string
 import random
 import os
+import sys
 
 from Crypto.Cipher import AES
 
@@ -69,5 +70,32 @@ def split_paths(path):
     return tmp
 
 
+class Cache():
+    def __init__(self, limit=1000):
+        self.limit = limit
+        self.cache = []
+
+    def append(self, element):
+        if len(self.cache) <= self.limit:
+            self.cache.append(element)
+
+    def __getitem__(self, item):
+        return self.cache[item]
+
+    def clear(self):
+        self.cache.clear()
+
+    def __iter__(self):
+        return self.cache.__iter__()
 
 
+def get_initials_paths():
+    o_s = sys.platform
+    if o_s == 'linux':
+        return ['/']
+    elif o_s == 'win32':
+        return ['']
+    elif o_s == 'darwin':
+        return ['/']
+if __name__ == '__main__':
+    print(sys.platform)

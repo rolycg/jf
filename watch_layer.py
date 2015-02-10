@@ -5,11 +5,12 @@ from threading import Semaphore
 from watchdog import observers
 from watchdog.events import FileSystemEventHandler
 
+import data_layer
 import extra_functions
 
 
 semaphore = Semaphore()
-cache = []
+cache = extra_functions.Cache()
 
 
 class MyFileSystemWatcher(FileSystemEventHandler):
@@ -90,9 +91,8 @@ class MyFileSystemWatcher(FileSystemEventHandler):
 # watch.add_watch(path, ALL_EVENTS, lambda x: handle_linux_events(x), True, True, quiet=True)
 
 
-def add_multi_platform_watch(path, data_obj_param):
-    # data_obj = data_layer.DataLayer('database.db')
-    data_obj = data_obj_param
+def add_multi_platform_watch(path):
+    data_obj = data_layer.DataLayer('database.db')
     watch = observers.Observer()
     obj = MyFileSystemWatcher(data_obj)
     watch.schedule(obj, path, recursive=True)
@@ -100,9 +100,13 @@ def add_multi_platform_watch(path, data_obj_param):
     while 1:
         time.sleep(3)
         with semaphore:
+            number = None
+            for value in data_obj.cursor.execute('SELECT max(id) FROM File WHERE machine=1'):
+                number = int(value[0])
             for x in cache:
+                number += 1
                 if x[0] == 'created':
-                    data_obj.insert_data(x[1], x[2], x[3], x[4], x[5], real_path=x[6])
+                    data_obj.insert_data(number, x[1], x[2], x[3], x[4], x[5], real_path=x[6])
                 else:
                     data_obj.delete_data(x[1], x[2])
             cache.clear()
