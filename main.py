@@ -77,8 +77,8 @@ def printing():
 
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
-    path = ef.get_initials_paths()
-    #path = '/'
+    #path = ef.get_initials_paths()[0]
+    path = '/media/roly/Extra/Series'
     print('Username:')
     user_name = input()
     password = getpass.getpass()
@@ -110,8 +110,8 @@ if __name__ == '__main__':
         print('Username:')
         user_name = input()
         password = getpass.getpass()
-    #t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(path,))
-    #t4.start()
+    t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(path,))
+    t4.start()
     t5 = Thread(target=cl.start, args=())
     t5.start()
     data_layer_2 = data_layer_py.DataLayer('database.db')

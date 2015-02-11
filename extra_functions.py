@@ -21,8 +21,8 @@ def unpad(string):
 
 
 def convert_to_str(data):
-    res = '( ' + str(data[0]) + '? ' + str(data[1]) + '? ' + str(data[2]) + '? ' + str(data[3]) + '? ' + str(
-        data[4]) + '? ' + str(data[5]) + '? ' + str(data[6]) + ')'
+    res = '( ' + str(data[1]) + '? ' + str(data[2]) + '? ' + str(data[3]) + '? ' + str(data[4]) + '? ' + str(
+        data[5]) + '? ' + str(data[6]) + '? ' + str(data[7]) + ')'
     if len(res) > 15 and not len(res) % 16:
         return res
     for x in range(0, 16 - (len(res) % 16)):
@@ -64,7 +64,10 @@ def check_paths(list_parents, real_path, peer):
 
 
 def split_paths(path):
-    tmp = path.decode().split(os.sep)
+    try:
+        tmp = path.decode().split(os.sep)
+    except AttributeError:
+        tmp = path.split(os.sep)
     if not tmp[0]:
         tmp[0] = os.sep
     return tmp

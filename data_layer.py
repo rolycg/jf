@@ -67,11 +67,15 @@ class DataLayer():
     def edit_generation(self, uuid, generation):
         # execute = 'UPDATE Metadata SET last_generation = '' + str(generation) + ' WHERE uuid = ' + str(uuid)
         generation = int(generation) + 1
-        self.cursor.execute('UPDATE Metadata SET last_generation = ?   WHERE uuid = ?', (generation, str(uuid)))
+        self.cursor.execute('UPDATE Metadata SET last_generation=?   WHERE uuid = ?', (generation, str(uuid)))
         self.database.commit()
 
     def get_uuid_from_peer(self, owner=1):
         for value in self.cursor.execute('SELECT id FROM Metadata WHERE own =?', (owner,)):
+            return value[0]
+
+    def get_id_from_peer(self, owner=1):
+        for value in self.cursor.execute('SELECT uuid FROM Metadata WHERE own =?', (owner,)):
             return value[0]
 
     def insert_file(self, id, file_name, parent, file_type, root, generation, peer):
@@ -155,6 +159,14 @@ class DataLayer():
 
     def get_peer_from_uuid(self, name):
         for value in self.cursor.execute('SELECT pc_name FROM Metadata WHERE id == ?', (name,)):
+            return value[0]
+
+    def get_peer_from_id(self, id):
+        for value in self.cursor.execute('SELECT uuid FROM Metadata WHERE id=?', (id,)):
+            return value[0]
+
+    def get_id_from_uuid(self, uuid):
+        for value in self.cursor.execute('SELECT id FROM Metadata WHERE uuid=?', (uuid,)):
             return value[0]
 
 

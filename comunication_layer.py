@@ -1,6 +1,7 @@
 import socket
 import random
 import re
+
 import data_layer
 import extra_functions as ef
 
@@ -77,7 +78,7 @@ def checking_client(sock, address, data_obj):
         sock.settimeout(15)
         if value.decode() == ran_str:
             sock.sendto(b'OK', address)
-            machine = data_obj.get_uuid_from_peer()
+            machine = data_obj.get_id_from_peer()
             sock.sendto(str(machine).encode(), address)
             generation, _ = sock.recvfrom(1024)
             sender(sock, address, int(generation), data_obj)
@@ -95,7 +96,7 @@ def checking_server(sock, address, data_obj):
         conf, _ = sock.recvfrom(1024)
         if conf == b'OK':
             uuid, _ = sock.recvfrom(1024)
-            receiver(sock, address, uuid, data_obj)
+            receiver(sock, address, uuid.decode(), data_obj)
 
 
 def receiver(sock, address, uuid, data_obj):
@@ -118,14 +119,17 @@ def receiver(sock, address, uuid, data_obj):
             elements[0] = elements[0][1:]
             elements[len(elements) - 1] = ef.unpad(elements[len(elements) - 1])
             elements = [x.strip() for x in elements]
-
+            elements[len(elements) - 1] = data_obj.get_id_from_uuid(elements[len(elements) - 1])
             if elements[4] == '-1':
-                data_obj.insert_data(elements[1], elements[2], elements[4], elements[3], elements[6], elements[7], True)
+                data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[2], file_type=elements[3],
+                                     generation=elements[5], peer=elements[6], first=True)
             else:
-                data_obj.insert_data(elements[1], elements[2], elements[4], elements[4], elements[6], elements[7], False)
+                data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[4], file_type=elements[3],
+                                     generation=elements[5], peer=elements[6], first=False)
     data_obj.database.commit()
     gen, _ = sock.recvfrom(1024)
-    data_obj.edit_generation(uuid, gen.decode())
+    if gen.decode():
+        data_obj.edit_generation(uuid, gen.decode())
     # session.query(data_layer_old.Metadata).filter(data_layer_old.Metadata._uuid == uuid).update(
     # {'last_generation': int(gen)})
 
@@ -137,10 +141,16 @@ def sender(sock, address, generation, data_obj):
     _max = -1
     cipher = ef.get_cipher(password)
     cont = 0
+    data_obj_2 = data_layer.DataLayer('database.db')
     for x in query:
+        tmp = data_obj_2.get_peer_from_id(x[len(x) - 1])
+        x = (x[0], x[1], x[2], x[3], x[4], x[5], x[6], tmp)
         send = cipher.encrypt(ef.convert_to_str(x))
         sock.sendto(send, address)
         cont += 1
-        _max = max(_max, x[5])
+        _max = max(_max, x[6])
     sock.sendto(b'finish', address)
-    sock.sendto(str(_max).encode(), address)
+    if _max == -1:
+        sock.sendto(''.encode(), address)
+    else:
+        sock.sendto(str(_max).encode(), address)
