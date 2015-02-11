@@ -3,11 +3,11 @@
 
 **Ver el error en las modificaciones de los archivos(Solo paso en la maquina de Andy) probado en la terminal
 **Arreglar:
-* Algoritmo para obtener el camino al padre verdadero (Ver con Andy) Done!!!!!!!!!
-** ya probar comunicacion
-* Algoritmo para obtener los resultados de otras maquinas q yo tengo guardados Done!!!! just test
 * Ver como escoger el camino inicial (En linux es obvio) ver con andy si lo hago para windows en windows ver como hago lo de la flash
-* Ver como quitar el database is locked en python sqlite
+* Ver como quitar el database is locked en python sqlite * Sigue pasando pero a veces nada mas
+* Ver watchdog PermissionError
+* Ver eventos lanzados por otros sistemas op es le error de arriba
+* Ver con andy los commit cdo hacerlos
+* Ver como mandar all docs  errores con caracteres like tilde
 **Rehacer codigo con clases y objetos
-
 
