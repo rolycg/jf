@@ -1,13 +1,13 @@
 ** Arreglar que cuando se inicie revise si no hubo cambios en el sitema de ficheros
 *Ex: Se creo un file con el prog cerrado, o se borro, y el programa no se entera !!!!!!!!!!!! No se resuelve x el momento
 
-**Ver el error en las modificaciones de los archivos(Solo paso en la maquina de Andy) probado en la terminal
+
 **Arreglar:
-* Ver como escoger el camino inicial (En linux es obvio) ver con andy si lo hago para windows en windows ver como hago lo de la flash
-* Ver como quitar el database is locked en python sqlite * Sigue pasando pero a veces nada mas
-* Ver watchdog PermissionError
+* Ver como escoger el camino inicial (En linux es obvio) en windows ver como hago lo de la flash
+*** Ver como quitar el database is locked en python sqlite * Sigue pasando pero a veces nada mas
+*** Ver watchdog PermissionError
 * Ver eventos lanzados por otros sistemas op es le error de arriba
 * Ver con andy los commit cdo hacerlos
-* Ver como mandar all docs  errores con caracteres like tilde
+* Ver como mandar all docs  errores con caracteres like tilde /// Probar
 **Rehacer codigo con clases y objetos
 

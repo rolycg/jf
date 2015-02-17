@@ -23,7 +23,6 @@ def dfs(path, q):
 
 
 def save_to_disk(engine, q, path):
-    total = time.time()
     global paint
     global finished
     list_file_tmp = {}
@@ -46,10 +45,6 @@ def save_to_disk(engine, q, path):
                                                                            total_files, count,
                                                                            complete_path,
                                                                            peer=peer)
-    if session_count > 0:
-        pass
-        # a = data_layer.do_commit(session)
-        # f.write('Elements: ' + str(session_count) + ' time: ' + str(a) + '\n')
     paint = False
     data_layer.database.commit()
     # f.write('Total time: ' + str(time.time() - total) + ' Total elements: ' + str(total_files))

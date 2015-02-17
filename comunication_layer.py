@@ -130,7 +130,6 @@ def receiver(sock, address, uuid, data_obj):
     gen, _ = sock.recvfrom(1024)
     if gen.decode():
         data_obj.edit_generation(uuid, gen.decode())
-    print('Done')
     # session.query(data_layer_old.Metadata).filter(data_layer_old.Metadata._uuid == uuid).update(
     # {'last_generation': int(gen)})
 

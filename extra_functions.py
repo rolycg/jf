@@ -27,7 +27,7 @@ def convert_to_str(data):
         return res
     for x in range(0, 16 - (len(res) % 16)):
         res += '*'
-    return res
+    return res.encode()
 
 
 def get_cipher(password):
@@ -100,5 +100,7 @@ def get_initials_paths():
         return ['']
     elif o_s == 'darwin':
         return ['/']
+
+
 if __name__ == '__main__':
     print(sys.platform)
