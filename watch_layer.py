@@ -65,6 +65,8 @@ class MyFileSystemWatcher(FileSystemEventHandler):
             self.on_deleted(event)
         elif event.event_type == 'moved':
             self.on_moved(event)
+        elif event.event_type == 'modified':
+            pass
         else:
             print(event.event_type)
 
@@ -94,7 +96,7 @@ class MyFileSystemWatcher(FileSystemEventHandler):
 def add_multi_platform_watch(path):
     data_obj = data_layer.DataLayer('database.db')
     watch = observers.Observer()
-    obj = MyFileSystemWatcher(data_obj)
+    obj = MyFileSystemWatcher(data_layer.DataLayer('database.db'))
     watch.schedule(obj, path, recursive=True)
     watch.start()
     while 1:

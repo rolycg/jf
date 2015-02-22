@@ -3,11 +3,9 @@
 
 
 **Arreglar:
-* Ver como escoger el camino inicial (En linux es obvio) en windows ver como hago lo de la flash
+* Crear una nueva app solo para windows
 *** Ver como quitar el database is locked en python sqlite * Sigue pasando pero a veces nada mas
-*** Ver watchdog PermissionError
-* Ver eventos lanzados por otros sistemas op es le error de arriba
 * Ver con andy los commit cdo hacerlos
 * Ver como mandar all docs  errores con caracteres like tilde /// Probar
-**Rehacer codigo con clases y objetos
+
 

@@ -72,8 +72,8 @@ def printing():
 
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
-    #path = ef.get_initials_paths()[0]
-    path = '/media/roly/Extra/Series'
+
+    path = '/'
     print('Username:')
     user_name = input()
     password = getpass.getpass()
