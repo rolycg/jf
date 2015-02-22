@@ -3,8 +3,11 @@ import uuid as uu
 import socket
 import os
 import sys
+from threading import Semaphore
 
 __author__ = 'roly'
+
+semaphore = Semaphore()
 
 
 class DataLayer():
@@ -41,8 +44,9 @@ class DataLayer():
             return value[0]
 
     def insert_username_password(self, username, password):
-        self.cursor.execute('INSERT INTO Login VALUES (?,?)', (username, password))
-        self.database.commit()
+        with semaphore:
+            self.cursor.execute('INSERT INTO Login VALUES (?,?)', (username, password))
+            self.database.commit()
 
     def get_username_password(self):
         for value, value2 in self.cursor.execute('SELECT username, password FROM Login'):
@@ -52,23 +56,25 @@ class DataLayer():
         return self.cursor.execute('SELECT * FROM File WHERE generation>=? AND machine=?', (generation, peer))
 
     def insert_peer(self, uuid=None, pc_name=None):
-        if not uuid and not pc_name:
-            self.cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
-                                (None, str(uu.uuid4()), socket.gethostname(), -1, 1))
-        else:
-            try:
+        with semaphore:
+            if not uuid and not pc_name:
                 self.cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
-                                    (None, uuid.decode(), pc_name, -1, 0))
-            except AttributeError:
-                self.cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
-                                    (None, str(uuid), pc_name, -1, 0))
-        self.database.commit()
+                                    (None, str(uu.uuid4()), socket.gethostname(), -1, 1))
+            else:
+                try:
+                    self.cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
+                                        (None, uuid.decode(), pc_name, -1, 0))
+                except AttributeError:
+                    self.cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
+                                        (None, str(uuid), pc_name, -1, 0))
+            self.database.commit()
 
     def edit_generation(self, uuid, generation):
-        # execute = 'UPDATE Metadata SET last_generation = '' + str(generation) + ' WHERE uuid = ' + str(uuid)
-        generation = int(generation) + 1
-        self.cursor.execute('UPDATE Metadata SET last_generation=?   WHERE uuid = ?', (generation, str(uuid)))
-        self.database.commit()
+        with semaphore:
+            # execute = 'UPDATE Metadata SET last_generation = '' + str(generation) + ' WHERE uuid = ' + str(uuid)
+            generation = int(generation) + 1
+            self.cursor.execute('UPDATE Metadata SET last_generation=?   WHERE uuid = ?', (generation, str(uuid)))
+            self.database.commit()
 
     def get_uuid_from_peer(self, owner=1):
         for value in self.cursor.execute('SELECT id FROM Metadata WHERE own =?', (owner,)):
@@ -79,8 +85,9 @@ class DataLayer():
             return value[0]
 
     def insert_file(self, id, file_name, parent, file_type, root, generation, peer):
-        self.cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?,?)',
-                            (None, id, file_name, root, file_type, parent, generation, peer))
+        with semaphore:
+            self.cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?,?)',
+                                (None, id, file_name, root, file_type, parent, generation, peer))
 
     def insert_data(self, id, file_name, file_type, parent, generation, peer=None, first=False, real_path=None):
         if not first and real_path:
@@ -93,10 +100,11 @@ class DataLayer():
             # self.database.commit()
 
     def delete_data(self, name, real_path):
-        peer = self.get_uuid_from_peer()
-        parent = self.get_parent(name, real_path, peer)
-        self.cursor.execute('DELETE FROM File WHERE name_ext=? AND parent=? AND machine = ?', (name, parent, peer))
-        # self.database.commit()
+        with semaphore:
+            peer = self.get_uuid_from_peer()
+            parent = self.get_parent(name, real_path, peer)
+            self.cursor.execute('DELETE FROM File WHERE name_ext=? AND parent=? AND machine = ?', (name, parent, peer))
+            # self.database.commit()
 
     def get_parent(self, path, real_path, peer):
         tmp = []
@@ -155,7 +163,18 @@ class DataLayer():
         return address[:len(address) - 1]
 
     def find_data(self, word_list):
-        return self.cursor.execute('SELECT * FROM File WHERE name_ext LIKE ?', ('%' + word_list[0] + '%',))
+        with semaphore:
+            query = 'SELECT * FROM File WHERE '
+            cont = 0
+            l = len(word_list)
+            while cont < l:
+                if cont == 0:
+                    query += 'name_ext LIKE ?'
+                else:
+                    query += ' OR name_ext LIKE ?'
+                cont += 1
+            word_list = [x + '%' for x in word_list]
+            return self.cursor.execute(query, word_list)
 
     def get_peer_from_uuid(self, name):
         for value in self.cursor.execute('SELECT pc_name FROM Metadata WHERE id == ?', (name,)):

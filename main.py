@@ -2,11 +2,9 @@ import os
 from queue import Queue
 from threading import Thread
 from time import sleep
-import time
 import getpass
 
 import comunication_layer as cl
-import extra_functions as ef
 import watch_layer
 import data_layer as data_layer_py
 
@@ -72,8 +70,7 @@ def printing():
 
 if __name__ == '__main__':
     print('********** My Everything 2.0 **********')
-
-    path = '/'
+    path = '/media/roly/Extra/Series/'
     print('Username:')
     user_name = input()
     password = getpass.getpass()
@@ -113,6 +110,8 @@ if __name__ == '__main__':
     while 1:
         print('Enter keywords:')
         words = input()
+        if not words.strip():
+            continue
         for item in data_layer.find_data(words.split()):
             print('>Name: ' + str(item[2]) + '\n' + '>File Type: ' + str(item[4]) + '\n' + '>Address: '
                   + str(data_layer_2.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
