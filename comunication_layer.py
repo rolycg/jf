@@ -115,7 +115,10 @@ def receiver(sock, address, uuid, data_obj):
             break
         else:
             value = cipher.decrypt(data)
-            elements = re.split('\\?+', value.decode())
+            try:
+                elements = re.split('\\?+', value.decode())
+            except UnicodeDecodeError:
+                elements = re.split('\\?+', value.decode(encoding='LATIN-1'))
             elements[0] = elements[0][1:]
             elements[len(elements) - 1] = ef.unpad(elements[len(elements) - 1])
             elements = [x.strip() for x in elements]

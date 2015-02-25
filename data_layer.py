@@ -14,80 +14,100 @@ class DataLayer():
     def __init__(self, database_url):
         self.database_url = database_url
         self.database = sqlite3.connect(self.database_url, check_same_thread=False)
-        self.cursor = self.database.cursor()
 
     def create_databases(self):
-        self.cursor.execute(
+        cursor = self.database.cursor()
+        cursor.execute(
             'CREATE TABLE Login (username VARCHAR, password VARCHAR)')
-        self.cursor.execute(
+        cursor.execute(
             'CREATE TABLE File (_id INTEGER PRIMARY KEY AUTOINCREMENT,id INTEGER, name_ext VARCHAR , root VARCHAR, '
             'file_type VARCHAR, parent INTEGER REFERENCES File(id), generation  INTEGER, '
             'machine VARCHAR REFERENCES Metadata(id))')
-        self.cursor.execute('CREATE INDEX name_index ON  File (name_ext)')
-        self.cursor.execute('CREATE INDEX id_index ON  File (id)')
-        self.cursor.execute(
+        cursor.execute('CREATE INDEX name_index ON  File (name_ext)')
+        cursor.execute('CREATE INDEX id_index ON  File (id)')
+        cursor.execute(
             'CREATE TABLE Metadata (id INTEGER PRIMARY KEY AUTOINCREMENT,uuid VARCHAR, '
             'pc_name VARCHAR, last_generation INTEGER, own INTEGER)')
         self.database.commit()
+        cursor.close()
 
     def get_last_generation(self, uuid):
-        for value in self.cursor.execute('SELECT last_generation FROM Metadata WHERE uuid =?', (uuid,)):
+        cursor = self.database.cursor()
+        for value in cursor.execute('SELECT last_generation FROM Metadata WHERE uuid =?', (uuid,)):
+            cursor.close()
             return value[0]
 
     def get_all_databases_elements(self, table):
+        cursor = self.database.cursor()
         execute = 'SELECT * FROM ' + table
-        self.cursor.execute(execute)
-        return self.cursor
+        cursor.execute(execute)
+        return cursor
 
     def get_max_generation(self):
-        for value in self.cursor.execute('SELECT max(generation) FROM File'):
+        cursor = self.database.cursor()
+        for value in cursor.execute('SELECT max(generation) FROM File'):
+            cursor.close()
             return value[0]
 
     def insert_username_password(self, username, password):
+        cursor = self.database.cursor()
         with semaphore:
-            self.cursor.execute('INSERT INTO Login VALUES (?,?)', (username, password))
+            cursor.execute('INSERT INTO Login VALUES (?,?)', (username, password))
             self.database.commit()
+            cursor.close()
 
     def get_username_password(self):
-        for value, value2 in self.cursor.execute('SELECT username, password FROM Login'):
+        cursor = self.database.cursor()
+        for value, value2 in cursor.execute('SELECT username, password FROM Login'):
+            cursor.close()
             return value, value2
 
     def get_files(self, generation, peer):
-        return self.cursor.execute('SELECT * FROM File WHERE generation>=? AND machine=?', (generation, peer))
+        cursor = self.database.cursor()
+        return cursor.execute('SELECT * FROM File WHERE generation>=? AND machine=?', (generation, peer))
 
     def insert_peer(self, uuid=None, pc_name=None):
+        cursor = self.database.cursor()
         with semaphore:
             if not uuid and not pc_name:
-                self.cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
-                                    (None, str(uu.uuid4()), socket.gethostname(), -1, 1))
+                cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
+                               (None, str(uu.uuid4()), socket.gethostname(), -1, 1))
             else:
                 try:
-                    self.cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
-                                        (None, uuid.decode(), pc_name, -1, 0))
+                    cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
+                                   (None, uuid.decode(), pc_name, -1, 0))
                 except AttributeError:
-                    self.cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
-                                        (None, str(uuid), pc_name, -1, 0))
+                    cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
+                                   (None, str(uuid), pc_name, -1, 0))
             self.database.commit()
+            cursor.close()
 
     def edit_generation(self, uuid, generation):
+        cursor = self.database.cursor()
         with semaphore:
             # execute = 'UPDATE Metadata SET last_generation = '' + str(generation) + ' WHERE uuid = ' + str(uuid)
             generation = int(generation) + 1
-            self.cursor.execute('UPDATE Metadata SET last_generation=?   WHERE uuid = ?', (generation, str(uuid)))
+            cursor.execute('UPDATE Metadata SET last_generation=?   WHERE uuid = ?', (generation, str(uuid)))
             self.database.commit()
+            cursor.close()
 
     def get_uuid_from_peer(self, owner=1):
-        for value in self.cursor.execute('SELECT id FROM Metadata WHERE own =?', (owner,)):
+        cursor = self.database.cursor()
+        for value in cursor.execute('SELECT id FROM Metadata WHERE own =?', (owner,)):
+            cursor.close()
             return value[0]
 
     def get_id_from_peer(self, owner=1):
-        for value in self.cursor.execute('SELECT uuid FROM Metadata WHERE own =?', (owner,)):
+        cursor = self.database.cursor()
+        for value in cursor.execute('SELECT uuid FROM Metadata WHERE own =?', (owner,)):
+            cursor.close()
             return value[0]
 
     def insert_file(self, id, file_name, parent, file_type, root, generation, peer):
+        cursor = self.database.cursor()
         with semaphore:
-            self.cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?,?)',
-                                (None, id, file_name, root, file_type, parent, generation, peer))
+            cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?,?)',
+                           (None, id, file_name, root, file_type, parent, generation, peer))
 
     def insert_data(self, id, file_name, file_type, parent, generation, peer=None, first=False, real_path=None):
         if not first and real_path:
@@ -97,18 +117,19 @@ class DataLayer():
             self.insert_file(id, file_name, parent, file_type, '', generation, peer)
         else:
             self.insert_file(id, file_name, -1, file_type, parent, generation, peer)
-            # self.database.commit()
 
     def delete_data(self, name, real_path):
+        cursor = self.database.cursor()
         with semaphore:
             peer = self.get_uuid_from_peer()
             parent = self.get_parent(name, real_path, peer)
-            self.cursor.execute('DELETE FROM File WHERE name_ext=? AND parent=? AND machine = ?', (name, parent, peer))
-            # self.database.commit()
+            cursor.execute('DELETE FROM File WHERE name_ext=? AND parent=? AND machine = ?', (name, parent, peer))
+            cursor.close()
 
     def get_parent(self, path, real_path, peer):
+        cursor = self.database.cursor()
         tmp = []
-        for value in self.cursor.execute('SELECT * FROM File WHERE id=? AND machine=?', (1, peer)):
+        for value in cursor.execute('SELECT * FROM File WHERE id=? AND machine=?', (1, peer)):
             tmp.append(value)
         if len(tmp) == 1:
             walk = real_path.split(tmp[0][3])
@@ -122,15 +143,17 @@ class DataLayer():
             while len(walk):
                 folder = walk[0]
                 walk.pop(0)
-                for value in self.cursor.execute('SELECT * FROM File WHERE name_ext=? AND parent=?',
-                                                 (folder, tmp[1])):
+                for value in cursor.execute('SELECT * FROM File WHERE name_ext=? AND parent=?',
+                                            (folder, tmp[1])):
                     tmp = value
+            cursor.close()
             return tmp[1]
             # real_paths = [self.get_address(x[0], peer) for x in tmp]
             # for x in range(len(real_paths) - 1, -1, -1):
             # if real_paths[x] == real_path:
             # return tmp[x][0]
             # raise Exception('Error')
+
         else:
             raise Exception('Error in database')
 
@@ -147,7 +170,9 @@ class DataLayer():
         return session_count, total_files, count
 
     def get_element(self, item, peer):
-        for x in self.cursor.execute('SELECT * FROM File WHERE id=? AND machine=?', (item, peer)):
+        cursor = self.database.cursor()
+        for x in cursor.execute('SELECT * FROM File WHERE id=? AND machine=?', (item, peer)):
+            cursor.close()
             return x
 
     def get_address(self, item, peer):
@@ -163,6 +188,7 @@ class DataLayer():
         return address[:len(address) - 1]
 
     def find_data(self, word_list):
+        cursor = self.database.cursor()
         with semaphore:
             query = 'SELECT * FROM File WHERE '
             cont = 0
@@ -174,19 +200,32 @@ class DataLayer():
                     query += ' OR name_ext LIKE ?'
                 cont += 1
             word_list = [x + '%' for x in word_list]
-            return self.cursor.execute(query, word_list)
+            return cursor.execute(query, word_list)
 
     def get_peer_from_uuid(self, name):
+        cursor = self.database.cursor()
         for value in self.cursor.execute('SELECT pc_name FROM Metadata WHERE id == ?', (name,)):
+            cursor.close()
             return value[0]
 
     def get_peer_from_id(self, id):
-        for value in self.cursor.execute('SELECT uuid FROM Metadata WHERE id=?', (id,)):
+        cursor = self.database.cursor()
+        for value in cursor.execute('SELECT uuid FROM Metadata WHERE id=?', (id,)):
+            cursor.close()
             return value[0]
 
     def get_id_from_uuid(self, uuid):
-        for value in self.cursor.execute('SELECT id FROM Metadata WHERE uuid=?', (uuid,)):
+        cursor = self.database.cursor()
+        for value in cursor.execute('SELECT id FROM Metadata WHERE uuid=?', (uuid,)):
+            cursor.close()
             return value[0]
+
+    def get_max_id(self):
+        cursor = self.database.cursor()
+        for value in cursor.execute('SELECT max(id) FROM File WHERE machine=1'):
+            number = int(value[0])
+            cursor.close()
+            return number
 
 
 if __name__ == '__main__':

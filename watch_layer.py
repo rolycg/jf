@@ -4,7 +4,6 @@ from threading import Semaphore
 
 from watchdog import observers
 from watchdog.events import FileSystemEventHandler
-
 import data_layer
 import extra_functions
 
@@ -102,9 +101,8 @@ def add_multi_platform_watch(path):
     while 1:
         time.sleep(3)
         with semaphore:
-            number = None
-            for value in data_obj.cursor.execute('SELECT max(id) FROM File WHERE machine=1'):
-                number = int(value[0])
+            #if len(cache):
+            number = data_obj.get_max_id()
             for x in cache:
                 number += 1
                 if x[0] == 'created':
