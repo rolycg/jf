@@ -101,15 +101,15 @@ def add_multi_platform_watch(path):
     while 1:
         time.sleep(3)
         with semaphore:
-            #if len(cache):
-            number = data_obj.get_max_id()
-            for x in cache:
-                number += 1
-                if x[0] == 'created':
-                    data_obj.insert_data(number, x[1], x[2], x[3], x[4], x[5], real_path=x[6])
-                else:
-                    data_obj.delete_data(x[1], x[2])
-            cache.clear()
-            data_obj.database.commit()
+            if len(cache.cache):
+                number = data_obj.get_max_id()
+                for x in cache:
+                    number += 1
+                    if x[0] == 'created':
+                        data_obj.insert_data(number, x[1], x[2], x[3], x[4], x[5], real_path=x[6])
+                    else:
+                        data_obj.delete_data(x[1], x[2])
+                cache.clear()
+                data_obj.database.commit()
 
 
