@@ -1,10 +1,6 @@
 import os
 import time
 
-from Crypto.Cipher import AES
-
-import data_layer_old
-
 
 def try_os_path(path):
     for pathname, dirname, filename in os.walk(path):
@@ -51,7 +47,11 @@ def printing():
     print('', end='\r')
 
 
-import re
+import hashlib
 
 if __name__ == '__main__':
-    pass
+    hash = hashlib.new('md5')
+    hash.update(b'password')
+    print(hash.hexdigest())
+    print(len(hash.hexdigest()))
+    print(hashlib.algorithms_available)

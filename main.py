@@ -3,6 +3,7 @@ from queue import Queue
 from threading import Thread
 from time import sleep
 import getpass
+import hashlib
 
 import comunication_layer as cl
 import watch_layer
@@ -83,7 +84,8 @@ if __name__ == '__main__':
         jump = 0
         data_layer = data_layer_py.DataLayer('database.db')
         data_layer.create_databases()
-        data_layer.insert_username_password(user_name, password)
+        sha = hashlib.md5(password.encode())
+        data_layer.insert_username_password(user_name, sha.hexdigest())
         _queue = Queue()
         t = Thread(target=dfs, args=(path, _queue))
         t.start()
@@ -97,7 +99,8 @@ if __name__ == '__main__':
         data_layer = data_layer_py.DataLayer('database.db')
     while jump:
         u_p = data_layer.get_username_password()
-        if user_name == u_p[0] and password == u_p[1]:
+        sha = hashlib.md5(password.encode())
+        if user_name == u_p[0] and sha.hexdigest() == u_p[1]:
             break
         print('Username:')
         user_name = input()

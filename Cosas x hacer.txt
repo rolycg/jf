@@ -6,7 +6,7 @@
 * Crear una nueva app solo para windows
 * ver para windows si hacer como el everything o indexar normal
 *** Ver como quitar el database is locked en python sqlite * Sigue pasando pero a veces nada mas (Probar ya debe estar arreglado)
-* Ver con andy los commit cdo hacerlos
-* Ver como mandar all docs  errores con caracteres like tilde /// Probar
+*** Revisar probar el proyecto y cambiar md5 x sha y ver si funciona
+
 
 

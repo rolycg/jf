@@ -50,8 +50,8 @@ class DataLayer():
             return value[0]
 
     def insert_username_password(self, username, password):
-        cursor = self.database.cursor()
         with semaphore:
+            cursor = self.database.cursor()
             cursor.execute('INSERT INTO Login VALUES (?,?)', (username, password))
             self.database.commit()
             cursor.close()
@@ -67,8 +67,8 @@ class DataLayer():
         return cursor.execute('SELECT * FROM File WHERE generation>=? AND machine=?', (generation, peer))
 
     def insert_peer(self, uuid=None, pc_name=None):
-        cursor = self.database.cursor()
         with semaphore:
+            cursor = self.database.cursor()
             if not uuid and not pc_name:
                 cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
                                (None, str(uu.uuid4()), socket.gethostname(), -1, 1))
@@ -83,8 +83,9 @@ class DataLayer():
             cursor.close()
 
     def edit_generation(self, uuid, generation):
-        cursor = self.database.cursor()
+
         with semaphore:
+            cursor = self.database.cursor()
             # execute = 'UPDATE Metadata SET last_generation = '' + str(generation) + ' WHERE uuid = ' + str(uuid)
             generation = int(generation) + 1
             cursor.execute('UPDATE Metadata SET last_generation=?   WHERE uuid = ?', (generation, str(uuid)))
@@ -104,8 +105,8 @@ class DataLayer():
             return value[0]
 
     def insert_file(self, id, file_name, parent, file_type, root, generation, peer):
-        cursor = self.database.cursor()
         with semaphore:
+            cursor = self.database.cursor()
             cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?,?)',
                            (None, id, file_name, root, file_type, parent, generation, peer))
 
@@ -119,8 +120,8 @@ class DataLayer():
             self.insert_file(id, file_name, -1, file_type, parent, generation, peer)
 
     def delete_data(self, name, real_path):
-        cursor = self.database.cursor()
         with semaphore:
+            cursor = self.database.cursor()
             peer = self.get_uuid_from_peer()
             parent = self.get_parent(name, real_path, peer)
             cursor.execute('DELETE FROM File WHERE name_ext=? AND parent=? AND machine = ?', (name, parent, peer))
@@ -204,7 +205,7 @@ class DataLayer():
 
     def get_peer_from_uuid(self, name):
         cursor = self.database.cursor()
-        for value in self.cursor.execute('SELECT pc_name FROM Metadata WHERE id == ?', (name,)):
+        for value in cursor.execute('SELECT pc_name FROM Metadata WHERE id == ?', (name,)):
             cursor.close()
             return value[0]
 

@@ -18,14 +18,14 @@ class MyFileSystemWatcher(FileSystemEventHandler):
         super(FileSystemEventHandler).__init__()
 
     def on_created(self, event):
-        generation = self.data_obj.get_max_generation() + 1
+
         if hasattr(event, 'dest_path'):
             path = extra_functions.split_paths(event.src_path)
         else:
             path = extra_functions.split_paths(event.src_path)
         if event.is_directory:
             with semaphore:
-                cache.append(('created', path[len(path) - 1], 'Folder', path[len(path) - 2], generation,
+                cache.append(('created', path[len(path) - 1], 'Folder', path[len(path) - 2], None,
                               self.data_obj.get_uuid_from_peer(), os.path.join(*path[:len(path) - 1])))
 
                 # self.data_obj.insert_data(path[len(path) - 1], 'Folder', path[len(path) - 2], generation,
@@ -40,7 +40,7 @@ class MyFileSystemWatcher(FileSystemEventHandler):
                 _type = ''
             with semaphore:
                 cache.append(('created', path[len(path) - 1], _type, path[len(path) - 2],
-                              generation, self.data_obj.get_uuid_from_peer(), os.path.join(*path[:len(path) - 1])))
+                              None, self.data_obj.get_uuid_from_peer(), os.path.join(*path[:len(path) - 1])))
                 # self.data_obj.insert_data(path[len(path) - 1], _type, path[len(path) - 2],
                 # generation, peer=self.data_obj.get_uuid_from_peer())
                 # extra_functions.wite_data_in_disk(self.f, (0, path[len(path) - 1], _type, path[len(path) - 2]))
@@ -103,10 +103,11 @@ def add_multi_platform_watch(path):
         with semaphore:
             if len(cache.cache):
                 number = data_obj.get_max_id()
+                generation = data_obj.get_max_generation() + 1
                 for x in cache:
                     number += 1
                     if x[0] == 'created':
-                        data_obj.insert_data(number, x[1], x[2], x[3], x[4], x[5], real_path=x[6])
+                        data_obj.insert_data(number, x[1], x[2], x[3], generation, x[5], real_path=x[6])
                     else:
                         data_obj.delete_data(x[1], x[2])
                 cache.clear()
