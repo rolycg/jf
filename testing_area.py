@@ -49,8 +49,9 @@ def printing():
 
 import hashlib
 
+
 if __name__ == '__main__':
-    hash = hashlib.new('md5')
+    hash = hashlib.new('sha1')
     hash.update(b'password')
     print(hash.hexdigest())
     print(len(hash.hexdigest()))

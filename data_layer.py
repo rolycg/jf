@@ -105,19 +105,20 @@ class DataLayer():
             return value[0]
 
     def insert_file(self, id, file_name, parent, file_type, root, generation, peer):
-        with semaphore:
-            cursor = self.database.cursor()
-            cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?,?)',
-                           (None, id, file_name, root, file_type, parent, generation, peer))
+        cursor = self.database.cursor()
+        cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?,?)',
+                       (None, id, file_name, root, file_type, parent, generation, peer))
+        cursor.close()
 
     def insert_data(self, id, file_name, file_type, parent, generation, peer=None, first=False, real_path=None):
-        if not first and real_path:
-            paren = self.get_parent(parent, real_path, peer)
-            self.insert_file(id, file_name, paren, file_type, '', generation, peer)
-        elif not real_path and not first:
-            self.insert_file(id, file_name, parent, file_type, '', generation, peer)
-        else:
-            self.insert_file(id, file_name, -1, file_type, parent, generation, peer)
+        with semaphore:
+            if not first and real_path:
+                paren = self.get_parent(parent, real_path, peer)
+                self.insert_file(id, file_name, paren, file_type, '', generation, peer)
+            elif not real_path and not first:
+                self.insert_file(id, file_name, parent, file_type, '', generation, peer)
+            else:
+                self.insert_file(id, file_name, -1, file_type, parent, generation, peer)
 
     def delete_data(self, name, real_path):
         with semaphore:
@@ -189,8 +190,8 @@ class DataLayer():
         return address[:len(address) - 1]
 
     def find_data(self, word_list):
-        cursor = self.database.cursor()
         with semaphore:
+            cursor = self.database.cursor()
             query = 'SELECT * FROM File WHERE '
             cont = 0
             l = len(word_list)
