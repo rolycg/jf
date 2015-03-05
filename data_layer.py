@@ -14,6 +14,7 @@ class DataLayer():
     def __init__(self, database_url):
         self.database_url = database_url
         self.database = sqlite3.connect(self.database_url, check_same_thread=False)
+        self.database.isolation_level = 'DEFERRED'
 
     def create_databases(self):
         cursor = self.database.cursor()
@@ -44,10 +45,11 @@ class DataLayer():
         return cursor
 
     def get_max_generation(self):
-        cursor = self.database.cursor()
-        for value in cursor.execute('SELECT max(generation) FROM File'):
-            cursor.close()
-            return value[0]
+        with semaphore:
+            cursor = self.database.cursor()
+            for value in cursor.execute('SELECT max(generation) FROM File'):
+                cursor.close()
+                return value[0]
 
     def insert_username_password(self, username, password):
         with semaphore:

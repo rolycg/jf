@@ -99,18 +99,17 @@ def add_multi_platform_watch(path):
     watch.schedule(obj, path, recursive=True)
     watch.start()
     while 1:
-        time.sleep(3)
-        with semaphore:
-            if len(cache.cache):
-                number = data_obj.get_max_id()
-                generation = data_obj.get_max_generation() + 1
-                for x in cache:
-                    number += 1
-                    if x[0] == 'created':
-                        data_obj.insert_data(number, x[1], x[2], x[3], generation, x[5], real_path=x[6])
-                    else:
-                        data_obj.delete_data(x[1], x[2])
-                cache.clear()
-                data_obj.database.commit()
+        time.sleep(5)
+        if len(cache.cache):
+            number = data_obj.get_max_id()
+            generation = data_obj.get_max_generation() + 1
+            for x in cache:
+                number += 1
+                if x[0] == 'created':
+                    data_obj.insert_data(number, x[1], x[2], x[3], generation, x[5], real_path=x[6])
+                else:
+                    data_obj.delete_data(x[1], x[2])
+            cache.clear()
+            data_obj.database.commit()
 
 

@@ -115,6 +115,7 @@ if __name__ == '__main__':
         words = input()
         if not words.strip():
             continue
+
         for item in data_layer.find_data(words.split()):
             print('>Name: ' + str(item[2]) + '\n' + '>File Type: ' + str(item[4]) + '\n' + '>Address: '
                   + str(data_layer_2.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
