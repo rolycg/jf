@@ -192,19 +192,18 @@ class DataLayer():
         return address[:len(address) - 1]
 
     def find_data(self, word_list):
-        with semaphore:
-            cursor = self.database.cursor()
-            query = 'SELECT * FROM File WHERE '
-            cont = 0
-            l = len(word_list)
-            while cont < l:
-                if cont == 0:
-                    query += 'name_ext LIKE ?'
-                else:
-                    query += ' OR name_ext LIKE ?'
-                cont += 1
-            word_list = [x + '%' for x in word_list]
-            return cursor.execute(query, word_list)
+        cursor = self.database.cursor()
+        query = 'SELECT * FROM File WHERE '
+        cont = 0
+        l = len(word_list)
+        while cont < l:
+            if cont == 0:
+                query += 'name_ext LIKE ?'
+            else:
+                query += ' OR name_ext LIKE ?'
+            cont += 1
+        word_list = [x + '%' for x in word_list]
+        return cursor.execute(query, word_list)
 
     def get_peer_from_uuid(self, name):
         cursor = self.database.cursor()
@@ -225,11 +224,12 @@ class DataLayer():
             return value[0]
 
     def get_max_id(self):
-        cursor = self.database.cursor()
-        for value in cursor.execute('SELECT max(id) FROM File WHERE machine=1'):
-            number = int(value[0])
-            cursor.close()
-            return number
+        with semaphore:
+            cursor = self.database.cursor()
+            for value in cursor.execute('SELECT max(id) FROM File WHERE machine=1'):
+                number = int(value[0])
+                cursor.close()
+                return number
 
 
 if __name__ == '__main__':

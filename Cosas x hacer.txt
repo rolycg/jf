@@ -5,7 +5,7 @@
 **Arreglar:
 * Crear una nueva app solo para windows
 * ver para windows si hacer como el everything o indexar normal
-*** Ver como quitar el database is locked en python sqlite * Sigue pasando pero a veces nada mas (Probar ya debe estar arreglado)
+*** Ver como quitar el database is locked en python sqlite * sqlite no permite eso, 
 *** Revisar probar el proyecto y cambiar md5 x sha y ver si funciona
 
 
