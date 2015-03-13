@@ -14,7 +14,8 @@ class DataLayer():
     def __init__(self, database_url):
         self.database_url = database_url
         self.database = sqlite3.connect(self.database_url, check_same_thread=False)
-        self.database.isolation_level = 'DEFERRED'
+        self.cursor = self.database.cursor()
+        # self.database.isolation_level = 'DEFERRED'
 
     def create_databases(self):
         cursor = self.database.cursor()
@@ -204,6 +205,9 @@ class DataLayer():
             cont += 1
         word_list = [x + '%' for x in word_list]
         return cursor.execute(query, word_list)
+
+    def get_cursor(self):
+        return self.database.cursor()
 
     def get_peer_from_uuid(self, name):
         cursor = self.database.cursor()

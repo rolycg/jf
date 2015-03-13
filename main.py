@@ -109,7 +109,7 @@ if __name__ == '__main__':
     t4.start()
     t5 = Thread(target=cl.start, args=())
     t5.start()
-    data_layer_2 = data_layer_py.DataLayer('database.db')
+    # data_layer_2 = data_layer_py.DataLayer('database.db')
     while 1:
         print('Enter keywords:')
         words = input()
@@ -118,8 +118,8 @@ if __name__ == '__main__':
         with data_layer_py.semaphore:
             for item in data_layer.find_data(words.split()):
                 print('>Name: ' + str(item[2]) + '\n' + '>File Type: ' + str(item[4]) + '\n' + '>Address: '
-                      + str(data_layer_2.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
-                      data_layer_2.get_peer_from_uuid(item[7]) + '\n')
+                      + str(data_layer.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
+                      data_layer.get_peer_from_uuid(item[7]) + '\n')
         print('Press any key for continue or write exit to finish')
         end = input()
         if end.lower() == 'exit':
