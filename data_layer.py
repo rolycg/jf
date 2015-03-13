@@ -97,7 +97,7 @@ class DataLayer():
 
     def get_uuid_from_peer(self, owner=1):
         cursor = self.database.cursor()
-        for value in cursor.execute('SELECT id FROM Metadata WHERE own =?', (owner,)):
+        for value in self.cursor.execute('SELECT id FROM Metadata WHERE own =?', (owner,)):
             cursor.close()
             return value[0]
 
@@ -138,7 +138,7 @@ class DataLayer():
             tmp.append(value)
         if len(tmp) == 1:
             walk = real_path.split(tmp[0][3])
-            if not walk[1]:
+            if len(walk) == 1 or not walk[1]:
                 return tmp[0][1]
             if os.sep in walk[1]:
                 walk = walk[1].split(os.sep)
@@ -175,9 +175,7 @@ class DataLayer():
         return session_count, total_files, count
 
     def get_element(self, item, peer):
-        cursor = self.database.cursor()
-        for x in cursor.execute('SELECT * FROM File WHERE id=? AND machine=?', (item, peer)):
-            cursor.close()
+        for x in self.cursor.execute('SELECT * FROM File WHERE id=? AND machine=?', (item, peer)):
             return x
 
     def get_address(self, item, peer):
@@ -210,9 +208,7 @@ class DataLayer():
         return self.database.cursor()
 
     def get_peer_from_uuid(self, name):
-        cursor = self.database.cursor()
-        for value in cursor.execute('SELECT pc_name FROM Metadata WHERE id == ?', (name,)):
-            cursor.close()
+        for value in self.cursor.execute('SELECT pc_name FROM Metadata WHERE id == ?', (name,)):
             return value[0]
 
     def get_peer_from_id(self, id):

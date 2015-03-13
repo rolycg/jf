@@ -109,7 +109,6 @@ if __name__ == '__main__':
     t4.start()
     t5 = Thread(target=cl.start, args=())
     t5.start()
-    # data_layer_2 = data_layer_py.DataLayer('database.db')
     while 1:
         print('Enter keywords:')
         words = input()

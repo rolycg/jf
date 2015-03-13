@@ -95,7 +95,7 @@ class MyFileSystemWatcher(FileSystemEventHandler):
 def add_multi_platform_watch(path):
     data_obj = data_layer.DataLayer('database.db')
     watch = observers.Observer()
-    obj = MyFileSystemWatcher(data_layer.DataLayer('database.db'))
+    obj = MyFileSystemWatcher(data_obj)
     watch.schedule(obj, path, recursive=True)
     watch.start()
     while 1:

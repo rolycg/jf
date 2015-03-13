@@ -133,8 +133,8 @@ def receiver(sock, address, uuid, data_obj):
     gen, _ = sock.recvfrom(1024)
     if gen.decode():
         data_obj.edit_generation(uuid, gen.decode())
-    # session.query(data_layer_old.Metadata).filter(data_layer_old.Metadata._uuid == uuid).update(
-    # {'last_generation': int(gen)})
+        # session.query(data_layer_old.Metadata).filter(data_layer_old.Metadata._uuid == uuid).update(
+        # {'last_generation': int(gen)})
 
 
 def sender(sock, address, generation, data_obj):
@@ -144,9 +144,8 @@ def sender(sock, address, generation, data_obj):
     _max = -1
     cipher = ef.get_cipher(password)
     cont = 0
-    data_obj_2 = data_layer.DataLayer('database.db')
     for x in query:
-        tmp = data_obj_2.get_peer_from_id(x[len(x) - 1])
+        tmp = data_obj.get_peer_from_id(x[len(x) - 1])
         x = (x[0], x[1], x[2], x[3], x[4], x[5], x[6], tmp)
         send = cipher.encrypt(ef.convert_to_str(x))
         sock.sendto(send, address)
