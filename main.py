@@ -114,11 +114,10 @@ if __name__ == '__main__':
         words = input()
         if not words.strip():
             continue
-        with data_layer_py.semaphore:
-            for item in data_layer.find_data(words.split()):
-                print('>Name: ' + str(item[2]) + '\n' + '>File Type: ' + str(item[4]) + '\n' + '>Address: '
-                      + str(data_layer.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
-                      data_layer.get_peer_from_uuid(item[7]) + '\n')
+        for item in data_layer.find_data(words.split()):
+            print('>Name: ' + str(item[2]) + '\n' + '>File Type: ' + str(item[4]) + '\n' + '>Address: '
+                  + str(data_layer.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
+                  data_layer.get_peer_from_uuid(item[7]) + '\n')
         print('Press any key for continue or write exit to finish')
         end = input()
         if end.lower() == 'exit':

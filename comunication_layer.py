@@ -101,7 +101,6 @@ def checking_server(sock, address, data_obj):
 
 def receiver(sock, address, uuid, data_obj):
     _, password = data_obj.get_username_password()
-    # gen = session.query(data_layer_old.Metadata).filter(data_layer_old.Metadata._uuid == uuid)
     last_generation = data_obj.get_last_generation(uuid)
     if last_generation:
         sock.sendto(str(last_generation).encode(), address)
