@@ -14,6 +14,7 @@ class DataLayer():
     def __init__(self, database_url):
         self.database_url = database_url
         self.database = sqlite3.connect(self.database_url, check_same_thread=False)
+#        self.database.execute('PRAGMA read_uncommitted = FALSE ')
         self.cursor = self.database.cursor()
         # self.database.isolation_level = 'DEFERRED'
 

@@ -18,7 +18,6 @@ class MyFileSystemWatcher(FileSystemEventHandler):
         super(FileSystemEventHandler).__init__()
 
     def on_created(self, event):
-
         if hasattr(event, 'dest_path'):
             path = extra_functions.split_paths(event.src_path)
         else:
