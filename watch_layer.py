@@ -1,6 +1,7 @@
 import os
 import time
 from threading import Semaphore
+from queue import Queue
 
 from data_layer import semaphore as sem
 from watchdog import observers
@@ -11,7 +12,7 @@ from main import query
 
 
 semaphore = Semaphore()
-cache = extra_functions.Cache()
+cache = Queue()
 
 
 class MyFileSystemWatcher(FileSystemEventHandler):
@@ -19,41 +20,38 @@ class MyFileSystemWatcher(FileSystemEventHandler):
         super(FileSystemEventHandler).__init__()
 
     def on_created(self, event):
-        global semaphore, cache
+        global cache
         if hasattr(event, 'dest_path'):
             path = extra_functions.split_paths(event.src_path)
         else:
             path = extra_functions.split_paths(event.src_path)
         if event.is_directory:
-            with semaphore:
-                cache.append(('created', path[len(path) - 1], 'Folder', path[len(path) - 2], None,
-                              None, os.path.join(*path[:len(path) - 1])))
+            cache.put(('created', path[len(path) - 1], 'Folder', path[len(path) - 2], None,
+                       None, os.path.join(*path[:len(path) - 1])))
 
-                # self.data_obj.insert_data(path[len(path) - 1], 'Folder', path[len(path) - 2], generation,
-                # peer=self.data_obj.get_uuid_from_peer())
-                # extra_functions.copy_data(1, (0, path[len(path) - 1], 'Folder', path[len(path) - 2]),)
-                # self.cache.append((0, path[len(path) - 1], 'Folder', path[len(path) - 2]))
+            # self.data_obj.insert_data(path[len(path) - 1], 'Folder', path[len(path) - 2], generation,
+            # peer=self.data_obj.get_uuid_from_peer())
+            # extra_functions.copy_data(1, (0, path[len(path) - 1], 'Folder', path[len(path) - 2]),)
+            # self.cache.append((0, path[len(path) - 1], 'Folder', path[len(path) - 2]))
         else:
             _type = path[len(path) - 1].split('.')
             if len(_type) > 1:
                 _type = _type[len(_type) - 1]
             else:
                 _type = ''
-            with semaphore:
-                cache.append(('created', path[len(path) - 1], _type, path[len(path) - 2],
-                              None, None, os.path.join(*path[:len(path) - 1])))
-                # self.data_obj.insert_data(path[len(path) - 1], _type, path[len(path) - 2],
-                # generation, peer=self.data_obj.get_uuid_from_peer())
-                # extra_functions.wite_data_in_disk(self.f, (0, path[len(path) - 1], _type, path[len(path) - 2]))
-                # self.cache.append((0, path[len(path) - 1], _type, path[len(path) - 2]))
-                # self.data_obj.database.commit()
+            cache.put(('created', path[len(path) - 1], _type, path[len(path) - 2],
+                       None, None, os.path.join(*path[:len(path) - 1])))
+            # self.data_obj.insert_data(path[len(path) - 1], _type, path[len(path) - 2],
+            # generation, peer=self.data_obj.get_uuid_from_peer())
+            # extra_functions.wite_data_in_disk(self.f, (0, path[len(path) - 1], _type, path[len(path) - 2]))
+            # self.cache.append((0, path[len(path) - 1], _type, path[len(path) - 2]))
+            # self.data_obj.database.commit()
 
     def on_deleted(self, event):
-        global semaphore, cache
+        global cache
         path = extra_functions.split_paths(event.src_path)
-        with semaphore:
-            cache.append(('deleted', path[len(path) - 1], os.path.join(*path[:len(path) - 1])))
-            # self.data_obj.delete_data(path[len(path) - 1])
+        cache.put(('deleted', path[len(path) - 1], os.path.join(*path[:len(path) - 1])))
+        # self.data_obj.delete_data(path[len(path) - 1])
 
     def on_moved(self, event):
         self.on_deleted(event)
@@ -106,11 +104,15 @@ def add_multi_platform_watch(paths):
         watchers[x][0].start()
     while 1:
         time.sleep(5)
-        if len(cache.cache):
+        if not cache.empty():
             with sem:
                 number = data_obj.get_max_id()
                 generation = data_obj.get_max_generation() + 1
-                for x in cache:
+                while not cache.empty():
+                    print(cache.qsize())
+                    x = cache.get()
+                    print(x)
+                    print(cache.qsize())
                     if not data_obj:
                         data_obj = data_layer.DataLayer('database.db')
                     number += 1
@@ -123,5 +125,5 @@ def add_multi_platform_watch(paths):
                         data_obj.database.commit()
                         data_obj.close()
                         data_obj = None
-                cache.clear()
+
                 data_obj.database.commit()

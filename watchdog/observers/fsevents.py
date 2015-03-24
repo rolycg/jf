@@ -8,7 +8,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,8 +28,8 @@ from __future__ import with_statement
 import sys
 import threading
 import unicodedata
-import _watchdog_fsevents as _fsevents
 
+import _watchdog_fsevents as _fsevents
 from watchdog.events import (
     FileDeletedEvent,
     FileModifiedEvent,
@@ -40,7 +40,6 @@ from watchdog.events import (
     DirCreatedEvent,
     DirMovedEvent
 )
-
 from watchdog.utils.dirsnapshot import DirectorySnapshot
 from watchdog.observers.api import (
     BaseObserver,
@@ -51,7 +50,6 @@ from watchdog.observers.api import (
 
 
 class FSEventsEmitter(EventEmitter):
-
     """
     Mac OS X FSEvents Emitter class.
 
@@ -78,8 +76,8 @@ class FSEventsEmitter(EventEmitter):
 
     def queue_events(self, timeout):
         with self._lock:
-            if not self.watch.is_recursive\
-                and self.watch.path not in self.pathnames:
+            if not self.watch.is_recursive \
+                    and self.watch.path not in self.pathnames:
                 return
             new_snapshot = DirectorySnapshot(self.watch.path,
                                              self.watch.is_recursive)
@@ -142,7 +140,6 @@ class FSEventsEmitter(EventEmitter):
 
 
 class FSEventsObserver(BaseObserver):
-
     def __init__(self, timeout=DEFAULT_OBSERVER_TIMEOUT):
         BaseObserver.__init__(self, emitter_class=FSEventsEmitter,
                               timeout=timeout)

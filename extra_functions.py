@@ -88,6 +88,9 @@ class Cache():
     def clear(self):
         self.cache.clear()
 
+    def __len__(self):
+        return self.cache.__len__()
+
     def __iter__(self):
         return self.cache.__iter__()
 
@@ -105,9 +108,9 @@ def get_drives():
 def get_initials_paths():
     o_s = sys.platform
     if o_s.startswith('linux'):
-        return get_drives()
+        return ['/']
     elif o_s.startswith('win32'):
-        return ['']
+        return get_drives()
     elif o_s.startswith('darwin'):
         return ['/']
 

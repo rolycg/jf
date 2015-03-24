@@ -67,7 +67,7 @@ def printing():
 
 if __name__ == '__main__':
     print('----------- F* -----------')
-    path = '/media/roly/Extra/Series/'
+    path = None
     paths = []
     if not path:
         paths = ef.get_initials_paths()
@@ -81,6 +81,8 @@ if __name__ == '__main__':
         password = getpass.getpass()
     jump = 1
     data_layer = None
+    if not path:
+            path = '/'
     if not os.path.exists('./database.db'):
         jump = 0
         data_layer = data_layer_py.DataLayer('database.db')
@@ -88,6 +90,7 @@ if __name__ == '__main__':
         sha = hashlib.md5(password.encode())
         data_layer.insert_username_password(user_name, sha.hexdigest())
         _queue = Queue()
+
         path2 = path.split(os.sep)
         path2 = path2[len(path2) - 1]
         data_layer.insert_peer()
