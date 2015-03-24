@@ -4,6 +4,9 @@ from threading import Thread, Semaphore
 from time import sleep
 import getpass
 import hashlib
+
+query = False
+
 import extra_functions as ef
 import comunication_layer as cl
 import watch_layer
@@ -13,7 +16,6 @@ import data_layer as data_layer_py
 finished = True
 paint = False
 sem = Semaphore()
-query = False
 
 
 def dfs(path, q):
@@ -66,6 +68,11 @@ def printing():
 if __name__ == '__main__':
     print('----------- F* -----------')
     path = '/media/roly/Extra/Series/'
+    paths = []
+    if not path:
+        paths = ef.get_initials_paths()
+    else:
+        paths = [path]
     print('Username:')
     user_name = input()
     password = getpass.getpass()
@@ -87,11 +94,6 @@ if __name__ == '__main__':
         peer = data_layer.get_uuid_from_peer()
         data_layer.insert_data(id=1, file_name=path2, file_type='Folder', parent=path, generation=0, first=True,
                                peer=peer)
-        paths = []
-        if not path:
-            paths = ef.get_initials_paths()
-        else:
-            paths = [path]
         for x in paths:
             path = x
             t = Thread(target=dfs, args=(path, _queue))
@@ -120,6 +122,7 @@ if __name__ == '__main__':
         print('Enter keywords:')
         words = input()
         query = True
+        watch_query = True
         if not words.strip():
             continue
         for item in data_layer.find_data(words.split()):
@@ -128,6 +131,7 @@ if __name__ == '__main__':
                   data_layer.get_peer_from_uuid(item[7]) + '\n')
         print('Press any key for continue or write exit to finish')
         query = False
+        watch_query = False
         end = input()
         if end.lower() == 'exit':
             break

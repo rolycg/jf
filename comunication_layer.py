@@ -140,9 +140,10 @@ def receiver(sock, address, uuid, data_obj):
                                          file_type=elements[3],
                                          generation=elements[5], peer=elements[6], first=False)
                 if query:
+                    data_obj.database.commit()
                     data_obj.close()
                     data_obj = None
-    data_obj.database.commit()
+        data_obj.database.commit()
     gen, _ = sock.recvfrom(1024)
     if gen.decode():
         data_obj.edit_generation(uuid, gen.decode())

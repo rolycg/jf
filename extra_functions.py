@@ -3,6 +3,7 @@ import random
 import os
 import sys
 from ctypes import *
+
 from Crypto.Cipher import AES
 
 import data_layer
@@ -79,8 +80,7 @@ class Cache():
         self.cache = []
 
     def append(self, element):
-        if len(self.cache) <= self.limit:
-            self.cache.append(element)
+        self.cache.append(element)
 
     def __getitem__(self, item):
         return self.cache[item]

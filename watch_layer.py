@@ -7,6 +7,7 @@ from watchdog import observers
 from watchdog.events import FileSystemEventHandler
 import data_layer
 import extra_functions
+from main import query
 
 
 semaphore = Semaphore()
@@ -18,6 +19,7 @@ class MyFileSystemWatcher(FileSystemEventHandler):
         super(FileSystemEventHandler).__init__()
 
     def on_created(self, event):
+        global semaphore, cache
         if hasattr(event, 'dest_path'):
             path = extra_functions.split_paths(event.src_path)
         else:
@@ -47,6 +49,7 @@ class MyFileSystemWatcher(FileSystemEventHandler):
                 # self.data_obj.database.commit()
 
     def on_deleted(self, event):
+        global semaphore, cache
         path = extra_functions.split_paths(event.src_path)
         with semaphore:
             cache.append(('deleted', path[len(path) - 1], os.path.join(*path[:len(path) - 1])))
@@ -92,14 +95,15 @@ class MyFileSystemWatcher(FileSystemEventHandler):
 
 
 def add_multi_platform_watch(paths):
+    global cache
     data_obj = data_layer.DataLayer('database.db')
     watchers = []
     obj = MyFileSystemWatcher()
     for path in paths:
         watchers.append((observers.Observer(), path))
-    for watch, p in watchers:
-        watch.schedule(obj, p, recursive=True)
-        watch.start()
+    for x in range(0, len(watchers)):
+        watchers[x][0].schedule(obj, watchers[x][1], recursive=True)
+        watchers[x][0].start()
     while 1:
         time.sleep(5)
         if len(cache.cache):
@@ -107,13 +111,17 @@ def add_multi_platform_watch(paths):
                 number = data_obj.get_max_id()
                 generation = data_obj.get_max_generation() + 1
                 for x in cache:
+                    if not data_obj:
+                        data_obj = data_layer.DataLayer('database.db')
                     number += 1
                     if x[0] == 'created':
                         data_obj.insert_data(number, x[1], x[2], x[3], generation, data_obj.get_uuid_from_peer(),
                                              real_path=x[6])
                     else:
                         data_obj.delete_data(x[1], x[2])
+                    if query:
+                        data_obj.database.commit()
+                        data_obj.close()
+                        data_obj = None
                 cache.clear()
                 data_obj.database.commit()
-
-

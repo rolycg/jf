@@ -50,11 +50,10 @@ class DataLayer():
         return cursor
 
     def get_max_generation(self):
-        with semaphore:
-            cursor = self.database.cursor()
-            for value in cursor.execute('SELECT max(generation) FROM File'):
-                cursor.close()
-                return value[0]
+        cursor = self.database.cursor()
+        for value in cursor.execute('SELECT max(generation) FROM File'):
+            cursor.close()
+            return value[0]
 
     def insert_username_password(self, username, password):
         with semaphore:
@@ -116,22 +115,20 @@ class DataLayer():
                             (None, id, file_name, root, file_type, parent, generation, peer))
 
     def insert_data(self, id, file_name, file_type, parent, generation, peer=None, first=False, real_path=None):
-        with semaphore:
-            if not first and real_path:
-                paren = self.get_parent(parent, real_path, peer)
-                self.insert_file(id, file_name, paren, file_type, '', generation, peer)
-            elif not real_path and not first:
-                self.insert_file(id, file_name, parent, file_type, '', generation, peer)
-            else:
-                self.insert_file(id, file_name, -1, file_type, parent, generation, peer)
+        if not first and real_path:
+            paren = self.get_parent(parent, real_path, peer)
+            self.insert_file(id, file_name, paren, file_type, '', generation, peer)
+        elif not real_path and not first:
+            self.insert_file(id, file_name, parent, file_type, '', generation, peer)
+        else:
+            self.insert_file(id, file_name, -1, file_type, parent, generation, peer)
 
     def delete_data(self, name, real_path):
-        with semaphore:
-            cursor = self.database.cursor()
-            peer = self.get_uuid_from_peer()
-            parent = self.get_parent(name, real_path, peer)
-            cursor.execute('DELETE FROM File WHERE name_ext=? AND parent=? AND machine = ?', (name, parent, peer))
-            cursor.close()
+        cursor = self.database.cursor()
+        peer = self.get_uuid_from_peer()
+        parent = self.get_parent(name, real_path, peer)
+        cursor.execute('DELETE FROM File WHERE name_ext=? AND parent=? AND machine = ?', (name, parent, peer))
+        cursor.close()
 
     def get_parent(self, path, real_path, peer):
         cursor = self.database.cursor()
@@ -226,12 +223,11 @@ class DataLayer():
             return value[0]
 
     def get_max_id(self):
-        with semaphore:
-            cursor = self.database.cursor()
-            for value in cursor.execute('SELECT max(id) FROM File WHERE machine=1'):
-                number = int(value[0])
-                cursor.close()
-                return number
+        cursor = self.database.cursor()
+        for value in cursor.execute('SELECT max(id) FROM File WHERE machine=1'):
+            number = int(value[0])
+            cursor.close()
+            return number
 
 
 if __name__ == '__main__':
