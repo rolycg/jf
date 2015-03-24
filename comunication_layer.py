@@ -2,6 +2,9 @@ import socket
 import random
 import re
 
+from main import semaphore as sem
+
+from main import query
 import data_layer
 import extra_functions as ef
 
@@ -108,26 +111,37 @@ def receiver(sock, address, uuid, data_obj):
         data_obj.insert_peer(uuid, socket.gethostbyname(address[0]))
         sock.sendto(str(-1).encode(), address)
     cipher = ef.get_cipher(password)
-    while 1:
-        data, _ = sock.recvfrom(10024)
-        if data == b'finish':
-            break
-        else:
-            value = cipher.decrypt(data)
-            try:
-                elements = re.split('\\?+', value.decode())
-            except UnicodeDecodeError:
-                elements = re.split('\\?+', value.decode(encoding='LATIN-1'))
-            elements[0] = elements[0][1:]
-            elements[len(elements) - 1] = ef.unpad(elements[len(elements) - 1])
-            elements = [x.strip() for x in elements]
-            elements[len(elements) - 1] = data_obj.get_id_from_uuid(elements[len(elements) - 1])
-            if elements[4] == '-1':
-                data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[2], file_type=elements[3],
-                                     generation=elements[5], peer=elements[6], first=True)
+    with sem:
+        while 1:
+            data, _ = sock.recvfrom(10024)
+            if data == b'finish':
+                break
             else:
-                data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[4], file_type=elements[3],
-                                     generation=elements[5], peer=elements[6], first=False)
+                value = cipher.decrypt(data)
+                try:
+                    elements = re.split('\\?+', value.decode())
+                except UnicodeDecodeError:
+                    elements = re.split('\\?+', value.decode(encoding='LATIN-1'))
+                ###
+                # If a reader was launched
+                ###
+                if not data_obj:
+                    data_obj = data_layer.DataLayer('database.db')
+                elements[0] = elements[0][1:]
+                elements[len(elements) - 1] = ef.unpad(elements[len(elements) - 1])
+                elements = [x.strip() for x in elements]
+                elements[len(elements) - 1] = data_obj.get_id_from_uuid(elements[len(elements) - 1])
+                if elements[4] == '-1':
+                    data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[2],
+                                         file_type=elements[3],
+                                         generation=elements[5], peer=elements[6], first=True)
+                else:
+                    data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[4],
+                                         file_type=elements[3],
+                                         generation=elements[5], peer=elements[6], first=False)
+                if query:
+                    data_obj.close()
+                    data_obj = None
     data_obj.database.commit()
     gen, _ = sock.recvfrom(1024)
     if gen.decode():

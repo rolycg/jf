@@ -1,6 +1,6 @@
 import os
 from queue import Queue
-from threading import Thread
+from threading import Thread, Semaphore
 from time import sleep
 import getpass
 import hashlib
@@ -12,6 +12,8 @@ import data_layer as data_layer_py
 
 finished = True
 paint = False
+semaphore = Semaphore()
+query = False
 
 
 def dfs(path, q):
@@ -70,7 +72,7 @@ def printing():
 
 
 if __name__ == '__main__':
-    print('********** My Everything 2.0 **********')
+    print('----------- F* -----------')
     path = '/media/roly/Extra/Series/'
     print('Username:')
     user_name = input()
@@ -112,6 +114,7 @@ if __name__ == '__main__':
     while 1:
         print('Enter keywords:')
         words = input()
+        query = True
         if not words.strip():
             continue
         for item in data_layer.find_data(words.split()):
@@ -119,6 +122,7 @@ if __name__ == '__main__':
                   + str(data_layer.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
                   data_layer.get_peer_from_uuid(item[7]) + '\n')
         print('Press any key for continue or write exit to finish')
+        query = False
         end = input()
         if end.lower() == 'exit':
             break

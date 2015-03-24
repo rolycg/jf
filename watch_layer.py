@@ -2,6 +2,7 @@ import os
 import time
 from threading import Semaphore
 
+from main import semaphore as sem
 from watchdog import observers
 from watchdog.events import FileSystemEventHandler
 import data_layer
@@ -99,16 +100,17 @@ def add_multi_platform_watch(path):
     while 1:
         time.sleep(5)
         if len(cache.cache):
-            number = data_obj.get_max_id()
-            generation = data_obj.get_max_generation() + 1
-            for x in cache:
-                number += 1
-                if x[0] == 'created':
-                    data_obj.insert_data(number, x[1], x[2], x[3], generation, data_obj.get_uuid_from_peer(),
-                                         real_path=x[6])
-                else:
-                    data_obj.delete_data(x[1], x[2])
-            cache.clear()
-            data_obj.database.commit()
+            with sem:
+                number = data_obj.get_max_id()
+                generation = data_obj.get_max_generation() + 1
+                for x in cache:
+                    number += 1
+                    if x[0] == 'created':
+                        data_obj.insert_data(number, x[1], x[2], x[3], generation, data_obj.get_uuid_from_peer(),
+                                             real_path=x[6])
+                    else:
+                        data_obj.delete_data(x[1], x[2])
+                cache.clear()
+                data_obj.database.commit()
 
 

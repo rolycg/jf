@@ -14,7 +14,7 @@ class DataLayer():
     def __init__(self, database_url):
         self.database_url = database_url
         self.database = sqlite3.connect(self.database_url, check_same_thread=False)
-#        self.database.execute('PRAGMA read_uncommitted = FALSE ')
+        # self.database.execute('PRAGMA read_uncommitted = FALSE ')
         self.cursor = self.database.cursor()
         # self.database.isolation_level = 'DEFERRED'
 
@@ -33,6 +33,9 @@ class DataLayer():
             'pc_name VARCHAR, last_generation INTEGER, own INTEGER)')
         self.database.commit()
         cursor.close()
+
+    def close(self):
+        self.database.close()
 
     def get_last_generation(self, uuid):
         cursor = self.database.cursor()
@@ -109,10 +112,8 @@ class DataLayer():
             return value[0]
 
     def insert_file(self, id, file_name, parent, file_type, root, generation, peer):
-        cursor = self.database.cursor()
-        cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?,?)',
-                       (None, id, file_name, root, file_type, parent, generation, peer))
-        cursor.close()
+        self.cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?,?)',
+                            (None, id, file_name, root, file_type, parent, generation, peer))
 
     def insert_data(self, id, file_name, file_type, parent, generation, peer=None, first=False, real_path=None):
         with semaphore:
