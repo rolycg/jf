@@ -2,7 +2,7 @@ import os
 import time
 from threading import Semaphore
 
-from main import semaphore as sem
+from data_layer import semaphore as sem
 from watchdog import observers
 from watchdog.events import FileSystemEventHandler
 import data_layer
@@ -91,12 +91,15 @@ class MyFileSystemWatcher(FileSystemEventHandler):
 # watch.add_watch(path, ALL_EVENTS, lambda x: handle_linux_events(x), True, True, quiet=True)
 
 
-def add_multi_platform_watch(path):
+def add_multi_platform_watch(paths):
     data_obj = data_layer.DataLayer('database.db')
-    watch = observers.Observer()
+    watchers = []
     obj = MyFileSystemWatcher()
-    watch.schedule(obj, path, recursive=True)
-    watch.start()
+    for path in paths:
+        watchers.append((observers.Observer(), path))
+    for watch, p in watchers:
+        watch.schedule(obj, p, recursive=True)
+        watch.start()
     while 1:
         time.sleep(5)
         if len(cache.cache):

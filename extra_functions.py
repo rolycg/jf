@@ -2,7 +2,7 @@ import string
 import random
 import os
 import sys
-
+from ctypes import *
 from Crypto.Cipher import AES
 
 import data_layer
@@ -92,15 +92,25 @@ class Cache():
         return self.cache.__iter__()
 
 
+def get_drives():
+    drives = []
+    bitmask = windll.kernel32.GetLogicalDrives()
+    for letter in string.ascii_uppercase:
+        if bitmask & 1:
+            drives.append(letter)
+        bitmask >>= 1
+    return drives
+
+
 def get_initials_paths():
     o_s = sys.platform
-    if o_s == 'linux':
-        return ['/']
-    elif o_s == 'win32':
+    if o_s.startswith('linux'):
+        return get_drives()
+    elif o_s.startswith('win32'):
         return ['']
-    elif o_s == 'darwin':
+    elif o_s.startswith('darwin'):
         return ['/']
 
 
 if __name__ == '__main__':
-    print(sys.platform)
+    pass

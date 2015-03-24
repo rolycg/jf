@@ -2,7 +2,7 @@ import socket
 import random
 import re
 
-from main import semaphore as sem
+from data_layer import semaphore as sem
 
 from main import query
 import data_layer
