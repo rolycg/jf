@@ -5,6 +5,9 @@ import os
 import sys
 from threading import Semaphore
 
+import extra_functions as ef
+
+
 __author__ = 'roly'
 
 semaphore = Semaphore()
@@ -25,7 +28,7 @@ class DataLayer():
         cursor.execute(
             'CREATE TABLE File (_id INTEGER PRIMARY KEY AUTOINCREMENT,id INTEGER, name_ext VARCHAR , root VARCHAR, '
             'file_type VARCHAR, parent INTEGER REFERENCES File(id), generation  INTEGER, '
-            'machine VARCHAR REFERENCES Metadata(id), date_modified VARCHAR, modified INTEGER)')
+            'machine VARCHAR REFERENCES Metadata(id), date_modified INTEGER, modified INTEGER)')
         cursor.execute('CREATE INDEX name_index ON  File (name_ext)')
         cursor.execute('CREATE INDEX id_index ON  File (id)')
         cursor.execute(
@@ -110,14 +113,15 @@ class DataLayer():
             cursor.close()
             return value[0]
 
-    def insert_file(self, id, file_name, parent, file_type, root, generation, peer):
+    def insert_file(self, id, file_name, parent, file_type, root, generation, peer, date=0):
         self.cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?,?,?,?)',
-                            (None, id, file_name, root, file_type, parent, generation, peer, '', 0))
+                            (None, id, file_name, root, file_type, parent, generation, peer, date, 0))
 
     def insert_data(self, id, file_name, file_type, parent, generation, peer=None, first=False, real_path=None):
         if not first and real_path:
             paren = self.get_parent(parent, real_path, peer)
-            self.insert_file(id, file_name, paren, file_type, '', generation, peer)
+            self.insert_file(id, file_name, paren, file_type, '', generation, peer,
+                             ef.get_date(real_path))
         elif not real_path and not first:
             self.insert_file(id, file_name, parent, file_type, '', generation, peer)
         else:
@@ -164,12 +168,15 @@ class DataLayer():
     def dynamic_insert_data(self, path, dirs, files, session_count, total_files, count, real_path, peer):
         parent = self.get_parent(path, real_path, peer)
         for dir in dirs:
-            self.insert_file(total_files, dir, parent=parent, file_type='Folder', generation=0, root='', peer=peer)
+            date = ef.get_date(real_path + os.sep + dir)
+            self.insert_file(total_files, dir, parent=parent, file_type='Folder', generation=0, root='', peer=peer,
+                             date=date)
             total_files += 1
         for file in files:
+            date = ef.get_date(real_path + os.sep + file)
             _type = file.split('.')
             self.insert_file(file_name=file, file_type='' + _type[len(_type) - 1], parent=parent, generation=0,
-                             root='', peer=peer, id=total_files)
+                             root='', peer=peer, id=total_files, date=date)
             total_files += 1
         return session_count, total_files, count
 
@@ -200,6 +207,7 @@ class DataLayer():
             else:
                 query += ' OR name_ext LIKE ?'
             cont += 1
+        query += ' ORDER BY date_modified DESC'
         word_list = [x + '%' for x in word_list]
         return cursor.execute(query, word_list)
 

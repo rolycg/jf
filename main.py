@@ -1,7 +1,7 @@
 import os
 from queue import Queue
 from threading import Thread, Semaphore
-from time import sleep
+from time import sleep, localtime
 import getpass
 import hashlib
 
@@ -129,9 +129,11 @@ if __name__ == '__main__':
         if not words.strip():
             continue
         for item in data_layer.find_data(words.split()):
+            t = localtime(item[8])
             print('>Name: ' + str(item[2]) + '\n' + '>File Type: ' + str(item[4]) + '\n' + '>Address: '
                   + str(data_layer.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
-                  data_layer.get_peer_from_uuid(item[7]) + '\n')
+                  data_layer.get_peer_from_uuid(item[7]) + '\n' + '>Date: ' + str(t[0]) + '-' + str(t[1]) + '-' + str(
+                t[2]) + '\n')
         print('Press any key for continue or write exit to finish')
         cl.set_query(False)
         watch_layer.set_query(False)

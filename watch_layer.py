@@ -110,7 +110,7 @@ def add_multi_platform_watch(paths):
         watchers[x][0].schedule(obj, watchers[x][1], recursive=True)
         watchers[x][0].start()
     while 1:
-        time.sleep(20)
+        time.sleep(2)
         if not cache.empty():
             with sem:
                 number = data_obj.get_max_id()
@@ -118,8 +118,8 @@ def add_multi_platform_watch(paths):
                 ###
                 # Solve this cache.empty() always return True
                 ###
-                length = len(cache)
-                while not cache.empty():
+
+                while cache.qsize() > 0:
                     x = cache.get()
                     if not data_obj:
                         data_obj = data_layer.DataLayer('database.db')
@@ -133,5 +133,5 @@ def add_multi_platform_watch(paths):
                         data_obj.database.commit()
                         data_obj.close()
                         data_obj = None
-                    length -= 1
+
                 data_obj.database.commit()

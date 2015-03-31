@@ -51,7 +51,7 @@ import time
 
 if __name__ == '__main__':
     a = os.stat('/media/')
-
+    print(time.localtime(a[7]))
 
 
 
