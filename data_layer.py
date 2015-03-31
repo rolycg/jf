@@ -25,7 +25,7 @@ class DataLayer():
         cursor.execute(
             'CREATE TABLE File (_id INTEGER PRIMARY KEY AUTOINCREMENT,id INTEGER, name_ext VARCHAR , root VARCHAR, '
             'file_type VARCHAR, parent INTEGER REFERENCES File(id), generation  INTEGER, '
-            'machine VARCHAR REFERENCES Metadata(id))')
+            'machine VARCHAR REFERENCES Metadata(id), date_modified VARCHAR, modified INTEGER)')
         cursor.execute('CREATE INDEX name_index ON  File (name_ext)')
         cursor.execute('CREATE INDEX id_index ON  File (id)')
         cursor.execute(
@@ -111,8 +111,8 @@ class DataLayer():
             return value[0]
 
     def insert_file(self, id, file_name, parent, file_type, root, generation, peer):
-        self.cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?,?)',
-                            (None, id, file_name, root, file_type, parent, generation, peer))
+        self.cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?,?,?,?)',
+                            (None, id, file_name, root, file_type, parent, generation, peer, '', 0))
 
     def insert_data(self, id, file_name, file_type, parent, generation, peer=None, first=False, real_path=None):
         if not first and real_path:

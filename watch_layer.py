@@ -8,11 +8,17 @@ from watchdog import observers
 from watchdog.events import FileSystemEventHandler
 import data_layer
 import extra_functions
-from main import query
 
+
+query = False
 
 semaphore = Semaphore()
 cache = Queue()
+
+
+def set_query(value):
+    global query
+    query = value
 
 
 class MyFileSystemWatcher(FileSystemEventHandler):
@@ -93,6 +99,7 @@ class MyFileSystemWatcher(FileSystemEventHandler):
 
 
 def add_multi_platform_watch(paths):
+    global query
     global cache
     data_obj = data_layer.DataLayer('database.db')
     watchers = []
@@ -103,16 +110,17 @@ def add_multi_platform_watch(paths):
         watchers[x][0].schedule(obj, watchers[x][1], recursive=True)
         watchers[x][0].start()
     while 1:
-        time.sleep(5)
+        time.sleep(20)
         if not cache.empty():
             with sem:
                 number = data_obj.get_max_id()
                 generation = data_obj.get_max_generation() + 1
+                ###
+                # Solve this cache.empty() always return True
+                ###
+                length = len(cache)
                 while not cache.empty():
-                    print(cache.qsize())
                     x = cache.get()
-                    print(x)
-                    print(cache.qsize())
                     if not data_obj:
                         data_obj = data_layer.DataLayer('database.db')
                     number += 1
@@ -125,5 +133,5 @@ def add_multi_platform_watch(paths):
                         data_obj.database.commit()
                         data_obj.close()
                         data_obj = None
-
+                    length -= 1
                 data_obj.database.commit()

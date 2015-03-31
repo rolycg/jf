@@ -66,8 +66,8 @@ def printing():
 
 
 if __name__ == '__main__':
-    print('----------- F* -----------')
-    path = None
+    print('----------- JF -----------')
+    path = '/media/roly/Extra/Series/'
     paths = []
     if not path:
         paths = ef.get_initials_paths()
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     jump = 1
     data_layer = None
     if not path:
-            path = '/'
+        path = '/'
     if not os.path.exists('./database.db'):
         jump = 0
         data_layer = data_layer_py.DataLayer('database.db')
@@ -124,8 +124,8 @@ if __name__ == '__main__':
     while 1:
         print('Enter keywords:')
         words = input()
-        query = True
-        watch_query = True
+        cl.set_query(True)
+        watch_layer.set_query(True)
         if not words.strip():
             continue
         for item in data_layer.find_data(words.split()):
@@ -133,8 +133,8 @@ if __name__ == '__main__':
                   + str(data_layer.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
                   data_layer.get_peer_from_uuid(item[7]) + '\n')
         print('Press any key for continue or write exit to finish')
-        query = False
-        watch_query = False
+        cl.set_query(False)
+        watch_layer.set_query(False)
         end = input()
         if end.lower() == 'exit':
             break

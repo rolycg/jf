@@ -1,5 +1,4 @@
 import os
-import time
 
 
 def try_os_path(path):
@@ -47,12 +46,14 @@ def printing():
     print('', end='\r')
 
 
-import hashlib
+import time
 
 
 if __name__ == '__main__':
-    hash = hashlib.new('sha1')
-    hash.update(b'password')
-    print(hash.hexdigest())
-    print(len(hash.hexdigest()))
-    print(hashlib.algorithms_available)
+    a = os.stat('/media/')
+
+
+
+
+
+

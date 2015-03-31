@@ -3,11 +3,10 @@ import random
 import re
 
 from data_layer import semaphore as sem
-
-from main import query
 import data_layer
 import extra_functions as ef
 
+query = False
 
 def broadcast(data_obj):
     try:
@@ -67,6 +66,11 @@ def start():
         start_broadcast_server(data_obj=data_obj)
 
 
+def set_query(value):
+    global query
+    query = value
+
+
 def checking_client(sock, address, data_obj):
     username, password = data_obj.get_username_password()
     cipher = ef.get_cipher(password)
@@ -103,6 +107,7 @@ def checking_server(sock, address, data_obj):
 
 
 def receiver(sock, address, uuid, data_obj):
+    global query
     _, password = data_obj.get_username_password()
     last_generation = data_obj.get_last_generation(uuid)
     if last_generation:
@@ -139,6 +144,7 @@ def receiver(sock, address, uuid, data_obj):
                     data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[4],
                                          file_type=elements[3],
                                          generation=elements[5], peer=elements[6], first=False)
+
                 if query:
                     data_obj.database.commit()
                     data_obj.close()
