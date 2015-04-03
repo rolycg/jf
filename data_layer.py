@@ -73,7 +73,7 @@ class DataLayer():
 
     def get_files(self, generation, peer):
         cursor = self.database.cursor()
-        return cursor.execute('SELECT * FROM File WHERE generation>=? AND machine=?', (generation, peer))
+        return cursor.execute('SELECT * FROM File WHERE generation>=? AND machine=? ORDER BY id ASC', (generation, peer))
 
     def insert_peer(self, uuid=None, pc_name=None):
         with semaphore:
@@ -191,7 +191,10 @@ class DataLayer():
             if item[5] == -1:
                 break
             address = str(item[2]) + os.sep + address
+            tm = item[5], item[7]
             item = self.get_element(item[5], item[7])
+            if not item:
+                print(str(tm))
             if item[3]:
                 address = str(item[3]) + os.sep + address
         return address[:len(address) - 1]

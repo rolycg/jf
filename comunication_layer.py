@@ -1,7 +1,7 @@
 import socket
 import random
 import re
-
+import time
 from data_layer import semaphore as sem
 import data_layer
 import extra_functions as ef
@@ -149,6 +149,9 @@ def receiver(sock, address, uuid, data_obj):
                     data_obj.database.commit()
                     data_obj.close()
                     data_obj = None
+
+                    while query:
+                        time.sleep(0.5)
         data_obj.database.commit()
     gen, _ = sock.recvfrom(1024)
     if gen.decode():
