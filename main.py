@@ -1,11 +1,9 @@
 import os
 from queue import Queue
-from threading import Thread, Semaphore
+from threading import Thread
 from time import sleep, localtime
 import getpass
 import hashlib
-
-query = False
 
 import extra_functions as ef
 import comunication_layer as cl
@@ -15,7 +13,6 @@ import data_layer as data_layer_py
 
 finished = True
 paint = False
-sem = Semaphore()
 
 
 def dfs(path, q):
@@ -65,6 +62,48 @@ def printing():
     print('', end='\r')
 
 
+def start(paths):
+    t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(paths,))
+    t4.start()
+    t5 = Thread(target=cl.start, args=())
+    t5.start()
+
+
+def create():
+    # TODO: put this in None
+    data_layer = data_layer_py.DataLayer('database.db')
+    path = '/media/roly/Extra/Series/'
+    paths = []
+    if not path:
+        paths = ef.get_initials_paths()
+    else:
+        paths = [path]
+    if not path:
+        path = '/'
+    _queue = Queue()
+    path2 = path.split(os.sep)
+    path2 = path2[len(path2) - 1]
+    data_layer.insert_peer()
+    peer = data_layer.get_uuid_from_peer()
+    data_layer.insert_data(id=1, file_name=path2, file_type='Folder', parent=path, generation=0, first=True,
+                           peer=peer)
+    for x in paths:
+        path = x
+        t = Thread(target=dfs, args=(path, _queue))
+        t.start()
+        t2 = Thread(target=save_to_disk, args=(data_layer, _queue, path))
+        t2.start()
+
+
+def get_paths():
+    path = '/media/roly/Extra/Series/'
+    if not path:
+        paths = ef.get_initials_paths()
+    else:
+        paths = [path]
+    return paths
+
+
 if __name__ == '__main__':
     print('----------- JF -----------')
     path = '/media/roly/Extra/Series/'
@@ -90,7 +129,6 @@ if __name__ == '__main__':
         sha = hashlib.md5(password.encode())
         data_layer.insert_username_password(user_name, sha.hexdigest())
         _queue = Queue()
-
         path2 = path.split(os.sep)
         path2 = path2[len(path2) - 1]
         data_layer.insert_peer()

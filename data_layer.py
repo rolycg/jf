@@ -4,8 +4,20 @@ import socket
 import os
 import sys
 from threading import Semaphore
+import time
 
 import extra_functions as ef
+
+
+query = False
+
+
+def set_query():
+    global query
+    if query:
+        query = False
+    else:
+        query = True
 
 
 __author__ = 'roly'
@@ -73,7 +85,8 @@ class DataLayer():
 
     def get_files(self, generation, peer):
         cursor = self.database.cursor()
-        return cursor.execute('SELECT * FROM File WHERE generation>=? AND machine=? ORDER BY id ASC', (generation, peer))
+        return cursor.execute('SELECT * FROM File WHERE generation>=? AND machine=? ORDER BY id ASC',
+                              (generation, peer))
 
     def insert_peer(self, uuid=None, pc_name=None):
         with semaphore:
@@ -166,17 +179,34 @@ class DataLayer():
             raise Exception('Error in database')
 
     def dynamic_insert_data(self, path, dirs, files, session_count, total_files, count, real_path, peer):
+        global query
+        if not self.database:
+            self.database = sqlite3.connect(self.database_url, check_same_thread=False)
         parent = self.get_parent(path, real_path, peer)
         for dir in dirs:
             date = ef.get_date(real_path + os.sep + dir)
             self.insert_file(total_files, dir, parent=parent, file_type='Folder', generation=0, root='', peer=peer,
                              date=date)
+            if query:
+                self.database.commit()
+                self.database.close()
+                self.database = None
+
+                while query:
+                    time.sleep(0.5)
             total_files += 1
         for file in files:
             date = ef.get_date(real_path + os.sep + file)
             _type = file.split('.')
             self.insert_file(file_name=file, file_type='' + _type[len(_type) - 1], parent=parent, generation=0,
                              root='', peer=peer, id=total_files, date=date)
+            if query:
+                self.database.commit()
+                self.database.close()
+                self.database = None
+
+                while query:
+                    time.sleep(0.5)
             total_files += 1
         return session_count, total_files, count
 
