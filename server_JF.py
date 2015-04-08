@@ -1,28 +1,30 @@
 __author__ = 'roly'
 from time import localtime
-import os
 import json
 import hashlib
 import threading
+import time
+import socket
+import os
 
 import main
 import data_layer as data_layer_py
 import comunication_layer as cl
 import watch_layer
-import time
+
 
 if __name__ == '__main__':
-    if not os.path.exists('./temp/read_server'):
-        os.mkfifo('./temp/read_server')
-    if not os.path.exists('./temp/write_server'):
-        os.mkfifo('./temp/write_server')
-    f = os.fdopen(os.open('./temp/read_server', os.O_NONBLOCK))
-    fw = open('./temp/write_server', 'w')
+    if os.path.exists('./temp/test'):
+        os.remove('./temp/test')
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    s.bind('./tmp/test')
+    s.listen(1)
     # TODO: FIX all continue
     while 1:
-        line = f.readlines()
-        if line:
-            _dict = json.loads(line, encoding='utf-8')
+        conn, _ = s.accept()
+        data = conn.recv(2048)
+        if data:
+            _dict = json.loads(data, encoding='utf-8')
         else:
             time.sleep(0.8)
             continue
@@ -85,9 +87,8 @@ if __name__ == '__main__':
             data_layer_py.set_query()
             cl.set_query(False)
             watch_layer.set_query(False)
-            fw.write(json.dumps({'results': res}))
-    f.close()
-    fw.close()
+            conn.send(json.dumps({'results': res}).encode())
+
 
 
 

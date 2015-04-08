@@ -2,11 +2,14 @@ import socket
 import random
 import re
 import time
+
 from data_layer import semaphore as sem
 import data_layer
 import extra_functions as ef
 
+
 query = False
+
 
 def broadcast(data_obj):
     try:
