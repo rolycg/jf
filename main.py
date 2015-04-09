@@ -42,9 +42,9 @@ def save_to_disk(engine, q, peer):
                                                                            total_files, count,
                                                                            complete_path,
                                                                            peer=peer, generation=generation)
-            if count > 5000:
-                while data_layer_py.query:
-                    time.sleep(0.5)
+            while data_layer_py.query:
+                time.sleep(0.5)
+            if count > 10000:
                 engine.database.commit()
                 count = 0
         except Empty:
@@ -89,7 +89,7 @@ def start(paths):
 def create():
     # TODO: put path  in None
     data_layer = data_layer_py.DataLayer('database.db')
-    path = '/media/roly/Extra/Series'
+    path = '/media/roly/Extra/Installs'
     paths = []
     if not path:
         paths = ef.get_initials_paths()
@@ -110,10 +110,13 @@ def create():
         t.start()
         t2 = Thread(target=save_to_disk, args=(data_layer, _queue, peer))
         t2.start()
+        t.join()
+        t2.join()
+    start(get_paths())
 
 
 def get_paths():
-    path = '/media/roly/Extra/Series/'
+    path = '/media/roly/Extra'
     if not path:
         paths = ef.get_initials_paths()
     else:

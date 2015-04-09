@@ -12,12 +12,9 @@ import extra_functions as ef
 query = False
 
 
-def set_query():
+def set_query(value):
     global query
-    if query:
-        query = False
-    else:
-        query = True
+    query = value
 
 
 __author__ = 'Roly'
@@ -177,52 +174,28 @@ class DataLayer():
 
     def dynamic_insert_data(self, path, dirs, files, session_count, total_files, count, real_path, peer, generation=0):
         global query
-        if not self.database:
-            self.database = sqlite3.connect(self.database_url, check_same_thread=False)
-            self.cursor = self.database.cursor()
         parent = self.get_parent(path, real_path, peer)
         for dir in dirs:
             count += 1
-            if count > 5000:
-                while query:
-                    time.sleep(0.5)
-                self.database.commit()
-                count = 0
             date = ef.get_date(real_path + os.sep + dir)
             self.insert_file(total_files, dir, parent=parent, file_type='Folder', generation=0, root='',
                              peer=peer,
                              date=date)
             if query:
                 self.database.commit()
-                self.database.close()
-                self.database = None
                 while query:
                     time.sleep(0.5)
-                self.database = sqlite3.connect(self.database_url, check_same_thread=False)
-                self.cursor = self.database.cursor()
             total_files += 1
-        if not self.database:
-            self.database = sqlite3.connect(self.database_url, check_same_thread=False)
-            self.cursor = self.database.cursor()
         for file in files:
             count += 1
-            if count > 5000:
-                while query:
-                    time.sleep(0.5)
-                self.database.commit()
-                count = 0
             date = ef.get_date(real_path + os.sep + file)
             _type = file.split('.')
             self.insert_file(file_name=file, file_type='' + _type[len(_type) - 1], parent=parent, generation=0,
                              root='', peer=peer, id=total_files, date=date)
             if query:
                 self.database.commit()
-                self.database.close()
-                self.database = None
                 while query:
                     time.sleep(0.5)
-                self.database = sqlite3.connect(self.database_url, check_same_thread=False)
-                self.cursor = self.database.cursor()
             total_files += 1
         return session_count, total_files, count
 

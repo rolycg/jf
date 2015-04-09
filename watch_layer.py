@@ -93,6 +93,8 @@ def make_watch(cache, machine=1):
                 while 1:
                     try:
                         x = cache.get(timeout=1)
+                        if x:
+                            print(x)
                         if not data_obj:
                             data_obj = data_layer.DataLayer('database.db')
                             data_obj.cursor = data_obj.database.cursor()
@@ -114,6 +116,7 @@ def make_watch(cache, machine=1):
                         break
                     while query:
                         time.sleep(0.5)
+                    print('before commit')
                     data_obj.database.commit()
 
 

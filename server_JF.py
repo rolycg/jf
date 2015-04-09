@@ -5,9 +5,9 @@ import hashlib
 import threading
 import socket
 import os
-from multiprocessing import Process, Queue
+from multiprocessing import Queue
 from queue import Empty
-# from threading import Thread
+from threading import Thread
 import sqlite3
 import time
 
@@ -19,6 +19,9 @@ import watch_layer
 from extra_functions import convert_message, get_date
 
 
+t2 = None
+
+
 def finish_query(collection, data_layer, temp_res):
     for item in collection:
         t = localtime(item[8])
@@ -28,25 +31,55 @@ def finish_query(collection, data_layer, temp_res):
                          data_layer.get_peer_from_uuid(item[7]) + '\n' + '>Date: ' + str(t[0]) + '-' + str(
                 t[1]) + '-' + str(t[2]) + '\n')
         except sqlite3.InterfaceError as e:
-            print(e.__traceback__())
+            print(e.__traceback__)
             break
         except sqlite3.ProgrammingError as e:
-            print(e.__traceback__())
+            print(e.__traceback__)
             break
-    open_writing()
+    s_qp = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
+    data_layer.database.close()
+    collection.close()
+    data_layer.close()
+    try:
+        s_qp.connect('/tmp/process_com')
+    except FileNotFoundError:
+        print('FileNotFoundError')
+    except ConnectionRefusedError:
+        print('ConnectionRefusedError')
+    s_qp.send(b'True')
+    s_qp.close()
 
 
 def open_writing():
-    data_layer_py.set_query()
+    data_layer_py.set_query(False)
     cl.set_query(False)
     watch_layer.set_query(False)
 
 
+def query_process_communication():
+    global t2
+    if os.path.exists('/tmp/process_com'):
+        os.remove('/tmp/process_com')
+    sqp = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    sqp.bind('/tmp/process_com')
+    sqp.listen(1)
+    while 1:
+        conn_qp, _ = sqp.accept()
+        data = conn_qp.recv(10)
+        if data:
+            if t2 and t2.is_alive():
+                t2.terminate()
+            open_writing()
+
+
 if __name__ == '__main__':
     t = None
+
     database_path = './database.db'
     temp_res = Queue()
     data_layer = None
+    thread_cq = Thread(target=query_process_communication)
+    thread_cq.start()
     allow_start = os.path.exists(database_path)
     if os.path.exists('/tmp/JF'):
         os.remove('/tmp/JF')
@@ -76,8 +109,6 @@ if __name__ == '__main__':
                 data_layer.close()
                 t = threading.Thread(target=main.create)
                 t.start()
-                t.join()
-                main.start(main.get_paths())
                 allow_start = True
             else:
                 date = get_date(database_path)
@@ -96,8 +127,6 @@ if __name__ == '__main__':
                     data_layer.close()
                     t = threading.Thread(target=main.create)
                     t.start()
-                    t.join()
-                    main.start(main.get_paths())
                     allow_start = True
         if _dict['action'] == 'start':
             if not allow_start:
@@ -132,13 +161,13 @@ if __name__ == '__main__':
                     query = _dict['query']
                 except KeyError:
                     more = _dict['action']
-                if query and data_layer:
-                    data_layer.close()
                 if query and t2 and t2.is_alive():
                     t2.terminate()
+                if query and data_layer:
+                    data_layer.close()
                 if query:
                     cl.set_query(True)
-                    data_layer_py.set_query()
+                    data_layer_py.set_query(True)
                     watch_layer.set_query(True)
                     time.sleep(0.1)
                     query.strip()
@@ -165,13 +194,19 @@ if __name__ == '__main__':
                         count -= 1
                         if not count:
                             break
-                    t2 = Process(target=finish_query, args=(collection, data_layer, temp_res))
-                    t2.start()
+                            # t2 = Process(target=finish_query, args=(collection, data_layer, temp_res))
+                            #t2.start()
+                    collection.close()
+                    data_layer.close()
+                    open_writing()
                 s2 = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
                 s2.settimeout(0.2)
                 try:
                     s2.connect('/tmp/JF_ext_dv')
                 except FileNotFoundError:
+                    conn.send(json.dumps({'results': res}).encode())
+                    continue
+                except ConnectionRefusedError:
                     conn.send(json.dumps({'results': res}).encode())
                     continue
                 except socket.timeout:
@@ -193,7 +228,7 @@ if __name__ == '__main__':
                 except KeyError:
                     conn.send(json.dumps({'results': res}).encode())
             except Exception as e:
-                print(str(e.__traceback__()))
+                print(str(e.args))
         if _dict['action'] == 'index':
             device = _dict['device']
             ret = add_device(device)

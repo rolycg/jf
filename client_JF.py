@@ -10,20 +10,31 @@ import getpass
 error = 'Something went wrong, call emergency'
 cmd = ['python3', 'server_JF.py']
 
+
+def start_server(s):
+    subprocess.Popen(cmd)
+    time.sleep(0.8)
+    try:
+        s.connect('/tmp/JF')
+    except FileNotFoundError:
+        print(error)
+    except ConnectionRefusedError:
+        print(error)
+    return s
+
+
 if __name__ == '__main__':
     args = sys.argv[1:]
-    # if os.path.exists('./temp/test'):
-    # os.remove('./tmp/test')
     s = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
     if not len(args):
         print('Blank not allowed. Must pass: \ncreate\nstart\nquery <some query>\nindex <some device>\n')
     elif 'create' == args[0].lower() or 'start' == args[0].lower():
-        subprocess.Popen(cmd)
-        time.sleep(0.5)
         try:
             s.connect('/tmp/JF')
         except FileNotFoundError:
-            print(error)
+            s = start_server(s)
+        except ConnectionRefusedError:
+            s = start_server(s)
         print('Username: ')
         username = input()
         password = getpass.getpass()
@@ -61,8 +72,6 @@ if __name__ == '__main__':
                 s.send(json.dumps({'answer': resp}).encode())
             except socket.timeout:
                 pass
-
-
     elif 'query' == args[0].lower():
         try:
             s.connect('/tmp/JF')
