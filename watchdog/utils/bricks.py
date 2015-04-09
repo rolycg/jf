@@ -8,7 +8,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +46,6 @@ except ImportError:
 
 
 class SkipRepeatsQueue(queue.Queue):
-
     """Thread-safe implementation of an special queue where a
     put of the last-item put'd will be dropped.
 
@@ -109,7 +108,6 @@ class SkipRepeatsQueue(queue.Queue):
 
 
 class OrderedSetQueue(queue.Queue):
-
     """Thread-safe implementation of an ordered set queue.
 
     Disallows adding a duplicate item while maintaining the
@@ -196,8 +194,8 @@ if sys.version_info >= (2, 6, 0):
 
         def __init__(self, iterable=None):
             self.end = end = []
-            end += [None, end, end]         # sentinel node for doubly linked list
-            self.map = {}                   # key --> [key, prev, next]
+            end += [None, end, end]  # sentinel node for doubly linked list
+            self.map = {}  # key --> [key, prev, next]
             if iterable is not None:
                 self |= iterable
 
@@ -251,4 +249,4 @@ if sys.version_info >= (2, 6, 0):
             return set(self) == set(other)
 
         def __del__(self):
-            self.clear()                    # remove circular references
+            self.clear()  # remove circular references

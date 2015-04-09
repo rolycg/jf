@@ -96,7 +96,7 @@ def accepts(*types):
 
         def new_f(*args, **kwds):
             for (a, t) in zip(args, types):
-                assert isinstance(a, t),\
+                assert isinstance(a, t), \
                     "arg %r does not match %s" % (a, t)
             return f(*args, **kwds)
 
@@ -120,7 +120,7 @@ def returns(rtype):
     def check_returns(f):
         def new_f(*args, **kwds):
             result = f(*args, **kwds)
-            assert isinstance(result, rtype),\
+            assert isinstance(result, rtype), \
                 "return value %r does not match %s" % (result, rtype)
             return result
 
@@ -187,7 +187,7 @@ def deprecated(func):
     def new_func(*args, **kwargs):
         warnings.warn_explicit(
             "Call to deprecated function %(funcname)s." % {
-            'funcname': func.__name__,
+                'funcname': func.__name__,
             },
             category=DeprecationWarning,
             filename=func.__code__.co_filename,

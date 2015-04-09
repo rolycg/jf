@@ -119,7 +119,6 @@ def get_date(path):
     return os.stat(path)[7]
 
 
-import time
 if __name__ == '__main__':
     print((get_date('/media/roly/Extra/Series/')))
     print((get_date('/media/roly/Extra/Work/')))

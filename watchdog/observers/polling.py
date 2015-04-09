@@ -8,7 +8,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,7 +41,6 @@ from watchdog.observers.api import (
     DEFAULT_OBSERVER_TIMEOUT,
     DEFAULT_EMITTER_TIMEOUT
 )
-
 from watchdog.events import (
     DirMovedEvent,
     DirDeletedEvent,
@@ -55,7 +54,6 @@ from watchdog.events import (
 
 
 class PollingEmitter(EventEmitter):
-
     """
     Platform-independent emitter that polls a directory to detect file
     system changes.
@@ -71,8 +69,8 @@ class PollingEmitter(EventEmitter):
             self._snapshot = None
 
     def queue_events(self, timeout):
-    # We don't want to hit the disk continuously.
-    # timeout behaves like an interval for polling emitters.
+        # We don't want to hit the disk continuously.
+        # timeout behaves like an interval for polling emitters.
         time.sleep(timeout)
 
         with self._lock:
@@ -108,7 +106,6 @@ class PollingEmitter(EventEmitter):
 
 
 class PollingObserver(BaseObserver):
-
     """
     Observer thread that schedules watching directories and dispatches
     calls to event handlers.

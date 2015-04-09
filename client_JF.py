@@ -3,20 +3,28 @@ __author__ = 'roly'
 import sys
 import subprocess
 import json
-import time
 import socket
+import multiprocessing
+
+
+def execute_server():
+    subprocess.call(['python3', 'server_JF.py'])
+
 
 if __name__ == '__main__':
-    s = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_DGRAM)
-    s.connect('./tmp/test')
-
     args = sys.argv[1:]
+    # if os.path.exists('./temp/test'):
+    # os.remove('./tmp/test')
+    s = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
     if 'create' in args or 'start' in args:
-        subprocess.call('python3 server_pipe.py')
+        t = multiprocessing.Process(target=execute_server)
+        t.start()
+        s.connect('./tmp/test')
         j = json.dumps({'action': 'create', 'username': 'r', 'password': 'r'})
         s.send(j.encode())
-    if 'query':
-        words = args[2:]
+    if 'query' in args:
+        s.connect('./tmp/test')
+        words = args[1:]
         j = json.dumps({'action': 'query', 'query': words})
         s.send(j.encode())
         value = None

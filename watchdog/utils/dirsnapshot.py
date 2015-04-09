@@ -8,7 +8,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,12 +58,12 @@ import stat
 
 from pathtools.path import walk as path_walk, absolute_path
 
+
 if sys.version_info >= (2, 6, 0):
     from watchdog.utils.bricks import OrderedSet as set
 
 
 class DirectorySnapshotDiff(object):
-
     """
     Compares two directory snapshots and creates an object that represents
     the difference between the two snapshots.
@@ -214,7 +214,6 @@ class DirectorySnapshotDiff(object):
 
 
 class DirectorySnapshot(object):
-
     """
     A snapshot of stat information of files in a directory.
 

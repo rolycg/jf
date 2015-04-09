@@ -8,7 +8,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -74,7 +74,6 @@ def has_attribute(ob, attribute):
 
 
 class DaemonThread(threading.Thread):
-
     """
     Daemon thread convenience class, sets a few properties and makes
     writing daemon threads a little easier.
@@ -162,7 +161,7 @@ def load_class(dotted_path):
             # return klass(*args, **kwargs)
         else:
             raise AttributeError('Module %s does not have class attribute %s' % (
-                                 module_name, klass_name))
+                module_name, klass_name))
     else:
         raise ValueError(
             'Dotted module path %s must contain a module name and a classname' % dotted_path)

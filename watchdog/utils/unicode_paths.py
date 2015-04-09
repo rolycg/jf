@@ -35,7 +35,6 @@ except NameError:
     str_cls = str
     bytes_cls = bytes
 
-
 fs_encoding = sys.getfilesystemencoding()
 # This is used by Linux when the locale seems to be improperly set. UTF-8 tends
 # to be the encoding used by all distros, so this is a good fallback.

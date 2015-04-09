@@ -8,7 +8,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,20 +36,17 @@ from watchdog.observers.winapi_common import (
     close_directory_handle,
     BUFFER_SIZE
 )
-
 from watchdog.observers.winapi import (
     FILE_ACTION_RENAMED_OLD_NAME,
     FILE_ACTION_RENAMED_NEW_NAME,
     get_FILE_NOTIFY_INFORMATION
 )
-
 from watchdog.observers.api import (
     EventEmitter,
     BaseObserver,
     DEFAULT_OBSERVER_TIMEOUT,
     DEFAULT_EMITTER_TIMEOUT
 )
-
 from watchdog.events import (
     DirCreatedEvent,
     DirMovedEvent,
@@ -59,7 +56,6 @@ from watchdog.events import (
 
 
 class WindowsApiEmitter(EventEmitter):
-
     """
     Windows API-based emitter that uses ReadDirectoryChangesW
     to detect file system changes for a watch.
@@ -132,7 +128,6 @@ class WindowsApiEmitter(EventEmitter):
 
 
 class WindowsApiObserver(BaseObserver):
-
     """
     Observer thread that schedules watching directories and dispatches
     calls to event handlers.

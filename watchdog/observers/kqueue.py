@@ -8,7 +8,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -78,13 +78,13 @@ Collections and Utility Classes
 """
 
 from __future__ import with_statement
-from watchdog.utils import platform
-
 import threading
 import errno
 import sys
 import stat
 import os
+
+from watchdog.utils import platform
 
 # See the notes for this module in the documentation above ^.
 #import select
@@ -167,7 +167,6 @@ def is_renamed(kev):
 
 
 class KeventDescriptorSet(object):
-
     """
     Thread-safe kevent descriptor collection.
     """
@@ -322,7 +321,6 @@ class KeventDescriptorSet(object):
 
 
 class KeventDescriptor(object):
-
     """
     A kevent descriptor convenience data structure to keep together:
 
@@ -395,12 +393,11 @@ class KeventDescriptor(object):
         return hash(self.key)
 
     def __repr__(self):
-        return "<KeventDescriptor: path=%s, is_directory=%s>"\
-            % (self.path, self.is_directory)
+        return "<KeventDescriptor: path=%s, is_directory=%s>" \
+               % (self.path, self.is_directory)
 
 
 class KqueueEmitter(EventEmitter):
-
     """
     kqueue(2)-based event emitter.
 
@@ -716,7 +713,6 @@ class KqueueEmitter(EventEmitter):
 
 
 class KqueueObserver(BaseObserver):
-
     """
     Observer thread that schedules watching directories and dispatches
     calls to event handlers.

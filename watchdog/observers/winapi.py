@@ -12,7 +12,7 @@
 # modification, are permitted provided that the following conditions are met:
 #
 # * Redistributions of source code must retain the above copyright notice, this
-#   list of conditions and the following disclaimer.
+# list of conditions and the following disclaimer.
 # * Redistributions in binary form must reproduce the above copyright notice,
 #   this list of conditions and the following disclaimer in the documentation
 #   and / or other materials provided with the distribution.
@@ -47,7 +47,7 @@ except AttributeError:
     LPVOID = ctypes.c_void_p
 
 # Invalid handle value.
-INVALID_HANDLE_VALUE = 0xFFFFFFFF     # -1
+INVALID_HANDLE_VALUE = 0xFFFFFFFF  # -1
 
 # File notification contants.
 FILE_NOTIFY_CHANGE_FILE_NAME = 0x01
@@ -95,7 +95,7 @@ class OVERLAPPED(ctypes.Structure):
                 ('OffsetHigh', ctypes.wintypes.DWORD),
                 ('Pointer', LPVOID),
                 ('hEvent', ctypes.wintypes.HANDLE),
-                ]
+    ]
 
 
 def _errcheck_bool(value, func, args):
@@ -116,6 +116,7 @@ def _errcheck_dword(value, func, args):
     if value == 0xFFFFFFFF:
         raise ctypes.WinError()
     return args
+
 
 try:
     ReadDirectoryChangesW = ctypes.windll.kernel32.ReadDirectoryChangesW
@@ -226,6 +227,7 @@ class FILE_NOTIFY_INFORMATION(ctypes.Structure):
                 ("FileNameLength", ctypes.wintypes.DWORD),
                 #("FileName", (ctypes.wintypes.WCHAR * 1))]
                 ("FileName", (ctypes.c_char * 1))]
+
 
 LPFNI = ctypes.POINTER(FILE_NOTIFY_INFORMATION)
 

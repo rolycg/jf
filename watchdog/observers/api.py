@@ -8,7 +8,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,13 +60,12 @@ except ImportError:
 from watchdog.utils import DaemonThread
 from watchdog.utils.bricks import SkipRepeatsQueue
 
-DEFAULT_EMITTER_TIMEOUT = 1    # in seconds.
-DEFAULT_OBSERVER_TIMEOUT = 1   # in seconds.
+DEFAULT_EMITTER_TIMEOUT = 1  # in seconds.
+DEFAULT_OBSERVER_TIMEOUT = 1  # in seconds.
 
 
 # Collection classes
 class EventQueue(SkipRepeatsQueue):
-
     """Thread-safe event queue based on a special queue that skips adding
     the same event (:class:`FileSystemEvent`) multiple times consecutively.
     Thus avoiding dispatching multiple event handling
@@ -76,7 +75,6 @@ class EventQueue(SkipRepeatsQueue):
 
 
 class ObservedWatch(object):
-
     """An scheduled watch.
 
     :param path:
@@ -119,7 +117,6 @@ class ObservedWatch(object):
 
 # Observer classes
 class EventEmitter(DaemonThread):
-
     """
     Producer daemon thread base class subclassed by event emitters
     that generate events and populate a queue with them.
@@ -190,7 +187,6 @@ class EventEmitter(DaemonThread):
 
 
 class EventDispatcher(DaemonThread):
-
     """
     Consumer daemon thread base class subclassed by event observer threads
     that dispatch events from an event queue to appropriate event handlers.
@@ -244,7 +240,6 @@ class EventDispatcher(DaemonThread):
 
 
 class BaseObserver(EventDispatcher):
-
     """Base observer."""
 
     def __init__(self, emitter_class, timeout=DEFAULT_OBSERVER_TIMEOUT):

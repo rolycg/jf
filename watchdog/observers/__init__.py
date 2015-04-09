@@ -8,7 +8,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -55,7 +55,9 @@ Class          Platforms                        Note
 """
 
 import warnings
+
 from watchdog.utils import platform
+
 
 if platform.is_linux():
     from .inotify import InotifyObserver as Observer
@@ -65,6 +67,7 @@ elif platform.is_darwin():
         from .fsevents import FSEventsObserver as Observer
     except:
         from .kqueue import KqueueObserver as Observer
+
         warnings.warn("Failed to import fsevents. Fall back to kqueue")
 
 elif platform.is_bsd():
@@ -77,6 +80,7 @@ elif platform.is_windows():
         from .read_directory_changes import WindowsApiObserver as Observer
     except:
         from .polling import PollingObserver as Observer
+
         warnings.warn("Failed to import read_directory_changes. Fall back to polling.")
 
 else:

@@ -111,7 +111,7 @@ class FSEventsEmitter(EventEmitter):
 
             # for pathname, flag in zip(pathnames, flags):
             # if emitter.watch.is_recursive: # and pathname != emitter.watch.path:
-            #    new_sub_snapshot = DirectorySnapshot(pathname, True)
+            # new_sub_snapshot = DirectorySnapshot(pathname, True)
             #    old_sub_snapshot = self.snapshot.copy(pathname)
             #    diff = new_sub_snapshot - old_sub_snapshot
             #    self.snapshot += new_subsnapshot
@@ -154,7 +154,7 @@ class FSEventsObserver(BaseObserver):
         # Fix for issue #26: Trace/BPT error when given a unicode path
         # string. https://github.com/gorakhargosh/watchdog/issues#issue/26
         if isinstance(path, str_class):
-            #path = unicode(path, 'utf-8')
+            # path = unicode(path, 'utf-8')
             path = unicodedata.normalize('NFC', path)
             # We only encode the path in Python 2 for backwards compatibility.
             # On Python 3 we want the path to stay as unicode if possible for

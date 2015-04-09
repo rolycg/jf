@@ -3,7 +3,6 @@ from time import localtime
 import json
 import hashlib
 import threading
-import time
 import socket
 import os
 
@@ -14,20 +13,16 @@ import watch_layer
 
 
 if __name__ == '__main__':
-    if os.path.exists('./temp/test'):
-        os.remove('./temp/test')
-    s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    if os.path.exists('./tmp/test'):
+        os.remove('./tmp/test')
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     s.bind('./tmp/test')
     s.listen(1)
-    # TODO: FIX all continue
+    # TODO: Fix all continue
     while 1:
         conn, _ = s.accept()
         data = conn.recv(2048)
-        if data:
-            _dict = json.loads(data, encoding='utf-8')
-        else:
-            time.sleep(0.8)
-            continue
+        _dict = json.loads(data.decode(), encoding='utf-8')
         if _dict['action'] == 'create':
             try:
                 user_name = _dict['username']
@@ -82,8 +77,7 @@ if __name__ == '__main__':
                 res.append('>Name: ' + str(item[2]) + '\n' + '>File Type: ' + str(item[4]) + '\n' + '>Address: '
                            + str(data_layer.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
                            data_layer.get_peer_from_uuid(item[7]) + '\n' + '>Date: ' + str(t[0]) + '-' + str(
-                    t[1]) + '-' + str(
-                    t[2]) + '\n')
+                    t[1]) + '-' + str(t[2]) + '\n')
             data_layer_py.set_query()
             cl.set_query(False)
             watch_layer.set_query(False)

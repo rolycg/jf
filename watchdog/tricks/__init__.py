@@ -8,7 +8,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,6 @@ from watchdog.events import PatternMatchingEventHandler
 
 
 class Trick(PatternMatchingEventHandler):
-
     """Your tricks should subclass this class."""
 
     @classmethod
@@ -49,7 +48,6 @@ class Trick(PatternMatchingEventHandler):
 
 
 class LoggerTrick(Trick):
-
     """A simple trick that does only logs events."""
 
     def on_any_event(self, event):
@@ -73,7 +71,6 @@ class LoggerTrick(Trick):
 
 
 class ShellCommandTrick(Trick):
-
     """Execeutes shell commands in response to matched events."""
 
     def __init__(self, shell_command=None, patterns=None, ignore_patterns=None,
@@ -116,7 +113,6 @@ class ShellCommandTrick(Trick):
 
 
 class AutoRestartTrick(Trick):
-
     """Starts a long-running subprocess and restarts it on matched events.
 
     The command parameter is a list of command arguments, such as

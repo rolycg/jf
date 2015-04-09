@@ -8,7 +8,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,9 +24,11 @@
 
 import os.path
 import sys
-import yaml
 import time
 import logging
+
+import yaml
+
 
 try:
     from cStringIO import StringIO
@@ -194,7 +196,7 @@ def tricks_from(args):
             tricks = config[CONFIG_KEY_TRICKS]
         except KeyError:
             raise KeyError("No `%s' key specified in %s." % (
-                           CONFIG_KEY_TRICKS, tricks_file))
+                CONFIG_KEY_TRICKS, tricks_file))
 
         if CONFIG_KEY_PYTHON_PATH in config:
             add_to_sys_path(config[CONFIG_KEY_PYTHON_PATH])
@@ -331,7 +333,7 @@ def log(args):
     if args.trace:
         echo.echo_class(LoggerTrick)
 
-    patterns, ignore_patterns =\
+    patterns, ignore_patterns = \
         parse_patterns(args.patterns, args.ignore_patterns)
     handler = LoggerTrick(patterns=patterns,
                           ignore_patterns=ignore_patterns,
@@ -341,18 +343,18 @@ def log(args):
     elif args.debug_force_kqueue:
         from watchdog.observers.kqueue import KqueueObserver as Observer
     elif args.debug_force_winapi_async:
-        from watchdog.observers.read_directory_changes_async import\
+        from watchdog.observers.read_directory_changes_async import \
             WindowsApiAsyncObserver as Observer
     elif args.debug_force_winapi:
-        from watchdog.observers.read_directory_changes import\
+        from watchdog.observers.read_directory_changes import \
             WindowsApiObserver as Observer
     elif args.debug_force_inotify:
         from watchdog.observers.inotify import InotifyObserver as Observer
     elif args.debug_force_fsevents:
         from watchdog.observers.fsevents import FSEventsObserver as Observer
     else:
-    # Automatically picks the most appropriate observer for the platform
-    # on which it is running.
+        # Automatically picks the most appropriate observer for the platform
+        # on which it is running.
         from watchdog.observers import Observer
     observer = Observer(timeout=args.timeout)
     observe_with(observer, handler, args.directories, args.recursive)

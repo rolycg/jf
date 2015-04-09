@@ -138,6 +138,7 @@ def echo_module(mod, write=sys.stdout.write):
     for _, klass in inspect.getmembers(mod, inspect.isclass):
         echo_class(klass, write)
 
+
 if __name__ == "__main__":
     import doctest
 

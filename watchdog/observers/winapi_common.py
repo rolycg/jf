@@ -8,7 +8,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,7 +44,6 @@ from watchdog.observers.winapi import (
     CreateIoCompletionPort,
     CancelIoEx
 )
-
 from watchdog.events import (
     DirDeletedEvent,
     DirCreatedEvent,
@@ -53,6 +52,7 @@ from watchdog.events import (
     FileCreatedEvent,
     FileModifiedEvent
 )
+
 
 # We don't need to recalculate these flags every time a call is made to
 # the win32 API functions.
@@ -77,7 +77,7 @@ WATCHDOG_FILE_NOTIFY_FLAGS = reduce(
     ])
 
 # HACK:
-WATCHDOG_TRAVERSE_MOVED_DIR_DELAY = 1   # seconds
+WATCHDOG_TRAVERSE_MOVED_DIR_DELAY = 1  # seconds
 
 BUFFER_SIZE = 2048
 
