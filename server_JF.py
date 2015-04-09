@@ -5,7 +5,7 @@ import hashlib
 import threading
 import socket
 import os
-from multiprocessing import Queue
+from multiprocessing import Queue, Process
 from queue import Empty
 from threading import Thread
 import sqlite3
@@ -37,7 +37,6 @@ def finish_query(collection, data_layer, temp_res):
             print(e.__traceback__)
             break
     s_qp = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
-    data_layer.database.close()
     collection.close()
     data_layer.close()
     try:
@@ -194,11 +193,10 @@ if __name__ == '__main__':
                         count -= 1
                         if not count:
                             break
-                            # t2 = Process(target=finish_query, args=(collection, data_layer, temp_res))
-                            #t2.start()
+                    t2 = Process(target=finish_query, args=(collection, data_layer, temp_res))
+                    t2.start()
                     collection.close()
                     data_layer.close()
-                    open_writing()
                 s2 = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
                 s2.settimeout(0.2)
                 try:
