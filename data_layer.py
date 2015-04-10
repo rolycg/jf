@@ -264,11 +264,32 @@ class DataLayer():
             cursor.close()
             return number
 
+    def get_id_from_device(self, device):
+        cursor = self.database.cursor()
+        _id = None
+        for x in cursor.execute('SELECT id FROM Metadata WHERE uuid=?', (device,)):
+            _id = x[0]
+            break
+        cursor.close()
+        return _id
+
+    def delete_drive(self, device):
+        cursor = self.database.cursor()
+        cursor.execute('DELETE FROM File WHERE machine = ?', (device,))
+        cursor.execute('DELETE FROM Metadata WHERE id = ?', (device,))
+        self.database.commit()
+        cursor.close()
+
 
 if __name__ == '__main__':
     data = DataLayer('database.db')
-    data.create_databases()
-    print(data.get_max_generation())
+    # data.create_databases()
+    id = data.get_id_from_device('276f15a5-0b53-4a0f-b130-4f56af55ec9f')
+    print(id)
+    data.delete_drive(id)
+    for x in data.cursor.execute('SELECT * FROM File'):
+        print(x)
+
 
 
 

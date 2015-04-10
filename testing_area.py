@@ -74,13 +74,10 @@ def b():
             continue
 
 from queue import Empty
-import threading
+import uuid
 
 if __name__ == '__main__':
-    t = threading.Thread(target=a)
-    t.start()
-    t.join()
-    print('Finish')
+    print(uuid.uuid3(uuid.uuid4(), 'ROMA'))
 
 
 

@@ -2,11 +2,11 @@ __author__ = 'roly'
 
 import time
 from threading import Thread
-from multiprocessing import Process
 from queue import Queue
 import os
 import socket
 import json
+import uuid
 
 import dbus
 from gi.overrides.GLib import MainLoop
@@ -113,7 +113,7 @@ def _add_device_(path, device_name, device_id):
 
 
 def add_watch(path):
-    return watch_layer.create_watcher([path])[0][0]
+    return watch_layer.create_watcher([path], Queue())[0][0]
     # obj = MyFileSystemWatcher()
     # observer = observers.Observer()
     # observer.schedule(obj, path, recursive=True)
@@ -135,14 +135,16 @@ def device_added_callback(*args):
         elif operation == 'filesystem-unmount':
             block = values['Objects'][0]
             try:
-                collection[block][4].terminate()
+                if collection[block][4] and collection[block][4].is_alive():
+                    try:
+                        collection[block][4]._stop()
+                    except Exception:
+                        pass
                 del collection[block]
             except Exception:
                 return
         elif operation == 'cleanup':
-            for x in values.keys():
-                print(str(x) + ': ' + str(values[x]))
-            return
+            pass
     except KeyError:
         return
 
@@ -165,13 +167,15 @@ def get_mount_point(block):
     if not dbus_name:
         dbus_name = mount_point[:-1].split(os.sep)
         dbus_name = dbus_name[len(dbus_name) - 1]
+    if not dbus_id:
+        dbus_id = uuid.uuid3(uuid.uuid4(), dbus_name)
     collection[block] = [str(mount_point[:-1]), str(dbus_id), str(dbus_name), None, None]
     messages.append(
-        'New device was inserted: ' + dbus_name + '\n' + ' write index ' + dbus_name + ' if you want to add it')
+        'New device was inserted: ' + dbus_name + '\n' + 'write index ' + dbus_name + ', if you want to add it')
     return dbus_name
 
 
-def add_device(name):
+def add_device(name, re_index):
     global collection
     device_name = None
     block = None
@@ -180,11 +184,30 @@ def add_device(name):
             device_name = collection[x]
             block = x
     if device_name:
-        machine = _add_device_(device_name[0], device_name[2], device_name[1])
-        collection[block][3] = add_watch(device_name[0])
-        t = Process(target=watch_layer.make_watch, args=(machine,))
-        t.start()
-        collection[block][4] = t
+        data = data_layer_py.DataLayer()
+        exist = data.get_id_from_device(device_name[1])
+        if exist and re_index:
+            data.delete_drive(exist)
+            data.close()
+            machine = _add_device_(device_name[0], device_name[2], device_name[1])
+            collection[block][3] = add_watch(device_name[0])
+            t = Thread(target=watch_layer.make_watch, args=(machine,))
+            t.start()
+            collection[block][4] = t
+        if exist:
+            data.close()
+            collection[block][3] = add_watch(device_name[0])
+            t = Thread(target=watch_layer.make_watch, args=(exist,))
+            t.start()
+            collection[block][4] = t
+        else:
+            data.close()
+            machine = _add_device_(device_name[0], device_name[2], device_name[1])
+            collection[block][3] = add_watch(device_name[0])
+            t = Thread(target=watch_layer.make_watch, args=(machine,))
+            t.start()
+            collection[block][4] = t
+
     return device_name
 
 

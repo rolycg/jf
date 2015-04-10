@@ -229,7 +229,11 @@ if __name__ == '__main__':
                 print(str(e.args))
         if _dict['action'] == 'index':
             device = _dict['device']
-            ret = add_device(device)
+            try:
+                re_index = _dict['index']
+            except KeyError:
+                re_index = False
+            ret = add_device(device, re_index)
             if not ret:
                 conn.send(json.dumps({'results': 'Name device not found'}).encode())
             else:

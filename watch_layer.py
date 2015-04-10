@@ -84,7 +84,6 @@ def create_watcher(paths, cache):
 def make_watch(cache, machine=1):
     global query
     data_obj = data_layer.DataLayer('database.db')
-    print('Watch start')
     while 1:
         time.sleep(2)
         if not cache.empty():
