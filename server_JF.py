@@ -70,7 +70,7 @@ if __name__ == '__main__':
         if _dict['action'] == 'query' or _dict['action'] == 'more':
             query = None
             more = None
-            count = 10
+            count = 5
             try:
                 query = _dict['query']
             except KeyError:
