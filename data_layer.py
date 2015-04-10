@@ -71,11 +71,10 @@ class DataLayer():
             return value[0]
 
     def insert_username_password(self, username, password):
-        with semaphore:
-            cursor = self.database.cursor()
-            cursor.execute('INSERT INTO Login VALUES (?,?)', (username, password))
-            self.database.commit()
-            cursor.close()
+        cursor = self.database.cursor()
+        cursor.execute('INSERT INTO Login VALUES (?,?)', (username, password))
+        self.database.commit()
+        cursor.close()
 
     def get_username_password(self):
         cursor = self.database.cursor()
@@ -89,30 +88,28 @@ class DataLayer():
                               (generation, peer))
 
     def insert_peer(self, uuid=None, pc_name=None):
-        with semaphore:
-            cursor = self.database.cursor()
-            if not uuid and not pc_name:
+
+        cursor = self.database.cursor()
+        if not uuid and not pc_name:
+            cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
+                           (None, str(uu.uuid4()), socket.gethostname(), -1, 1))
+        else:
+            try:
                 cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
-                               (None, str(uu.uuid4()), socket.gethostname(), -1, 1))
-            else:
-                try:
-                    cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
-                                   (None, uuid.decode(), pc_name, -1, 0))
-                except AttributeError:
-                    cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
-                                   (None, str(uuid), pc_name, -1, 0))
-            self.database.commit()
-            cursor.close()
+                               (None, uuid.decode(), pc_name, -1, 0))
+            except AttributeError:
+                cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
+                               (None, str(uuid), pc_name, -1, 0))
+        self.database.commit()
+        cursor.close()
 
     def edit_generation(self, uuid, generation):
-
-        with semaphore:
-            cursor = self.database.cursor()
-            # execute = 'UPDATE Metadata SET last_generation = '' + str(generation) + ' WHERE uuid = ' + str(uuid)
-            generation = int(generation) + 1
-            cursor.execute('UPDATE Metadata SET last_generation=?   WHERE uuid = ?', (generation, str(uuid)))
-            self.database.commit()
-            cursor.close()
+        cursor = self.database.cursor()
+        # execute = 'UPDATE Metadata SET last_generation = '' + str(generation) + ' WHERE uuid = ' + str(uuid)
+        generation = int(generation) + 1
+        cursor.execute('UPDATE Metadata SET last_generation=?   WHERE uuid = ?', (generation, str(uuid)))
+        self.database.commit()
+        cursor.close()
 
     def get_uuid_from_peer(self, owner=1):
         cursor = self.database.cursor()

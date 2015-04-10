@@ -22,7 +22,7 @@ def dfs(path, q):
     finished = False
 
 
-def save_to_disk(engine, q, path):
+def save_to_disk(engine, q, peer):
     global paint
     global finished
     count = 1
@@ -70,7 +70,7 @@ def start(paths):
 
 
 def create():
-    # TODO: put this in None
+    # TODO: put path  in None
     data_layer = data_layer_py.DataLayer('database.db')
     path = '/media/roly/Extra/Series/'
     paths = []
@@ -91,7 +91,7 @@ def create():
         path = x
         t = Thread(target=dfs, args=(path, _queue))
         t.start()
-        t2 = Thread(target=save_to_disk, args=(data_layer, _queue, path))
+        t2 = Thread(target=save_to_disk, args=(data_layer, _queue, peer))
         t2.start()
 
 

@@ -131,7 +131,7 @@ def receiver(sock, address, uuid, data_obj):
                 except UnicodeDecodeError:
                     elements = re.split('\\?+', value.decode(encoding='LATIN-1'))
                 ###
-                # If a reader was launched
+                # TODO: Receive date
                 ###
                 if not data_obj:
                     data_obj = data_layer.DataLayer('database.db')
@@ -171,6 +171,7 @@ def sender(sock, address, generation, data_obj):
     cipher = ef.get_cipher(password)
     cont = 0
     for x in query:
+        # TODO: Send date
         tmp = data_obj.get_peer_from_id(x[len(x) - 1])
         x = (x[0], x[1], x[2], x[3], x[4], x[5], x[6], tmp)
         send = cipher.encrypt(ef.convert_to_str(x))
