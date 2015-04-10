@@ -191,20 +191,20 @@ def add_device(name, re_index):
             data.close()
             machine = _add_device_(device_name[0], device_name[2], device_name[1])
             collection[block][3] = add_watch(device_name[0])
-            t = Thread(target=watch_layer.make_watch, args=(machine,))
+            t = Thread(target=watch_layer.make_watch, args=(Queue(), machine))
             t.start()
             collection[block][4] = t
         if exist:
             data.close()
             collection[block][3] = add_watch(device_name[0])
-            t = Thread(target=watch_layer.make_watch, args=(exist,))
+            t = Thread(target=watch_layer.make_watch, args=(Queue(), exist))
             t.start()
             collection[block][4] = t
         else:
             data.close()
             machine = _add_device_(device_name[0], device_name[2], device_name[1])
             collection[block][3] = add_watch(device_name[0])
-            t = Thread(target=watch_layer.make_watch, args=(machine,))
+            t = Thread(target=watch_layer.make_watch, args=(Queue(), machine))
             t.start()
             collection[block][4] = t
 
