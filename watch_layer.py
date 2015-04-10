@@ -3,7 +3,6 @@ import time
 from threading import Semaphore
 from queue import Queue
 
-from data_layer import semaphore as sem
 from watchdog import observers
 from watchdog.events import FileSystemEventHandler
 import data_layer
@@ -112,26 +111,25 @@ def add_multi_platform_watch(paths):
     while 1:
         time.sleep(2)
         if not cache.empty():
-            with sem:
-                number = data_obj.get_max_id()
-                generation = data_obj.get_max_generation() + 1
-                ###
-                # Solve this cache.empty() always return True
-                ###
-
-                while cache.qsize() > 0:
-                    x = cache.get()
-                    if not data_obj:
-                        data_obj = data_layer.DataLayer('database.db')
-                    number += 1
-                    if x[0] == 'created':
-                        data_obj.insert_data(number, x[1], x[2], x[3], generation, data_obj.get_uuid_from_peer(),
-                                             real_path=x[6])
-                    else:
-                        data_obj.delete_data(x[1], x[2])
-                    if query:
-                        data_obj.database.commit()
-                        data_obj.close()
-                        data_obj = None
-
+            number = data_obj.get_max_id()
+            generation = data_obj.get_max_generation() + 1
+            ###
+            # Solve this cache.empty() always return True
+            ###
+            while cache.qsize() > 0:
+                x = cache.get()
+                if not data_obj:
+                    data_obj = data_layer.DataLayer('database.db')
+                number += 1
+                if x[0] == 'created':
+                    data_obj.insert_data(number, x[1], x[2], x[3], generation, data_obj.get_uuid_from_peer(),
+                                         real_path=x[6])
+                else:
+                    data_obj.delete_data(x[1], x[2])
+                if query:
+                    data_obj.database.commit()
+                    data_obj.close()
+                    data_obj = None
+                    while query:
+                        time.sleep(0.5)
                 data_obj.database.commit()

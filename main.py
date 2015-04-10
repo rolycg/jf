@@ -139,7 +139,7 @@ if __name__ == '__main__':
             path = x
             t = Thread(target=dfs, args=(path, _queue))
             t.start()
-            t2 = Thread(target=save_to_disk, args=(data_layer, _queue, path))
+            t2 = Thread(target=save_to_disk, args=(data_layer, _queue, peer))
             t2.start()
             t3 = Thread(target=printing)
             t3.start()
