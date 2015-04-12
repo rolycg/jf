@@ -116,12 +116,21 @@ if __name__ == '__main__':
             print("Server not respond")
     elif 'index' == args[0].lower():
         s.connect('/tmp/JF')
+        index = False
+        if args[len(args) - 1] == '-r':
+            index = True
         name = ''
-        for x in args[1:]:
-            name += x + ' '
-        j = json.dumps({'action': 'index', 'device': name})
+        if index:
+
+            for x in args[1:len(args) - 1]:
+                name += x + ' '
+            j = json.dumps({'action': 'index', 'device': name, 'index': index})
+        else:
+            for x in args[1:]:
+                name += x + ' '
+            j = json.dumps({'action': 'index', 'device': name})
         s.send(j.encode())
-        d = json.loads(s.recv(10000).decode())
+        d = json.loads(s.recv(100).decode())
         if not d['results'] == 'OK':
             print(d['results'])
     else:
