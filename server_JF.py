@@ -73,7 +73,6 @@ def query_process_communication():
 
 if __name__ == '__main__':
     t = None
-
     database_path = './database.db'
     temp_res = Queue()
     data_layer = None
@@ -93,10 +92,6 @@ if __name__ == '__main__':
         _dict = json.loads(data.decode(), encoding='utf-8')
         if _dict['action'] == 'create':
             try:
-                user_name = _dict['username']
-            except KeyError:
-                continue
-            try:
                 password = _dict['password']
             except KeyError:
                 continue
@@ -104,7 +99,7 @@ if __name__ == '__main__':
                 data_layer = data_layer_py.DataLayer('database.db')
                 data_layer.create_databases()
                 sha = hashlib.md5(password.encode())
-                data_layer.insert_username_password(user_name, sha.hexdigest())
+                data_layer.insert_password(sha.hexdigest())
                 data_layer.close()
                 t = threading.Thread(target=main.create)
                 t.start()
@@ -122,7 +117,7 @@ if __name__ == '__main__':
                     data_layer = data_layer_py.DataLayer('database.db')
                     data_layer.create_databases()
                     sha = hashlib.md5(password.encode())
-                    data_layer.insert_username_password(user_name, sha.hexdigest())
+                    data_layer.insert_password(sha.hexdigest())
                     data_layer.close()
                     t = threading.Thread(target=main.create)
                     t.start()
@@ -133,18 +128,14 @@ if __name__ == '__main__':
             else:
                 while 1:
                     try:
-                        user_name = _dict['username']
-                    except KeyError:
-                        continue
-                    try:
                         password = _dict['password']
                     except KeyError:
                         continue
                     data_layer = data_layer_py.DataLayer('database.db')
-                    u_p = data_layer.get_username_password()
+                    u_p = data_layer.get_password()
                     data_layer.close()
                     sha = hashlib.md5(password.encode())
-                    if user_name == u_p[0] and sha.hexdigest() == u_p[1]:
+                    if sha.hexdigest() == u_p:
                         conn.send(json.dumps({'login': True}).encode())
                         main.start(main.get_paths())
                         break

@@ -35,10 +35,8 @@ if __name__ == '__main__':
             s = start_server(s)
         except ConnectionRefusedError:
             s = start_server(s)
-        print('Username: ')
-        username = input()
         password = getpass.getpass()
-        j = json.dumps({'action': args[0], 'username': username, 'password': password})
+        j = json.dumps({'action': args[0], 'password': password})
         s.send(j.encode())
         if 'start' == args[0].lower():
             d = s.recv(2048)
@@ -49,7 +47,7 @@ if __name__ == '__main__':
             except KeyError:
                 try:
                     if d['login'] == 'False':
-                        print('Wrong username or password')
+                        print('Wrong password')
                 except KeyError:
                     print(error)
         if 'create' == args[0].lower():

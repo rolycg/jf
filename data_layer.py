@@ -33,16 +33,19 @@ class DataLayer():
     def create_databases(self):
         cursor = self.database.cursor()
         cursor.execute(
-            'CREATE TABLE Login (username VARCHAR, password VARCHAR)')
+            'CREATE TABLE Login (password VARCHAR)')
         cursor.execute(
             'CREATE TABLE File (_id INTEGER PRIMARY KEY AUTOINCREMENT,id INTEGER, name_ext VARCHAR , root VARCHAR, '
             'file_type VARCHAR, parent INTEGER REFERENCES File(id), generation  INTEGER, '
-            'machine VARCHAR REFERENCES Metadata(id), date_modified INTEGER, modified INTEGER)')
+            'machine INTEGER REFERENCES Metadata(id), date_modified INTEGER, modified INTEGER)')
         cursor.execute('CREATE INDEX name_index ON  File (name_ext)')
         cursor.execute('CREATE INDEX id_index ON  File (id)')
         cursor.execute(
             'CREATE TABLE Metadata (id INTEGER PRIMARY KEY AUTOINCREMENT,uuid VARCHAR, '
             'pc_name VARCHAR, last_generation INTEGER, own INTEGER)')
+        cursor.execute(
+            'CREATE TABLE Journal '
+            '(id INTEGER PRIMARY KEY AUTOINCREMENT, actio VARCHAR, machine INTEGER REFERENCES Metadata(id))')
         self.database.commit()
         cursor.close()
 
@@ -67,17 +70,17 @@ class DataLayer():
             cursor.close()
             return value[0]
 
-    def insert_username_password(self, username, password):
+    def insert_password(self, password):
         cursor = self.database.cursor()
-        cursor.execute('INSERT INTO Login VALUES (?,?)', (username, password))
+        cursor.execute('INSERT INTO Login VALUES ?', (password,))
         self.database.commit()
         cursor.close()
 
-    def get_username_password(self):
+    def get_password(self):
         cursor = self.database.cursor()
-        for value, value2 in cursor.execute('SELECT username, password FROM Login'):
+        for value in cursor.execute('SELECT password FROM Login'):
             cursor.close()
-            return value, value2
+            return value
 
     def get_files(self, generation, peer):
         cursor = self.database.cursor()
