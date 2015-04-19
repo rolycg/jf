@@ -62,10 +62,10 @@ class DataLayer():
         self.database.commit()
         cursor.close()
 
-    def add_action(self, action, machine, generation):
+    def add_action(self, action, generation):
         cursor = self.database.cursor()
-        for x in cursor.execute('SELECT id FROM Metadata WHERE my_generation<=?', (generation,)):
-            pass
+        for x in cursor.execute('SELECT id FROM Metadata WHERE my_generation>=?', (generation,)):
+            self.cursor.execute('INSERT INTO Journal VALUES (?,?,?)', (None, action, x))
 
     def get_last_generation(self, uuid):
         cursor = self.database.cursor()
@@ -173,8 +173,17 @@ class DataLayer():
         # cursor = self.database.cursor()
         # peer = self.get_uuid_from_peer()
         parent = self.get_parent(name, real_path, machine)
+        cursor = self.database.cursor()
+        gen = None
+        for x in cursor.execute('SELECT generation FROM File WHERE name_ext=? AND parent=? AND machine = ?',
+                                (name, parent, machine)):
+            gen = x
+            break
+        cursor.close()
+
         self.cursor.execute('DELETE FROM File WHERE name_ext=? AND parent=? AND machine = ?', (name, parent, machine))
         # cursor.close()
+        return gen
 
     def get_parent(self, path, real_path, peer):
         cursor = self.database.cursor()
@@ -261,8 +270,16 @@ class DataLayer():
 
     def update_data(self, data, peer):
         parent = self.get_parent(data[len(data) - 2], data[len(data) - 1], peer)
-        self.cursor.execute('UPDATE File SET name_ext=? WHERE name_ext=? AND parent=?',
-                            (data[0], data[len(data) - 2], parent))
+        cursor = self.database.cursor()
+        gen = None
+        for x in cursor.execute('SELECT generation FROM File WHERE name_ext=? AND parent=? AND machine = ?',
+                                (data[len(data) - 2], parent, peer)):
+            gen = x
+            break
+        cursor.close()
+        self.cursor.execute('UPDATE File SET name_ext=? WHERE name_ext=? AND parent=? AND machine=?',
+                            (data[0], data[len(data) - 2], parent, peer))
+        return gen
 
     def find_data(self, word_list):
         cursor = self.database.cursor()

@@ -172,7 +172,7 @@ def receiver(sock, address, uuid, data_obj):
                 # elements[len(elements) - 1] = data_obj.get_id_from_uuid(elements[len(elements) - 1])
                 # if elements[4] == '-1':
                 # data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[2],
-                #                          file_type=elements[3], generation=elements[5], peer=elements[6],
+                # file_type=elements[3], generation=elements[5], peer=elements[6],
                 #                          first=True, date=elements[len(elements) - 1])
                 # else:
                 #     data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[4],
@@ -210,7 +210,8 @@ def sender(sock, address, generation, data_obj):
     else:
         sock.sendto(str(_max).encode(), address)
     uuid, _ = sock.recvfrom(10024)
-    data_obj.edit_my_generation(uuid, _max)
+    if _max > -1:
+        data_obj.edit_my_generation(uuid, _max)
     _id = data_obj.get_id_from_uuid(uuid=uuid.decode())
     query2 = data_obj.get_action_from_machine(_id)
     for y in query2:
