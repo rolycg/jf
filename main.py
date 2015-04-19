@@ -114,7 +114,7 @@ def create(path=None):
         t2.start()
         t.join()
         t2.join()
-    start(get_paths())
+    start([path])
 
 
 def get_paths():
