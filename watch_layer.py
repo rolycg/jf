@@ -112,8 +112,10 @@ def make_watch(cache, machine=1):
                                                  real_path=x[6])
                         elif x[0] == 'deleted':
                             data_obj.delete_data(x[1], x[2], machine)
+                            data_obj.add_action(x, machine, generation)
                         else:
                             data_obj.update_data(x[1:], machine)
+                            data_obj.add_action(x, machine, generation)
                         if query:
                             data_obj.database.commit()
                             data_obj.close()

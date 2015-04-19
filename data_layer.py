@@ -37,12 +37,12 @@ class DataLayer():
         cursor.execute(
             'CREATE TABLE File (_id INTEGER PRIMARY KEY AUTOINCREMENT,id INTEGER, name_ext VARCHAR , root VARCHAR, '
             'file_type VARCHAR, parent INTEGER REFERENCES File(id), generation  INTEGER, '
-            'machine INTEGER REFERENCES Metadata(id), date_modified INTEGER, modified INTEGER)')
+            'machine INTEGER REFERENCES Metadata(id), date_modified INTEGER)')
         cursor.execute('CREATE INDEX name_index ON  File (name_ext)')
         cursor.execute('CREATE INDEX id_index ON  File (id)')
         cursor.execute(
             'CREATE TABLE Metadata (id INTEGER PRIMARY KEY AUTOINCREMENT,uuid VARCHAR, '
-            'pc_name VARCHAR, last_generation INTEGER, own INTEGER)')
+            'pc_name VARCHAR, last_generation INTEGER, own INTEGER, my_generation INTEGER)')
         cursor.execute(
             'CREATE TABLE Journal '
             '(id INTEGER PRIMARY KEY AUTOINCREMENT, actio VARCHAR, machine INTEGER REFERENCES Metadata(id))')
@@ -51,6 +51,21 @@ class DataLayer():
 
     def close(self):
         self.database.close()
+
+    def get_action_from_machine(self, machine):
+        ret = self.cursor.execute('SELECT actio FROM Journal WHERE machine=?', (machine,))
+        return ret
+
+    def delete_actions_from_machine(self, machine):
+        cursor = self.database.cursor()
+        cursor.execute('DELETE FROM Journal WHERE machine=?', (machine,))
+        self.database.commit()
+        cursor.close()
+
+    def add_action(self, action, machine, generation):
+        cursor = self.database.cursor()
+        for x in cursor.execute('SELECT id FROM Metadata WHERE my_generation<=?', (generation,)):
+            pass
 
     def get_last_generation(self, uuid):
         cursor = self.database.cursor()
@@ -111,6 +126,14 @@ class DataLayer():
         self.database.commit()
         cursor.close()
 
+    def edit_my_generation(self, uuid, generation):
+        cursor = self.database.cursor()
+        # execute = 'UPDATE Metadata SET last_generation = '' + str(generation) + ' WHERE uuid = ' + str(uuid)
+        generation = int(generation) + 1
+        cursor.execute('UPDATE Metadata SET my_generation=?   WHERE uuid = ?', (generation, str(uuid)))
+        self.database.commit()
+        cursor.close()
+
     def get_uuid_from_peer(self, owner=1):
         cursor = self.database.cursor()
         for value in self.cursor.execute('SELECT id FROM Metadata WHERE own =?', (owner,)):
@@ -127,15 +150,24 @@ class DataLayer():
         self.cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?,?,?,?)',
                             (None, id, file_name, root, file_type, parent, generation, peer, date, 0))
 
-    def insert_data(self, id, file_name, file_type, parent, generation, peer=None, first=False, real_path=None):
+    def insert_data(self, id, file_name, file_type, parent, generation, peer=None, first=False, real_path=None,
+                    date=None):
         if not first and real_path:
+            _date = ef.get_date(real_path)
+            if date:
+                _date = date
             paren = self.get_parent(parent, real_path, peer)
-            self.insert_file(id, file_name, paren, file_type, '', generation, peer,
-                             ef.get_date(real_path))
+            self.insert_file(id, file_name, paren, file_type, '', generation, peer, _date)
         elif not real_path and not first:
-            self.insert_file(id, file_name, parent, file_type, '', generation, peer)
+            if date:
+                self.insert_file(id, file_name, parent, file_type, '', generation, peer, date)
+            else:
+                self.insert_file(id, file_name, parent, file_type, '', generation, peer)
         else:
-            self.insert_file(id, file_name, -1, file_type, parent, generation, peer)
+            if date:
+                self.insert_file(id, file_name, -1, file_type, parent, generation, peer, date)
+            else:
+                self.insert_file(id, file_name, -1, file_type, parent, generation, peer)
 
     def delete_data(self, name, real_path, machine):
         # cursor = self.database.cursor()
