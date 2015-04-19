@@ -29,22 +29,7 @@ def try_queue_get(my_queue):
 paint = True
 
 
-def printing():
-    count = 0
-    while paint:
-        if count % 3 == 0:
-            print('Indexing.', end='\r')
-            count += 1
-            time.sleep(0.5)
-        elif count % 3 == 1:
-            print('Indexing..', end='\r')
-            count += 1
-            time.sleep(0.5)
-        if count % 3 == 2:
-            print('Indexing...', end='\r')
-            count += 1
-            time.sleep(0.5)
-    print('', end='\r')
+
 
 
 import time

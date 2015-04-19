@@ -175,6 +175,30 @@ def get_mount_point(block):
     return dbus_name
 
 
+def execute(data, exist, block, device_name, re_index):
+    if exist and re_index:
+        data.delete_drive(exist)
+        data.close()
+        machine = _add_device_(device_name[0], device_name[2], device_name[1])
+        collection[block][3] = add_watch(device_name[0])
+        t = Thread(target=watch_layer.make_watch, args=(Queue(), machine))
+        t.start()
+        collection[block][4] = t
+    if exist:
+        data.close()
+        collection[block][3] = add_watch(device_name[0])
+        t = Thread(target=watch_layer.make_watch, args=(Queue(), exist))
+        t.start()
+        collection[block][4] = t
+    else:
+        data.close()
+        machine = _add_device_(device_name[0], device_name[2], device_name[1])
+        collection[block][3] = add_watch(device_name[0])
+        t = Thread(target=watch_layer.make_watch, args=(Queue(), machine))
+        t.start()
+        collection[block][4] = t
+
+
 def add_device(name, re_index):
     global collection
     device_name = None
@@ -186,28 +210,8 @@ def add_device(name, re_index):
     if device_name:
         data = data_layer_py.DataLayer()
         exist = data.get_id_from_device(device_name[1])
-        if exist and re_index:
-            data.delete_drive(exist)
-            data.close()
-            machine = _add_device_(device_name[0], device_name[2], device_name[1])
-            collection[block][3] = add_watch(device_name[0])
-            t = Thread(target=watch_layer.make_watch, args=(Queue(), machine))
-            t.start()
-            collection[block][4] = t
-        if exist:
-            data.close()
-            collection[block][3] = add_watch(device_name[0])
-            t = Thread(target=watch_layer.make_watch, args=(Queue(), exist))
-            t.start()
-            collection[block][4] = t
-        else:
-            data.close()
-            machine = _add_device_(device_name[0], device_name[2], device_name[1])
-            collection[block][3] = add_watch(device_name[0])
-            t = Thread(target=watch_layer.make_watch, args=(Queue(), machine))
-            t.start()
-            collection[block][4] = t
-
+        thread = Thread(target=execute, args=(data, exist, block, device_name, re_index))
+        thread.start()
     return device_name
 
 
