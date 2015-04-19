@@ -15,6 +15,7 @@ import external_devices_layer as ed
 
 finished = True
 paint = False
+start_time = None
 
 
 def dfs(path, q):
@@ -25,6 +26,8 @@ def dfs(path, q):
 def save_to_disk(engine, q, peer):
     global paint
     global finished
+    global start_time
+    start_time = time.time()
     count = 1
     total_files = 2
     session_count = 0
@@ -44,7 +47,7 @@ def save_to_disk(engine, q, peer):
                                                                            peer=peer, generation=generation)
             while data_layer_py.query:
                 time.sleep(0.5)
-            if count > 10000:
+            if count > 100000:
                 engine.database.commit()
                 count = 0
         except Empty:
@@ -54,7 +57,6 @@ def save_to_disk(engine, q, peer):
         time.sleep(0.5)
     engine.database.commit()
     # TODO: Remove this
-    print('Termine')
 
 
 def printing():
@@ -86,10 +88,10 @@ def start(paths):
     t6.start()
 
 
-def create():
+def create(path=None):
     # TODO: put path  in None
     data_layer = data_layer_py.DataLayer('database.db')
-    path = '/media/roly/Extra/Series'
+    path = '/media/roly/Extra/file_system'
     paths = []
     if not path:
         paths = ef.get_initials_paths()
@@ -126,14 +128,12 @@ def get_paths():
 
 if __name__ == '__main__':
     print('----------- JF -----------')
-    path = '/media/roly/Extra/Series'
+    path = '/home/roly/file_system'
     paths = []
     if not path:
         paths = ef.get_initials_paths()
     else:
         paths = [path]
-    print('Username:')
-    user_name = input()
     password = getpass.getpass()
     while len(password) > 32:
         print('Password must be smaller than 32 characters')
@@ -147,7 +147,7 @@ if __name__ == '__main__':
         data_layer = data_layer_py.DataLayer('database.db')
         data_layer.create_databases()
         sha = hashlib.md5(password.encode())
-        data_layer.insert_username_password(user_name, sha.hexdigest())
+        data_layer.insert_password(sha.hexdigest())
         _queue = Queue()
         path2 = path.split(os.sep)
         path2 = path2[len(path2) - 1]
@@ -166,15 +166,13 @@ if __name__ == '__main__':
     if not data_layer:
         data_layer = data_layer_py.DataLayer('database.db')
     while jump:
-        u_p = data_layer.get_username_password()
+        u_p = data_layer.get_password()
         sha = hashlib.md5(password.encode())
-        if user_name == u_p[0] and sha.hexdigest() == u_p[1]:
+        if sha.hexdigest() == u_p[1]:
             break
-        print('Username:')
-        user_name = input()
         password = getpass.getpass()
-    t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(paths, Queue()))
-    t4.start()
+    # t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(paths, Queue()))
+    # t4.start()
     t5 = Thread(target=cl.start, args=())
     t5.start()
     # t6 = Thread(target=ed.start_observer, args=())

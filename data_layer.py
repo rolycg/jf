@@ -72,7 +72,7 @@ class DataLayer():
 
     def insert_password(self, password):
         cursor = self.database.cursor()
-        cursor.execute('INSERT INTO Login VALUES ?', (password,))
+        cursor.execute('INSERT INTO Login VALUES (?)', (password,))
         self.database.commit()
         cursor.close()
 
@@ -184,6 +184,9 @@ class DataLayer():
             self.insert_file(total_files, dir, parent=parent, file_type='Folder', generation=0, root='',
                              peer=peer,
                              date=date)
+            if count > 100000:
+                self.database.commit()
+                count = 0
             if query:
                 self.database.commit()
                 while query:
@@ -195,6 +198,9 @@ class DataLayer():
             _type = file.split('.')
             self.insert_file(file_name=file, file_type='' + _type[len(_type) - 1], parent=parent, generation=0,
                              root='', peer=peer, id=total_files, date=date)
+            if count > 100000:
+                self.database.commit()
+                count = 0
             if query:
                 self.database.commit()
                 while query:

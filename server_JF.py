@@ -76,6 +76,11 @@ if __name__ == '__main__':
     database_path = './database.db'
     temp_res = Queue()
     data_layer = None
+    total_answers = 5
+    path = '/'
+    if not os.path.exists('/tmp/path_file.jf'):
+        with open('/tmp/path_file.jf', 'w') as f:
+            f.write(path)
     thread_cq = Thread(target=query_process_communication)
     thread_cq.start()
     allow_start = os.path.exists(database_path)
@@ -137,7 +142,12 @@ if __name__ == '__main__':
                     sha = hashlib.md5(password.encode())
                     if sha.hexdigest() == u_p:
                         conn.send(json.dumps({'login': True}).encode())
-                        main.start(main.get_paths())
+                        try:
+                            with open('/tmp/path_file.jf', 'r') as f:
+                                path = f.readline()
+                        except FileNotFoundError:
+                            print('Path Error')
+                        main.start(path)
                         break
                     else:
                         conn.send(json.dumps({'login': False}).encode())
