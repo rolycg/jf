@@ -168,7 +168,7 @@ if __name__ == '__main__':
     while jump:
         u_p = data_layer.get_password()
         sha = hashlib.md5(password.encode())
-        if sha.hexdigest() == u_p[1]:
+        if sha.hexdigest() == u_p:
             break
         password = getpass.getpass()
     t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(paths, Queue()))

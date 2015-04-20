@@ -95,7 +95,7 @@ class DataLayer():
         cursor = self.database.cursor()
         for value in cursor.execute('SELECT password FROM Login'):
             cursor.close()
-            return value
+            return value[0]
 
     def get_files(self, generation, peer):
         cursor = self.database.cursor()
