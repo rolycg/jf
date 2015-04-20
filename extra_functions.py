@@ -23,7 +23,7 @@ def unpad(string):
 
 def convert_to_str(data):
     res = '( ' + str(data[1]) + '? ' + str(data[2]) + '? ' + str(data[3]) + '? ' + str(data[4]) + '? ' + str(
-        data[5]) + '? ' + str(data[6]) + '? ' + str(data[7]) + ')'
+        data[5]) + '? ' + str(data[6]) + '? ' + str(data[7]) + '?' + str(data[8]) + ')'
     if len(res) > 15 and not len(res) % 16:
         return res.encode(encoding='LATIN-1')
     for x in range(0, 16 - (len(res) % 16)):

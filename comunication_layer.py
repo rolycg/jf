@@ -115,6 +115,7 @@ def checking_server(sock, address, data_obj):
         if last_generation:
             sock.sendto(str(last_generation).encode(), address)
         else:
+
             data_obj.insert_peer(uuid, socket.gethostbyname(address[0]))
             sock.sendto(str(-1).encode(), address)
         receiver(sock, address, uuid.decode(), data_obj)
@@ -153,8 +154,7 @@ def receiver(sock, address, uuid, data_obj):
             elements[0] = elements[0][1:]
             elements[len(elements) - 1] = ef.unpad(elements[len(elements) - 1])
             elements = [x.strip() for x in elements]
-            elements[len(elements) - 1] = data_obj.get_id_from_uuid(elements[len(elements) - 1])
-            print(elements[0])
+            elements[len(elements) - 2] = data_obj.get_id_from_uuid(elements[len(elements) - 2])
             if elements[4] == '-1':
                 data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[2],
                                      file_type=elements[3], generation=elements[5], peer=elements[6],
@@ -174,8 +174,8 @@ def receiver(sock, address, uuid, data_obj):
                 while query:
                     time.sleep(0.5)
     data_obj.database.commit()
-    if _dict['generation'].decode():
-        data_obj.edit_generation(uuid, _dict['generation'].decode())
+    if _dict['generation']:
+        data_obj.edit_generation(uuid, _dict['generation'])
     with sem:
         cont = 0
         for data in _dict['delete']:
