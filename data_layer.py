@@ -106,15 +106,15 @@ class DataLayer():
 
         cursor = self.database.cursor()
         if not uuid and not pc_name:
-            cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
-                           (None, str(uu.uuid4()), socket.gethostname(), -1, 1))
+            cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?)',
+                           (None, str(uu.uuid4()), socket.gethostname(), -1, 1, -1))
         else:
             try:
-                cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
-                               (None, uuid.decode(), pc_name, -1, 0))
+                cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?)',
+                               (None, uuid.decode(), pc_name, -1, 0, -1))
             except AttributeError:
-                cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?)',
-                               (None, str(uuid), pc_name, -1, 0))
+                cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?)',
+                               (None, str(uuid), pc_name, -1, 0, -1))
         self.database.commit()
         cursor.close()
 
@@ -130,7 +130,7 @@ class DataLayer():
         cursor = self.database.cursor()
         # execute = 'UPDATE Metadata SET last_generation = '' + str(generation) + ' WHERE uuid = ' + str(uuid)
         generation = int(generation) + 1
-        cursor.execute('UPDATE Metadata SET my_generation=?   WHERE uuid = ?', (generation, str(uuid)))
+        cursor.execute('UPDATE Metadata SET my_generation=? WHERE uuid = ?', (generation, str(uuid)))
         self.database.commit()
         cursor.close()
 
@@ -147,8 +147,8 @@ class DataLayer():
             return value[0]
 
     def insert_file(self, id, file_name, parent, file_type, root, generation, peer, date=0):
-        self.cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?,?,?,?)',
-                            (None, id, file_name, root, file_type, parent, generation, peer, date, 0))
+        self.cursor.execute('INSERT INTO File VALUES (?,?,?,?,?,?,?,?,?)',
+                            (None, id, file_name, root, file_type, parent, generation, peer, date))
 
     def insert_data(self, id, file_name, file_type, parent, generation, peer=None, first=False, real_path=None,
                     date=None):

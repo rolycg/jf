@@ -171,8 +171,8 @@ if __name__ == '__main__':
         if sha.hexdigest() == u_p[1]:
             break
         password = getpass.getpass()
-    # t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(paths, Queue()))
-    # t4.start()
+    t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(paths, Queue()))
+    t4.start()
     t5 = Thread(target=cl.start, args=())
     t5.start()
     # t6 = Thread(target=ed.start_observer, args=())
@@ -196,5 +196,3 @@ if __name__ == '__main__':
         end = input()
         if end.lower() == 'exit':
             break
-    t4._stop()
-    t5._stop()
