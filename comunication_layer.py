@@ -128,58 +128,58 @@ def receiver(sock, address, uuid, data_obj):
     _dict = {'add': [], 'delete': [], 'generation': ''}
     with sem:
         cont = 0
+        test = b''
+        sock.settimeout(2)
         while 1:
-            test = b''
-            sock.settimeout(2)
-            while 1:
-                data, _ = sock.recvfrom(1000)
-                if not data:
-                    break
-                if b'finish' in data:
-                    test += data[:len(data) - 6]
-                    break
-                test += data
+            data, _ = sock.recvfrom(1000)
+            if not data:
+                break
+            if b'finish' in data:
+                test += data[:len(data) - 6]
+                break
+            test += data
+        try:
             _dict = json.loads(test.decode())
-            for data in _dict['add']:
-                print(len(base64.b64decode(data)))
-                value = cipher.decrypt(base64.b64decode(data))
-                try:
-                    elements = re.split('\\?+', value.decode(encoding='LATIN-1'))
-                except UnicodeDecodeError:
-                    elements = re.split('\\?+', value.decode(encoding='utf_8'))
-                if not data_obj:
-                    data_obj = data_layer.DataLayer('database.db')
-                elements[0] = elements[0][1:]
-                elements[len(elements) - 1] = ef.unpad(elements[len(elements) - 1])
-                elements = [x.strip() for x in elements]
-                elements[len(elements) - 1] = data_obj.get_id_from_uuid(elements[len(elements) - 1])
-                print(elements[0])
-                if elements[4] == '-1':
-                    data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[2],
-                                         file_type=elements[3], generation=elements[5], peer=elements[6],
-                                         first=True, date=elements[len(elements) - 1])
-                else:
-                    data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[4],
-                                         file_type=elements[3], generation=elements[5], peer=elements[6],
-                                         first=False, date=elements[len(elements) - 1])
-                if cont > 10000:
-                    data_obj.database.commit()
-                    cont = 0
-                if query:
-                    data_obj.database.commit()
-                    data_obj.close()
-                    data_obj = None
+        except ValueError:
+            return
+        for data in _dict['add']:
+            value = cipher.decrypt(base64.b64decode(data))
+            try:
+                elements = re.split('\\?+', value.decode(encoding='LATIN-1'))
+            except UnicodeDecodeError:
+                elements = re.split('\\?+', value.decode(encoding='utf_8'))
+            if not data_obj:
+                data_obj = data_layer.DataLayer('database.db')
+            elements[0] = elements[0][1:]
+            elements[len(elements) - 1] = ef.unpad(elements[len(elements) - 1])
+            elements = [x.strip() for x in elements]
+            elements[len(elements) - 1] = data_obj.get_id_from_uuid(elements[len(elements) - 1])
+            print(elements[0])
+            if elements[4] == '-1':
+                data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[2],
+                                     file_type=elements[3], generation=elements[5], peer=elements[6],
+                                     first=True, date=elements[len(elements) - 1])
+            else:
+                data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[4],
+                                     file_type=elements[3], generation=elements[5], peer=elements[6],
+                                     first=False, date=elements[len(elements) - 1])
+            if cont > 10000:
+                data_obj.database.commit()
+                cont = 0
+            if query:
+                data_obj.database.commit()
+                data_obj.close()
+                data_obj = None
 
-                    while query:
-                        time.sleep(0.5)
-        data_obj.database.commit()
-    gen, _ = sock.recvfrom(1024)
+                while query:
+                    time.sleep(0.5)
+    data_obj.database.commit()
     if _dict['generation'].decode():
         data_obj.edit_generation(uuid, _dict['generation'].decode())
     with sem:
         cont = 0
         for data in _dict['delete']:
-            value = cipher.decrypt(data)
+            value = cipher.decrypt(base64.b64decode(data))
             try:
                 elements = re.split('\\?+', value.decode())
             except UnicodeDecodeError:
@@ -200,8 +200,8 @@ def receiver(sock, address, uuid, data_obj):
                 data_obj.database.commit()
                 data_obj.close()
                 data_obj = None
-                while query:
-                    time.sleep(0.5)
+            while query:
+                time.sleep(0.5)
         data_obj.database.commit()
 
 
@@ -211,14 +211,12 @@ def sender(sock, address, generation, data_obj):
     query = data_obj.get_files(generation, data_obj.get_uuid_from_peer())
     _max = -1
     cipher = ef.get_cipher(password)
-    cont = 0
     _dict = {'add': [], 'delete': [], 'generation': ''}
     for x in query:
         tmp = data_obj.get_peer_from_id(x[len(x) - 2])
         x = (x[0], x[1], x[2], x[3], x[4], x[5], x[6], tmp, x[len(x) - 1])
         send = cipher.encrypt(ef.convert_to_str(x))
         _dict['add'].append(base64.b64encode(send).decode())
-        cont += 1
         _max = max(_max, x[6])
     if _max == -1:
         _dict['generation'] = ''
@@ -230,7 +228,7 @@ def sender(sock, address, generation, data_obj):
     query2 = data_obj.get_action_from_machine(_id)
     for y in query2:
         send = cipher.encrypt(ef.convert_to_str(y))
-        _dict['delete'].append(str(send))
+        _dict['delete'].append(base64.b64encode(send).decode())
     sock.sendto(json.dumps(_dict).encode(), address)
     sock.close()
     with sem:
