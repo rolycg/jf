@@ -59,10 +59,23 @@ def b():
             continue
 
 from queue import Empty
-import uuid
+from Crypto.Cipher import AES
+import base64
+
 
 if __name__ == '__main__':
-    print(uuid.uuid3(uuid.uuid4(), 'ROMA'))
+    aes = AES.new('1234567812345678')
+    plaintext = aes.encrypt('*/!234-+12345678')
+    print(plaintext)
+    print(len(plaintext))
+    a = base64.b64encode(plaintext)
+    print(a)
+    print(len(a))
+    print(a.decode())
+    print(len(a.decode()))
+    b = base64.b64decode(a)
+    print(b)
+    print(len(b))
 
 
 

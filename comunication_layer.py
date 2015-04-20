@@ -3,6 +3,7 @@ import random
 import re
 import time
 import json
+import base64
 
 from data_layer import semaphore as sem
 import data_layer
@@ -121,7 +122,7 @@ def checking_server(sock, address, data_obj):
 
 def receiver(sock, address, uuid, data_obj):
     global query
-    sock.send(data_obj.get_id_from_peer())
+    sock.send(data_obj.get_id_from_peer().encode())
     password = data_obj.get_password()
     cipher = ef.get_cipher(password)
     _dict = {'add': [], 'delete': [], 'generation': ''}
@@ -131,15 +132,17 @@ def receiver(sock, address, uuid, data_obj):
             test = b''
             sock.settimeout(2)
             while 1:
-                data, _ = sock.recvfrom(10024)
+                data, _ = sock.recvfrom(1000)
                 if not data:
                     break
-                if data == b'finish':
+                if b'finish' in data:
+                    test += data[:len(data) - 6]
                     break
                 test += data
             _dict = json.loads(test.decode())
             for data in _dict['add']:
-                value = cipher.decrypt(data)
+                print(len(base64.b64decode(data)))
+                value = cipher.decrypt(base64.b64decode(data))
                 try:
                     elements = re.split('\\?+', value.decode(encoding='LATIN-1'))
                 except UnicodeDecodeError:
@@ -214,13 +217,13 @@ def sender(sock, address, generation, data_obj):
         tmp = data_obj.get_peer_from_id(x[len(x) - 2])
         x = (x[0], x[1], x[2], x[3], x[4], x[5], x[6], tmp, x[len(x) - 1])
         send = cipher.encrypt(ef.convert_to_str(x))
-        _dict['add'].append(str(send))
+        _dict['add'].append(base64.b64encode(send).decode())
         cont += 1
         _max = max(_max, x[6])
     if _max == -1:
         _dict['generation'] = ''
     else:
-        _dict['generation'] = str(max)
+        _dict['generation'] = str(_max)
     if _max > -1:
         data_obj.edit_my_generation(uuid, _max)
     _id = data_obj.get_id_from_uuid(uuid=uuid.decode())
