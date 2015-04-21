@@ -13,11 +13,20 @@ def random_string(length=16):
     return ''.join([random.choice(string.ascii_letters + string.digits) for _ in range(length)])
 
 
-def unpad(string):
+def convert_to_tuple(chain):
+    return chain.split(',')
+
+
+def unpad(string, b=1):
     res = ''
-    for x in string:
-        if not (x == '*' or x == ')' or x == ' '):
-            res += x
+    if b:
+        for x in string:
+            if not (x == '*' or x == ')' or x == ' '):
+                res += x
+    else:
+        for x in string:
+            if not (x == '*' or x == ')'):
+                res += x
     return res
 
 

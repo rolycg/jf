@@ -186,8 +186,9 @@ def receiver(sock, address, uuid, data_obj):
             if not data_obj:
                 data_obj = data_layer.DataLayer('database.db')
             elements[0] = elements[0][1:]
-            elements[len(elements) - 1] = ef.unpad(elements[len(elements) - 1])
-            elements = [x.strip() for x in elements]
+            elements[len(elements) - 1] = ef.unpad(elements[len(elements) - 1], 0)
+            elements = ef.convert_to_tuple(elements[0])
+            elements = [x.strip()[1:-1] for x in elements]
             if elements[0] == 'deleted':
                 data_obj.delete_data(elements[1], elements[2], data_obj.get_id_from_uuid(uuid))
             elif elements[0] == 'updated':

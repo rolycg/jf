@@ -53,7 +53,8 @@ class DataLayer():
         self.database.close()
 
     def get_action_from_machine(self, machine):
-        ret = self.cursor.execute('SELECT actio FROM Journal WHERE machine=?', (machine,))
+        cursor = self.database.cursor()
+        ret = cursor.execute('SELECT actio FROM Journal WHERE machine=?', (machine,))
         return ret
 
     def delete_actions_from_machine(self, machine):
@@ -172,16 +173,21 @@ class DataLayer():
         # cursor = self.database.cursor()
         # peer = self.get_uuid_from_peer()
         parent = self.get_parent(name, real_path, machine)
-        cursor = self.database.cursor()
         gen = None
-        for x in cursor.execute('SELECT generation FROM File WHERE name_ext=? AND parent=? AND machine = ?',
-                                (name, parent, machine)):
-            gen = x
-            break
-        cursor.close()
+        if machine == 1:
+            cursor = self.database.cursor()
+
+            for x in cursor.execute('SELECT generation FROM File WHERE name_ext=? AND parent=? AND machine = ?',
+                                    (name, parent, machine)):
+                gen = x
+                break
+            cursor.close()
 
         self.cursor.execute('DELETE FROM File WHERE name_ext=? AND parent=? AND machine = ?', (name, parent, machine))
-        return gen[0]
+        self.database.commit()
+        if gen:
+            return gen[0]
+        return None
 
     def get_parent(self, path, real_path, peer):
         cursor = self.database.cursor()
@@ -270,14 +276,17 @@ class DataLayer():
         parent = self.get_parent(data[len(data) - 2], data[len(data) - 1], peer)
         cursor = self.database.cursor()
         gen = None
-        for x in cursor.execute('SELECT generation FROM File WHERE name_ext=? AND parent=? AND machine = ?',
-                                (data[len(data) - 2], parent, peer)):
-            gen = x
-            break
-        cursor.close()
+        if peer == 1:
+            for x in cursor.execute('SELECT generation FROM File WHERE name_ext=? AND parent=? AND machine = ?',
+                                    (data[len(data) - 2], parent, peer)):
+                gen = x
+                break
+            cursor.close()
         self.cursor.execute('UPDATE File SET name_ext=? WHERE name_ext=? AND parent=? AND machine=?',
                             (data[0], data[len(data) - 2], parent, peer))
-        return gen[0]
+        if gen:
+            return gen[0]
+        return None
 
     def find_data(self, word_list):
         cursor = self.database.cursor()
