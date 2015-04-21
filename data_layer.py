@@ -64,11 +64,12 @@ class DataLayer():
         cursor.close()
 
     def add_action(self, action, generation):
-        cursor = self.database.cursor()
-        for x in cursor.execute('SELECT id FROM Metadata WHERE my_generation>=? AND OWN != 1', (int(generation),)):
-            self.cursor.execute('INSERT INTO Journal VALUES (?,?,?)', (None, action, x[0]))
-        self.database.commit()
-        cursor.close()
+        if generation:
+            cursor = self.database.cursor()
+            for x in cursor.execute('SELECT id FROM Metadata WHERE my_generation>=? AND OWN != 1', (int(generation),)):
+                self.cursor.execute('INSERT INTO Journal VALUES (?,?,?)', (None, action, x[0]))
+            self.database.commit()
+            cursor.close()
 
     def get_last_generation(self, uuid):
         cursor = self.database.cursor()

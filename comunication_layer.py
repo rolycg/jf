@@ -224,16 +224,14 @@ def sender(sock, address, generation, data_obj):
     else:
         _dict['generation'] = str(_max)
     _id = data_obj.get_id_from_uuid(uuid=uuid)
-    if _id:
-        query2 = data_obj.get_action_from_machine(_id)
-    else:
-        data_obj.insert_peer(uuid, socket.gethostbyname(address[0]))
-        query2 = []
     if _max > -1:
+        if _id:
+            for y in data_obj.get_action_from_machine(_id):
+                send = cipher.encrypt(ef.convert_to_str(y[0]))
+                _dict['delete'].append(base64.b64encode(send).decode())
+        else:
+            data_obj.insert_peer(uuid, socket.gethostbyname(address[0]))
         data_obj.edit_my_generation(uuid, _max)
-    for y in query2:
-        send = cipher.encrypt(ef.convert_to_str(y[0]))
-        _dict['delete'].append(base64.b64encode(send).decode())
     sock.sendto(json.dumps(_dict).encode(), address)
     sock.close()
     with sem:
