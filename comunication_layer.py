@@ -28,7 +28,7 @@ def broadcast(data_obj):
                 if not buf:
                     break
                 if buf == b'Mee too':
-                    checking_client(s, address, data_obj)
+                    checking_client(address, data_obj)
                     break
             except socket.error:
                 break
@@ -54,7 +54,7 @@ def start_broadcast_server(data_obj, port=10101):
                     break
                 if message == b'I am everything':
                     s.sendto(b'Mee too', address)
-                    checking_server(s, address, data_obj)
+                    checking_server(data_obj)
         except socket.timeout:
             r = random.uniform(1, 5)
             if r == 3:
@@ -77,7 +77,7 @@ def set_query(value):
     query = value
 
 
-def checking_client(sock, address, data_obj):
+def checking_client(address, data_obj):
     time.sleep(0.5)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((address[0], PORT))
@@ -92,12 +92,12 @@ def checking_client(sock, address, data_obj):
     if value.decode('LATIN-1') == ran_str:
         sock.sendto(b'OK', address)
         machine = data_obj.get_id_from_peer()
-        sock.sendto(str(machine).encode(), address)
+        sock.sendto(machine.encode(), address)
         generation, _ = sock.recvfrom(1024)
         sender(sock, address, int(generation), data_obj)
 
 
-def checking_server(sock, address, data_obj):
+def checking_server(data_obj):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('', PORT))
     s.listen(1)
@@ -115,7 +115,6 @@ def checking_server(sock, address, data_obj):
         if last_generation:
             sock.sendto(str(last_generation).encode(), address)
         else:
-
             data_obj.insert_peer(uuid, socket.gethostbyname(address[0]))
             sock.sendto(str(-1).encode(), address)
         receiver(sock, address, uuid.decode(), data_obj)
@@ -130,7 +129,6 @@ def receiver(sock, address, uuid, data_obj):
     with sem:
         cont = 0
         test = b''
-        sock.settimeout(2)
         while 1:
             data, _ = sock.recvfrom(1000)
             if not data:
@@ -181,9 +179,9 @@ def receiver(sock, address, uuid, data_obj):
         for data in _dict['delete']:
             value = cipher.decrypt(base64.b64decode(data))
             try:
-                elements = re.split('\\?+', value.decode())
-            except UnicodeDecodeError:
                 elements = re.split('\\?+', value.decode(encoding='LATIN-1'))
+            except UnicodeDecodeError:
+                elements = re.split('\\?+', value.decode(encoding='utf_8'))
             if not data_obj:
                 data_obj = data_layer.DataLayer('database.db')
             elements[0] = elements[0][1:]
