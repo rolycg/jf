@@ -111,13 +111,14 @@ def checking_server(data_obj):
     conf, _ = sock.recvfrom(1024)
     if conf == b'OK':
         uuid, _ = sock.recvfrom(1024)
-        last_generation = data_obj.get_last_generation(uuid.decode())
+        uuid = uuid.decode()
+        last_generation = data_obj.get_last_generation(uuid)
         if last_generation:
             sock.sendto(str(last_generation).encode(), address)
         else:
             data_obj.insert_peer(uuid, socket.gethostbyname(address[0]))
             sock.sendto(str(-1).encode(), address)
-        receiver(sock, address, uuid.decode(), data_obj)
+        receiver(sock, address, uuid, data_obj)
 
 
 def receiver(sock, address, uuid, data_obj):
@@ -205,6 +206,7 @@ def receiver(sock, address, uuid, data_obj):
 
 def sender(sock, address, generation, data_obj):
     uuid, _ = sock.recvfrom(10024)
+    uuid = uuid.decode()
     password = data_obj.get_password()
     query = data_obj.get_files(generation, data_obj.get_uuid_from_peer())
     _max = -1
@@ -220,8 +222,7 @@ def sender(sock, address, generation, data_obj):
         _dict['generation'] = ''
     else:
         _dict['generation'] = str(_max)
-
-    _id = data_obj.get_id_from_uuid(uuid=uuid.decode())
+    _id = data_obj.get_id_from_uuid(uuid=uuid)
     if _id:
         query2 = data_obj.get_action_from_machine(_id)
     else:
@@ -230,7 +231,7 @@ def sender(sock, address, generation, data_obj):
     if _max > -1:
         data_obj.edit_my_generation(uuid, _max)
     for y in query2:
-        send = cipher.encrypt(ef.convert_to_str(y))
+        send = cipher.encrypt(ef.convert_to_str(y[0]))
         _dict['delete'].append(base64.b64encode(send).decode())
     sock.sendto(json.dumps(_dict).encode(), address)
     sock.close()

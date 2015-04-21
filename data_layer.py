@@ -64,8 +64,8 @@ class DataLayer():
 
     def add_action(self, action, generation):
         cursor = self.database.cursor()
-        for x in cursor.execute('SELECT id FROM Metadata WHERE my_generation>=? AND OWN != 1', (generation,)):
-            self.cursor.execute('INSERT INTO Journal VALUES (?,?,?)', (None, action, x))
+        for x in cursor.execute('SELECT id FROM Metadata WHERE my_generation>=? AND OWN != 1', (int(generation),)):
+            self.cursor.execute('INSERT INTO Journal VALUES (?,?,?)', (None, action, x[0]))
         self.database.commit()
         cursor.close()
 
@@ -129,12 +129,9 @@ class DataLayer():
         cursor.close()
 
     def edit_my_generation(self, uuid, generation):
-        cursor = self.database.cursor()
-        # execute = 'UPDATE Metadata SET last_generation = '' + str(generation) + ' WHERE uuid = ' + str(uuid)
-        generation = int(generation) + 1
-        cursor.execute('UPDATE Metadata SET my_generation=? WHERE uuid = ?', (generation, str(uuid)))
+        generation = int(generation)
+        self.cursor.execute('UPDATE Metadata SET my_generation=? WHERE uuid = ?', (generation, uuid))
         self.database.commit()
-        cursor.close()
 
     def get_uuid_from_peer(self, owner=1):
         cursor = self.database.cursor()
@@ -184,8 +181,7 @@ class DataLayer():
         cursor.close()
 
         self.cursor.execute('DELETE FROM File WHERE name_ext=? AND parent=? AND machine = ?', (name, parent, machine))
-        # cursor.close()
-        return gen
+        return gen[0]
 
     def get_parent(self, path, real_path, peer):
         cursor = self.database.cursor()
@@ -281,7 +277,7 @@ class DataLayer():
         cursor.close()
         self.cursor.execute('UPDATE File SET name_ext=? WHERE name_ext=? AND parent=? AND machine=?',
                             (data[0], data[len(data) - 2], parent, peer))
-        return gen
+        return gen[0]
 
     def find_data(self, word_list):
         cursor = self.database.cursor()
@@ -344,12 +340,10 @@ class DataLayer():
 if __name__ == '__main__':
     data = DataLayer('database.db')
     # data.create_databases()
-    id = data.get_id_from_device('276f15a5-0b53-4a0f-b130-4f56af55ec9f')
+    id = data.get_id_from_peer()
     print(id)
-    data.delete_drive(id)
-    for x in data.cursor.execute('SELECT * FROM File'):
-        print(x)
-
+    data.edit_my_generation(id, 0)
+    data.close()
 
 
 
