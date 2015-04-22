@@ -48,12 +48,6 @@ class MyFileSystemWatcher(FileSystemEventHandler):
         pass
 
     def on_moved(self, event):
-        # print(event)
-        # if event.is_directory:
-        # self.on_updated(event)
-        # else:
-        # self.on_deleted(event)
-        # self.on_created(event)
         path = extra_functions.split_paths(event.dest_path)
         if event.src_path:
             old_path = extra_functions.split_paths(event.src_path)
@@ -122,7 +116,6 @@ def make_watch(cache, machine=1):
                             data_obj.insert_data(number, x[1], x[2], x[3], generation, machine,
                                                  real_path=x[6])
                         elif x[0] == 'deleted':
-
                             g = data_obj.delete_data(x[1], x[2], machine)
                             data_obj.add_action(str(x), g)
                         else:

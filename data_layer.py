@@ -18,7 +18,6 @@ def set_query(value):
 
 
 __author__ = 'Roly'
-
 semaphore = Semaphore()
 
 
@@ -132,7 +131,7 @@ class DataLayer():
 
     def edit_my_generation(self, uuid, generation):
         generation = int(generation)
-        self.cursor.execute('UPDATE Metadata SET my_generation=? WHERE uuid = ?', (generation, uuid))
+        self.cursor.execute('UPDATE Metadata SET my_generation=? WHERE uuid=?', (generation, uuid))
         self.database.commit()
 
     def get_uuid_from_peer(self, owner=1):
@@ -284,7 +283,6 @@ class DataLayer():
                 gen = x
                 break
             cursor.close()
-        print(data[0])
         self.cursor.execute('UPDATE File SET name_ext=?, parent=? WHERE name_ext=? AND parent=? AND machine=?',
                             (data[0], new_parent, data[len(data) - 2], parent, peer))
         self.database.commit()
@@ -355,7 +353,6 @@ if __name__ == '__main__':
     # data.create_databases()
     print(data.cursor.execute('DELETE FROM File WHERE id=2'))
     data.database.commit()
-
     data.close()
 
 
