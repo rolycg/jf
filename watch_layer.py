@@ -45,24 +45,35 @@ class MyFileSystemWatcher(FileSystemEventHandler):
             self.cache.put(('deleted', path[len(path) - 1], os.path.join(*path[:len(path) - 1])))
 
     def on_updated(self, event):
+        pass
+
+    def on_moved(self, event):
+        # print(event)
+        # if event.is_directory:
+        # self.on_updated(event)
+        # else:
+        # self.on_deleted(event)
+        # self.on_created(event)
         path = extra_functions.split_paths(event.dest_path)
         if event.src_path:
             old_path = extra_functions.split_paths(event.src_path)
-            self.cache.put(('updated', path[len(path) - 1], 'Folder', path[len(path) - 2], None,
-                            None, os.path.join(*path[:len(path) - 1]), old_path[len(old_path) - 1],
-                            os.path.join(*old_path[:len(old_path) - 1])))
+            if event.is_directory:
+                self.cache.put(('updated', path[len(path) - 1], 'Folder', path[len(path) - 2], None,
+                                None, os.path.join(*path[:len(path) - 1]), old_path[len(old_path) - 1],
+                                os.path.join(*old_path[:len(old_path) - 1])))
+            else:
+                _type = path[len(path) - 1].split('.')
+                if len(_type) > 1 and _type[-1]:
+                    _type = _type[-1]
+                else:
+                    _type = ''
+                self.cache.put(('updated', path[len(path) - 1], _type, path[len(path) - 2], None,
+                                None, os.path.join(*path[:len(path) - 1]), old_path[len(old_path) - 1],
+                                os.path.join(*old_path[:len(old_path) - 1])))
         else:
             self.cache.put(('created', path[len(path) - 1], 'Folder', path[len(path) - 2], None,
                             None, os.path.join(*path[:len(path) - 1]), None,
                             None))
-
-    def on_moved(self, event):
-
-        if event.is_directory:
-            self.on_updated(event)
-        else:
-            self.on_deleted(event)
-            self.on_created(event)
 
     def dispatch(self, event):
         if event.event_type == 'created':
@@ -115,7 +126,6 @@ def make_watch(cache, machine=1):
                             g = data_obj.delete_data(x[1], x[2], machine)
                             data_obj.add_action(str(x), g)
                         else:
-                            # TODO: Con los ficheros se cuelga
                             g = data_obj.update_data(x[1:], machine)
                             data_obj.add_action(str(x), g)
                         if query:

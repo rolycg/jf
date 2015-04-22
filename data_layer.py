@@ -275,6 +275,7 @@ class DataLayer():
 
     def update_data(self, data, peer):
         parent = self.get_parent(data[len(data) - 2], data[len(data) - 1], peer)
+        new_parent = self.get_parent(data[2], data[5], peer)
         cursor = self.database.cursor()
         gen = None
         if peer == 1:
@@ -283,8 +284,10 @@ class DataLayer():
                 gen = x
                 break
             cursor.close()
-        self.cursor.execute('UPDATE File SET name_ext=? WHERE name_ext=? AND parent=? AND machine=?',
-                            (data[0], data[len(data) - 2], parent, peer))
+        print(data[0])
+        self.cursor.execute('UPDATE File SET name_ext=?, parent=? WHERE name_ext=? AND parent=? AND machine=?',
+                            (data[0], new_parent, data[len(data) - 2], parent, peer))
+        self.database.commit()
         if gen:
             return gen[0]
         return None
@@ -350,9 +353,9 @@ class DataLayer():
 if __name__ == '__main__':
     data = DataLayer('database.db')
     # data.create_databases()
-    id = data.get_id_from_peer()
-    print(id)
-    data.edit_my_generation(id, 0)
+    print(data.cursor.execute('DELETE FROM File WHERE id=2'))
+    data.database.commit()
+
     data.close()
 
 
