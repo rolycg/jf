@@ -44,9 +44,6 @@ class MyFileSystemWatcher(FileSystemEventHandler):
             path = extra_functions.split_paths(event.src_path)
             self.cache.put(('deleted', path[len(path) - 1], os.path.join(*path[:len(path) - 1])))
 
-    def on_updated(self, event):
-        pass
-
     def on_moved(self, event):
         path = extra_functions.split_paths(event.dest_path)
         if event.src_path:
