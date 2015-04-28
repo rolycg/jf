@@ -91,7 +91,8 @@ def make_watch(machine=1):
     data_obj = data_layer.DataLayer('database.db')
     while 1:
         time.sleep(2)
-        if not cache.empty():
+
+        if 1:
             with sem:
                 number = data_obj.get_max_id()
                 generation = data_obj.get_max_generation() + 1
