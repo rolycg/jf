@@ -28,6 +28,7 @@ from ctypes import (
     c_uint32
 )
 
+
 from pathtools.path import absolute_path
 
 from watchdog.utils import unicode_paths

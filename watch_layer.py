@@ -1,8 +1,8 @@
 import os
 import time
-from threading import Semaphore
-from queue import Queue
+from queue import Queue, Empty
 
+from data_layer import semaphore as sem
 from watchdog import observers
 from watchdog.events import FileSystemEventHandler
 import data_layer
@@ -11,7 +11,6 @@ import extra_functions
 
 query = False
 
-semaphore = Semaphore()
 cache = Queue()
 
 
@@ -75,32 +74,7 @@ class MyFileSystemWatcher(FileSystemEventHandler):
             print(event.event_type)
 
 
-# def handle_linux_events(x):
-# if x.mask == 256:
-# print('file was created')
-# if x.mask == 512:
-# print('file was deleted')
-# if x.mask == 1073742080:
-# print('folder was created')
-# if x.mask == 1073742336:
-# print('folder was deleted')
-# if x.mask == 64 or x.mask == 1073741888:
-# print('file or folder was moved from here')
-# if x.mask == 128 or x.mask == 1073741952:
-# print(x.pathname + 'file or folder was moved to here')
-
-
-# def add_linux_watch(path):
-# watch = WatchManager()
-# t = ThreadedNotifier(watch)
-# t.start()
-# watch.add_watch(path, ALL_EVENTS, lambda x: handle_linux_events(x), True, True, quiet=True)
-
-
-def add_multi_platform_watch(paths):
-    global query
-    global cache
-    data_obj = data_layer.DataLayer('database.db')
+def create_watcher(paths):
     watchers = []
     obj = MyFileSystemWatcher()
     for path in paths:
@@ -108,28 +82,41 @@ def add_multi_platform_watch(paths):
     for x in range(0, len(watchers)):
         watchers[x][0].schedule(obj, watchers[x][1], recursive=True)
         watchers[x][0].start()
+    return watchers
+
+
+def make_watch(machine=1):
+    global query
+    global cache
+    data_obj = data_layer.DataLayer('database.db')
     while 1:
         time.sleep(2)
         if not cache.empty():
-            number = data_obj.get_max_id()
-            generation = data_obj.get_max_generation() + 1
-            ###
-            # Solve this cache.empty() always return True
-            ###
-            while cache.qsize() > 0:
-                x = cache.get()
-                if not data_obj:
-                    data_obj = data_layer.DataLayer('database.db')
-                number += 1
-                if x[0] == 'created':
-                    data_obj.insert_data(number, x[1], x[2], x[3], generation, data_obj.get_uuid_from_peer(),
-                                         real_path=x[6])
-                else:
-                    data_obj.delete_data(x[1], x[2])
-                if query:
+            with sem:
+                number = data_obj.get_max_id()
+                generation = data_obj.get_max_generation() + 1
+                while 1:
+                    try:
+                        x = cache.get(timeout=1)
+                        if not data_obj:
+                            data_obj = data_layer.DataLayer('database.db')
+                        number += 1
+                        if x[0] == 'created':
+                            data_obj.insert_data(number, x[1], x[2], x[3], generation, machine,
+                                                 real_path=x[6])
+                        else:
+                            data_obj.delete_data(x[1], x[2])
+                        if query:
+                            data_obj.database.commit()
+                            data_obj.close()
+                            data_obj = None
+                            while query:
+                                time.sleep(0.5)
+                    except Empty:
+                        break
                     data_obj.database.commit()
-                    data_obj.close()
-                    data_obj = None
-                    while query:
-                        time.sleep(0.5)
-                data_obj.database.commit()
+
+
+def add_multi_platform_watch(paths):
+    create_watcher(paths)
+    make_watch()

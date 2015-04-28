@@ -1,5 +1,5 @@
 import os
-from queue import Queue
+from queue import Queue, Empty
 from threading import Thread
 from time import sleep, localtime
 import getpass
@@ -9,6 +9,7 @@ import extra_functions as ef
 import comunication_layer as cl
 import watch_layer
 import data_layer as data_layer_py
+#import external_devices_layer as ed
 
 
 finished = True
@@ -16,10 +17,8 @@ paint = False
 
 
 def dfs(path, q):
-    global finished
     for _path, dirs, files in os.walk(path):
         q.put((_path, dirs, files))
-    finished = False
 
 
 def save_to_disk(engine, q, peer):
@@ -28,16 +27,19 @@ def save_to_disk(engine, q, peer):
     count = 1
     total_files = 2
     session_count = 0
-    while not q.empty() or finished:
-        path, dirs, files = q.get()
-        complete_path = path
-        path = path.split(os.sep)
-        path = path[len(path) - 1]
-        session_count, total_files, count = engine.dynamic_insert_data(path, dirs, files,
-                                                                       session_count,
-                                                                       total_files, count,
-                                                                       complete_path,
-                                                                       peer=peer)
+    while 1:
+        try:
+            path, dirs, files = q.get(timeout=2)
+            complete_path = path
+            path = path.split(os.sep)
+            path = path[len(path) - 1]
+            session_count, total_files, count = engine.dynamic_insert_data(path, dirs, files,
+                                                                           session_count,
+                                                                           total_files, count,
+                                                                           complete_path,
+                                                                           peer=peer)
+        except Empty:
+            break
     paint = False
     engine.database.commit()
 
@@ -67,6 +69,8 @@ def start(paths):
     t4.start()
     t5 = Thread(target=cl.start, args=())
     t5.start()
+    t6 = Thread(target=ed.start_observer, args=())
+    t6.start()
 
 
 def create():
@@ -141,10 +145,8 @@ if __name__ == '__main__':
             t.start()
             t2 = Thread(target=save_to_disk, args=(data_layer, _queue, peer))
             t2.start()
-            t3 = Thread(target=printing)
-            t3.start()
-            while paint:
-                sleep(0.8)
+            t.join()
+            t2.join()
     if not data_layer:
         data_layer = data_layer_py.DataLayer('database.db')
     while jump:
@@ -159,6 +161,8 @@ if __name__ == '__main__':
     t4.start()
     t5 = Thread(target=cl.start, args=())
     t5.start()
+    t6 = Thread(target=ed.start_observer, args=())
+    t6.start()
     while 1:
         print('Enter keywords:')
         words = input()

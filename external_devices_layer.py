@@ -1,1 +1,215 @@
 __author__ = 'roly'
+
+import time
+from threading import Thread
+from multiprocessing import Process
+from queue import Queue
+import os
+
+import dbus
+from gi.overrides.GLib import MainLoop
+from dbus.mainloop.glib import DBusGMainLoop
+
+import data_layer as data_layer_py
+from main import save_to_disk
+from main import dfs
+from watchdog.events import FileSystemEventHandler
+import extra_functions
+from data_layer import semaphore as sem
+import watch_layer
+
+
+collection = None
+
+###
+# TODO: Make the concurrency test
+###
+
+
+class MyFileSystemWatcher(FileSystemEventHandler):
+    def __init__(self, machine):
+        self.machine = machine
+        super(FileSystemEventHandler).__init__()
+
+    def on_created(self, event):
+        if hasattr(event, 'dest_path'):
+            path = extra_functions.split_paths(event.src_path)
+        else:
+            path = extra_functions.split_paths(event.src_path)
+        if event.is_directory:
+            with sem:
+                data_obj = data_layer_py.DataLayer('database.db')
+                number = data_obj.get_max_id(self.machine) + 1
+                generation = data_obj.get_max_generation() + 1
+                data_obj.insert_data(number, path[len(path) - 1], 'Folder', path[len(path) - 2], generation,
+                                     self.machine, real_path=os.path.join(*path[:len(path) - 1]))
+                data_obj.database.commit()
+                data_obj.close()
+                # cache.put(('created', path[len(path) - 1], 'Folder', path[len(path) - 2], None,
+                # None, os.path.join(*path[:len(path) - 1])))
+        else:
+            _type = path[len(path) - 1].split('.')
+            if len(_type) > 1:
+                _type = _type[len(_type) - 1]
+            else:
+                _type = ''
+            with sem:
+                data_obj = data_layer_py.DataLayer('database.db')
+                number = data_obj.get_max_id(self.machine) + 1
+                generation = data_obj.get_max_generation() + 1
+                data_obj.insert_data(number, path[len(path) - 1], _type, path[len(path) - 2], generation,
+                                     self.machine, real_path=os.path.join(*path[:len(path) - 1]))
+                data_obj.database.commit()
+                data_obj.close()
+
+    def on_deleted(self, event):
+        path = extra_functions.split_paths(event.src_path)
+        with sem:
+            data_obj = data_layer_py.DataLayer('database.db')
+            data_obj.delete_data(path[len(path) - 1], os.path.join(*path[:len(path) - 1]))
+            data_obj.database.commit()
+            data_obj.close()
+            # cache.put(('deleted', , os.path.join(*path[:len(path) - 1])))
+            # self.data_obj.delete_data(path[len(path) - 1])
+
+    def on_moved(self, event):
+        self.on_deleted(event)
+        self.on_created(event)
+
+    def dispatch(self, event):
+        if event.event_type == 'created':
+            self.on_created(event)
+        elif event.event_type == 'deleted':
+            self.on_deleted(event)
+        elif event.event_type == 'moved':
+            self.on_moved(event)
+        elif event.event_type == 'modified':
+            pass
+        else:
+            print(event.event_type)
+
+
+def _add_device_(path, device_name, device_id):
+    global collection
+    with data_layer_py.semaphore:
+        data_layer = data_layer_py.DataLayer('database.db')
+        data_layer.insert_peer(uuid=device_id, pc_name=device_name)
+        peer = data_layer.get_id_from_uuid(device_id)
+        data_layer.insert_data(id=1, file_name='', file_type='Folder', parent=path, generation=0, first=True,
+                               peer=peer)
+        data_layer.database.commit()
+        _queue = Queue()
+        t = Thread(target=dfs, args=(path, _queue))
+        t.start()
+        t2 = Thread(target=save_to_disk, args=(data_layer, _queue, peer))
+        t2.start()
+        t.join()
+        t2.join()
+        data_layer.database.close()
+    return peer
+
+
+def add_watch(path):
+    return watch_layer.create_watcher([path])[0][0]
+    # obj = MyFileSystemWatcher()
+    # observer = observers.Observer()
+    # observer.schedule(obj, path, recursive=True)
+    # observer.start()-
+    # return observer
+
+
+def device_added_callback(*args):
+    global collection
+    try:
+        values = args[1]['org.freedesktop.UDisks2.Job']
+    except KeyError:
+        return
+    try:
+        operation = values['Operation']
+        if operation == 'filesystem-mount':
+            block = values['Objects'][0]
+            name = get_mount_point(block)
+            add_device(name)
+        elif operation == 'filesystem-unmount':
+            block = values['Objects'][0]
+            try:
+                collection[block][4].terminate()
+                del collection[block]
+            except Exception:
+                return
+        elif operation == 'cleanup':
+            for x in values.keys():
+                print(str(x) + ': ' + str(values[x]))
+            return
+    except KeyError:
+        return
+
+
+def get_mount_point(block):
+    global collection
+    bus = dbus.SystemBus()
+    obj = bus.get_object('org.freedesktop.UDisks2', block)
+    iface = dbus.Interface(obj, 'org.freedesktop.DBus.Properties')  # Here we use this 'magic' interface
+    dbus_mount_point = iface.Get('org.freedesktop.UDisks2.Filesystem', 'MountPoints')
+    mount_point = ''
+    while not len(dbus_mount_point):
+        time.sleep(0.5)
+        dbus_mount_point = iface.Get('org.freedesktop.UDisks2.Filesystem', 'MountPoints')
+    dbus_id = iface.Get('org.freedesktop.UDisks2.Block', 'Id')
+    dbus_name = iface.Get('org.freedesktop.UDisks2.Block', 'IdLabel')
+    for letter in dbus_mount_point[0]:
+        mount_point += chr(letter)
+    if not dbus_name:
+        dbus_name = mount_point[:-1].split(os.sep)
+        dbus_name = dbus_name[len(dbus_name) - 1]
+    collection[block] = [str(mount_point[:-1]), str(dbus_id), str(dbus_name), None, None]
+    return dbus_name
+
+
+def add_device(name):
+    global collection
+    device_name = None
+    block = None
+    for x in collection.keys():
+        if name.lower() == collection[x][2].lower():
+            device_name = collection[x]
+            block = x
+    if device_name:
+        machine = _add_device_(device_name[0], device_name[2], device_name[1])
+        collection[block][3] = add_watch(device_name[0])
+        t = Process(target=watch_layer.make_watch, args=(machine,))
+        t.start()
+        collection[block][4] = t
+    return device_name
+
+
+def start_observer():
+    global collection
+    collection = {}
+    DBusGMainLoop(set_as_default=True)
+    bus = dbus.SystemBus()
+    # obj = bus.get_object('org.freedesktop.UDisks2', '/org/freedesktop/UDisks2')
+    # iface_properties = dbus.Interface(obj, 'org.freedesktop.DBus.Properties')  # Here we use this 'magic' interface
+    # a = iface_properties.Get('org.freedesktop.UDisks2.Drive', 'Size')
+    # iface_obj_manager = dbus.Interface(obj, 'org.freedesktop.DBus.ObjectManager')
+    iface = 'org.freedesktop.DBus.ObjectManager'
+    signal = 'InterfacesAdded'
+    bus.add_signal_receiver(device_added_callback, signal, iface)
+
+    # start the main loop
+    MainLoop().run()
+
+
+if __name__ == '__main__':
+    start_observer()
+
+
+
+
+
+
+
+
+
+
+

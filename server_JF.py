@@ -12,6 +12,7 @@ import comunication_layer as cl
 import watch_layer
 
 
+
 if __name__ == '__main__':
     if os.path.exists('./tmp/test'):
         os.remove('./tmp/test')

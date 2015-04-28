@@ -53,7 +53,7 @@ def start_broadcast_server(data_obj, port=10101):
                     s.sendto(b'Mee too', address)
                     checking_server(s, address, data_obj)
         except socket.timeout:
-            r = random.uniform(1, 8)
+            r = random.uniform(1, 6)
             if r == 3:
                 break
             continue
@@ -132,6 +132,7 @@ def receiver(sock, address, uuid, data_obj):
                     elements = re.split('\\?+', value.decode(encoding='LATIN-1'))
                 ###
                 # TODO: Receive date
+                # DONE: Fix concurrency between writers
                 ###
                 if not data_obj:
                     data_obj = data_layer.DataLayer('database.db')
@@ -166,7 +167,6 @@ def receiver(sock, address, uuid, data_obj):
 def sender(sock, address, generation, data_obj):
     _, password = data_obj.get_username_password()
     query = data_obj.get_files(generation, data_obj.get_uuid_from_peer())
-    # session.query(data_layer_old.File).filter(data_layer_old.File.generation > generation)
     _max = -1
     cipher = ef.get_cipher(password)
     cont = 0

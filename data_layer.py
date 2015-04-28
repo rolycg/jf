@@ -26,7 +26,7 @@ semaphore = Semaphore()
 
 
 class DataLayer():
-    def __init__(self, database_url):
+    def __init__(self, database_url='real_path'):
         self.database_url = database_url
         self.database = sqlite3.connect(self.database_url, check_same_thread=False)
         # self.database.execute('PRAGMA read_uncommitted = FALSE ')
@@ -64,9 +64,9 @@ class DataLayer():
         cursor.execute(execute)
         return cursor
 
-    def get_max_generation(self):
+    def get_max_generation(self, machine=1):
         cursor = self.database.cursor()
-        for value in cursor.execute('SELECT max(generation) FROM File'):
+        for value in cursor.execute('SELECT max(generation) FROM File WHERE machine=?', (machine,)):
             cursor.close()
             return value[0]
 
@@ -260,9 +260,9 @@ class DataLayer():
             cursor.close()
             return value[0]
 
-    def get_max_id(self):
+    def get_max_id(self, machine=1):
         cursor = self.database.cursor()
-        for value in cursor.execute('SELECT max(id) FROM File WHERE machine=1'):
+        for value in cursor.execute('SELECT max(id) FROM File WHERE machine=?', (machine,)):
             number = int(value[0])
             cursor.close()
             return number

@@ -47,11 +47,28 @@ def printing():
 
 
 import time
+import multiprocessing
+
+
+def a():
+    while 1:
+        print('I am A')
+        time.sleep(2)
 
 
 if __name__ == '__main__':
-    a = os.stat('/media/')
-    print(time.localtime(a[7]))
+    t = multiprocessing.Process(target=a)
+    t.start()
+    while 1:
+        time.sleep(10)
+        try:
+            pass
+            t.terminate()
+        except AssertionError:
+            pass
+        print('Lo mate')
+        break
+
 
 
 
