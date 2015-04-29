@@ -119,6 +119,13 @@ def get_date(path):
     return os.stat(path)[7]
 
 
+def convert_message(messages):
+    ret = ''
+    for x in messages:
+        ret += x + '\n'
+    return ret
+
+
 if __name__ == '__main__':
     print((get_date('/media/roly/Extra/Series/')))
     print((get_date('/media/roly/Extra/Work/')))

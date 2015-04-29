@@ -6,18 +6,20 @@ import threading
 import socket
 import os
 
+from external_devices_layer import add_device
+
 import main
 import data_layer as data_layer_py
 import comunication_layer as cl
 import watch_layer
-
+from extra_functions import convert_message
 
 
 if __name__ == '__main__':
-    if os.path.exists('./tmp/test'):
-        os.remove('./tmp/test')
+    if os.path.exists('/tmp/FJ'):
+        os.remove('/tmp/FJ')
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    s.bind('./tmp/test')
+    s.bind('/tmp/FJ')
     s.listen(1)
     collection = []
     # TODO: Fix all continue
@@ -98,7 +100,23 @@ if __name__ == '__main__':
             data_layer_py.set_query()
             cl.set_query(False)
             watch_layer.set_query(False)
-            conn.send(json.dumps({'results': res}).encode())
+            s2 = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
+            s2.connect('/tmp/JF')
+            s2.send(json.dumps({'messages': True}).encode())
+            s2.settimeout(5)
+            recv = s2.recv(10048)
+            messages = []
+            if recv:
+                messages = json.loads(recv.decode())
+            if len(messages):
+                conn.send(json.dumps({'results': res, 'message': convert_message(messages)}).encode())
+                messages = []
+            else:
+                conn.send(json.dumps({'results': res}).encode())
+        if _dict['action'] == 'index':
+            device = _dict['device']
+            add_device(device)
+
 
 
 

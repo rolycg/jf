@@ -47,23 +47,46 @@ def printing():
 
 
 import time
-import multiprocessing
+import threading
+from queue import Empty, Queue
+
+c = 'it works'
+q = Queue()
 
 
 def a():
+    global c
+    global q
     while 1:
-        print('I am A')
+        q.put('I am A')
+        time.sleep(0.2)
+
+
+def b():
+    global q
+    global c
+    while 1:
         time.sleep(2)
+        try:
+            if not q.empty():
+                a = q.get(timeout=2)
+                if a:
+                    print(a)
+        except Empty:
+            print(c)
+            continue
 
 
 if __name__ == '__main__':
-    t = multiprocessing.Process(target=a)
+    t = threading.Thread(target=a, args=())
     t.start()
+    b()
     while 1:
-        time.sleep(10)
+        time.sleep(20)
         try:
             pass
-            t.terminate()
+            t._stop()
+            t2._stop()
         except AssertionError:
             pass
         print('Lo mate')

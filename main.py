@@ -9,7 +9,7 @@ import extra_functions as ef
 import comunication_layer as cl
 import watch_layer
 import data_layer as data_layer_py
-#import external_devices_layer as ed
+import external_devices_layer as ed
 
 
 finished = True
@@ -27,6 +27,9 @@ def save_to_disk(engine, q, peer):
     count = 1
     total_files = 2
     session_count = 0
+    generation = engine.get_max_generation() + 1
+    if not generation:
+        generation = 0
     while 1:
         try:
             path, dirs, files = q.get(timeout=2)
@@ -37,7 +40,7 @@ def save_to_disk(engine, q, peer):
                                                                            session_count,
                                                                            total_files, count,
                                                                            complete_path,
-                                                                           peer=peer)
+                                                                           peer=peer, generation=generation)
         except Empty:
             break
     paint = False
@@ -161,8 +164,8 @@ if __name__ == '__main__':
     t4.start()
     t5 = Thread(target=cl.start, args=())
     t5.start()
-    t6 = Thread(target=ed.start_observer, args=())
-    t6.start()
+    # t6 = Thread(target=ed.start_observer, args=())
+    # t6.start()
     while 1:
         print('Enter keywords:')
         words = input()

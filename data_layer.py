@@ -175,14 +175,14 @@ class DataLayer():
         else:
             raise Exception('Error in database')
 
-    def dynamic_insert_data(self, path, dirs, files, session_count, total_files, count, real_path, peer):
+    def dynamic_insert_data(self, path, dirs, files, session_count, total_files, count, real_path, peer, generation=0):
         global query
         if not self.database:
             self.database = sqlite3.connect(self.database_url, check_same_thread=False)
         parent = self.get_parent(path, real_path, peer)
         for dir in dirs:
             date = ef.get_date(real_path + os.sep + dir)
-            self.insert_file(total_files, dir, parent=parent, file_type='Folder', generation=0, root='', peer=peer,
+            self.insert_file(total_files, dir, parent=parent, file_type='Folder', generation=generation, root='', peer=peer,
                              date=date)
             if query:
                 self.database.commit()
@@ -238,7 +238,7 @@ class DataLayer():
                 query += ' OR name_ext LIKE ?'
             cont += 1
         query += ' ORDER BY date_modified DESC'
-        word_list = [x + '%' for x in word_list]
+        word_list = ['%' + x + '%' for x in word_list]
         return cursor.execute(query, word_list)
 
     def get_cursor(self):
@@ -270,7 +270,8 @@ class DataLayer():
 
 if __name__ == '__main__':
     data = DataLayer('database.db')
-    print(data.get_last_generation(data.get_uuid_from_peer()))
+    data.create_databases()
+    print(data.get_max_generation())
 
 
 

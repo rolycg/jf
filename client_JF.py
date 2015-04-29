@@ -17,7 +17,7 @@ if __name__ == '__main__':
     if 'create' == args[0].lower() or 'start' == args[0].lower():
         subprocess.Popen(cmd)
         time.sleep(0.5)
-        s.connect('./tmp/test')
+        s.connect('/tmp/JF')
         print('Username: ')
         username = input()
         password = getpass.getpass()
@@ -28,8 +28,8 @@ if __name__ == '__main__':
             d = json.loads(d.decode())
             if d['login'] == 'False':
                 print('Wrong username or password')
-    if 'query' in args:
-        s.connect('./tmp/test')
+    if 'query' == args[0].lower():
+        s.connect('/tmp/JF')
         words = ''
         for word in args[1:]:
             words += word + ' '
@@ -42,10 +42,15 @@ if __name__ == '__main__':
             _dict = json.loads(value.decode(), encoding='latin-1')
             for x in _dict['results']:
                 print(x)
+            try:
+                message = _dict['message']
+                print('JF says: ' + message)
+            except KeyError:
+                pass
         except socket.timeout:
             print("Server not respond")
-    if 'more' in args:
-        s.connect('./tmp/test')
+    if 'more' == args[0].lower():
+        s.connect('/tmp/JF')
         j = json.dumps({'action': 'more'})
         s.send(j.encode())
         value = None
@@ -55,5 +60,15 @@ if __name__ == '__main__':
             _dict = json.loads(value.decode(), encoding='latin-1')
             for x in _dict['results']:
                 print(x)
+            try:
+                message = _dict['message']
+                print('JF says: ' + message)
+            except KeyError:
+                pass
         except socket.timeout:
             print("Server not respond")
+    if 'index' == args[0].lower():
+        s.connect('/tmp/JF')
+        j = json.dumps({'action': 'index', 'device': args[1]})
+        s.send(j.encode())
+
