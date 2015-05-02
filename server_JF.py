@@ -7,7 +7,6 @@ import socket
 import os
 
 from external_devices_layer import add_device
-
 import main
 import data_layer as data_layer_py
 import comunication_layer as cl
@@ -101,7 +100,7 @@ if __name__ == '__main__':
             cl.set_query(False)
             watch_layer.set_query(False)
             s2 = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
-            s2.connect('/tmp/JF')
+            s2.connect('/tmp/JF_ext_dv')
             s2.send(json.dumps({'messages': True}).encode())
             s2.settimeout(5)
             recv = s2.recv(10048)
@@ -115,7 +114,11 @@ if __name__ == '__main__':
                 conn.send(json.dumps({'results': res}).encode())
         if _dict['action'] == 'index':
             device = _dict['device']
-            add_device(device)
+            ret = add_device(device)
+            if not ret:
+                conn.send(json.dumps({'results': 'Name device not found'}))
+            else:
+                conn.send(json.dumps({'results': 'OK'}))
 
 
 

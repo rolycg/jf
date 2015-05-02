@@ -71,4 +71,7 @@ if __name__ == '__main__':
         s.connect('/tmp/JF')
         j = json.dumps({'action': 'index', 'device': args[1]})
         s.send(j.encode())
+        d = json.loads(s.recv(10000).decode())
+        if not d['results'] == 'OK':
+            print(d['results'])
 

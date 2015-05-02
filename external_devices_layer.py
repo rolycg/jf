@@ -189,6 +189,7 @@ def add_device(name):
 
 def start_observer():
     global collection
+    global messages
     collection = {}
     DBusGMainLoop(set_as_default=True)
     bus = dbus.SystemBus()
@@ -202,6 +203,21 @@ def start_observer():
 
     # start the main loop
     MainLoop().run()
+    if os.path.exists('/tmp/FJ_ext_dv'):
+        os.remove('/tmp/FJ_ext_dv')
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    s.bind('/tmp/FJ_ext_dv')
+    s.listen(1)
+    while 1:
+        conn, _ = s.accept()
+        data = conn.recv(2048)
+        _dict = json.loads(data.decode(), encoding='utf-8')
+        try:
+            tmp = _dict['messages']
+            conn.send(json.dumps({'messages': messages}).encode())
+            messages = []
+        except KeyError:
+            continue
 
 
 if __name__ == '__main__':
@@ -209,7 +225,7 @@ if __name__ == '__main__':
     if os.path.exists('/tmp/FJ_ext_dv'):
         os.remove('/tmp/FJ_ext_dv')
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    s.bind('/tmp/FJ')
+    s.bind('/tmp/FJ_ext_dv')
     s.listen(1)
     while 1:
         conn, _ = s.accept()

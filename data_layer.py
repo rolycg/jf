@@ -26,7 +26,7 @@ semaphore = Semaphore()
 
 
 class DataLayer():
-    def __init__(self, database_url='real_path'):
+    def __init__(self, database_url='database.db'):
         self.database_url = database_url
         self.database = sqlite3.connect(self.database_url, check_same_thread=False)
         # self.database.execute('PRAGMA read_uncommitted = FALSE ')
