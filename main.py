@@ -79,7 +79,7 @@ def start(paths):
 def create():
     # TODO: put path  in None
     data_layer = data_layer_py.DataLayer('database.db')
-    path = '/media/roly/Extra/Series/'
+    path = '/media/roly/Extra/Series'
     paths = []
     if not path:
         paths = ef.get_initials_paths()

@@ -179,10 +179,12 @@ class DataLayer():
         global query
         if not self.database:
             self.database = sqlite3.connect(self.database_url, check_same_thread=False)
+            self.cursor = self.database.cursor()
         parent = self.get_parent(path, real_path, peer)
         for dir in dirs:
             date = ef.get_date(real_path + os.sep + dir)
-            self.insert_file(total_files, dir, parent=parent, file_type='Folder', generation=generation, root='', peer=peer,
+            self.insert_file(total_files, dir, parent=parent, file_type='Folder', generation=generation, root='',
+                             peer=peer,
                              date=date)
             if query:
                 self.database.commit()
@@ -191,7 +193,12 @@ class DataLayer():
 
                 while query:
                     time.sleep(0.5)
+                self.database = sqlite3.connect(self.database_url, check_same_thread=False)
+                self.cursor = self.database.cursor()
             total_files += 1
+        if not self.database:
+            self.database = sqlite3.connect(self.database_url, check_same_thread=False)
+            self.cursor = self.database.cursor()
         for file in files:
             date = ef.get_date(real_path + os.sep + file)
             _type = file.split('.')
@@ -201,9 +208,10 @@ class DataLayer():
                 self.database.commit()
                 self.database.close()
                 self.database = None
-
                 while query:
                     time.sleep(0.5)
+                self.database = sqlite3.connect(self.database_url, check_same_thread=False)
+                self.cursor = self.database.cursor()
             total_files += 1
         return session_count, total_files, count
 

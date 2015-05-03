@@ -166,7 +166,8 @@ def get_mount_point(block):
         dbus_name = mount_point[:-1].split(os.sep)
         dbus_name = dbus_name[len(dbus_name) - 1]
     collection[block] = [str(mount_point[:-1]), str(dbus_id), str(dbus_name), None, None]
-    messages.append('New device was inserted: ' + dbus_name + ' write index ' + dbus_name + ' if you want to add it')
+    messages.append(
+        'New device was inserted: ' + dbus_name + '\n' + ' write index ' + dbus_name + ' if you want to add it')
     return dbus_name
 
 
@@ -187,10 +188,7 @@ def add_device(name):
     return device_name
 
 
-def start_observer():
-    global collection
-    global messages
-    collection = {}
+def _start_observer():
     DBusGMainLoop(set_as_default=True)
     bus = dbus.SystemBus()
     # obj = bus.get_object('org.freedesktop.UDisks2', '/org/freedesktop/UDisks2')
@@ -203,10 +201,18 @@ def start_observer():
 
     # start the main loop
     MainLoop().run()
-    if os.path.exists('/tmp/FJ_ext_dv'):
-        os.remove('/tmp/FJ_ext_dv')
+
+
+def start_observer():
+    global collection
+    global messages
+    collection = {}
+    t = Thread(target=_start_observer)
+    t.start()
+    if os.path.exists('/tmp/JF_ext_dv'):
+        os.remove('/tmp/JF_ext_dv')
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    s.bind('/tmp/FJ_ext_dv')
+    s.bind('/tmp/JF_ext_dv')
     s.listen(1)
     while 1:
         conn, _ = s.accept()
