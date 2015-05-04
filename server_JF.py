@@ -5,8 +5,9 @@ import hashlib
 import threading
 import socket
 import os
-from multiprocessing import Process
-#from threading import Thread
+from multiprocessing import Process, Queue
+from queue import Empty
+# from threading import Thread
 import sqlite3
 import time
 
@@ -18,18 +19,13 @@ import watch_layer
 from extra_functions import convert_message
 
 
-temp_res = []
-
-
-def finish_query(collection, data_layer):
-    global temp_res
-    temp_res = []
+def finish_query(collection, data_layer, temp_res):
     for item in collection:
         t = localtime(item[8])
         try:
-            temp_res.append('>Name: ' + str(item[2]) + '\n' + '>File Type: ' + str(item[4]) + '\n' + '>Address: '
-                            + str(data_layer.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
-                            data_layer.get_peer_from_uuid(item[7]) + '\n' + '>Date: ' + str(t[0]) + '-' + str(
+            temp_res.put('>Name: ' + str(item[2]) + '\n' + '>File Type: ' + str(item[4]) + '\n' + '>Address: '
+                         + str(data_layer.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
+                         data_layer.get_peer_from_uuid(item[7]) + '\n' + '>Date: ' + str(t[0]) + '-' + str(
                 t[1]) + '-' + str(t[2]) + '\n')
         except sqlite3.InterfaceError:
             break
@@ -46,6 +42,7 @@ def open_writing():
 
 if __name__ == '__main__':
     t = None
+    temp_res = Queue()
     allow_start = os.path.exists('./database.db')
     if os.path.exists('/tmp/JF'):
         os.remove('/tmp/JF')
@@ -122,13 +119,15 @@ if __name__ == '__main__':
                     watch_layer.set_query(True)
                     time.sleep(0.1)
                     query.strip()
+                    temp_res = Queue()
                 res = []
                 if more:
-                    res = temp_res[:5]
-                    for x in range(5):
+                    count = 5
+                    while count:
                         try:
-                            temp_res.pop(0)
-                        except KeyError and IndexError:
+                            res.append(temp_res.get(timeout=0.2))
+                            count -= 1
+                        except Empty:
                             break
                 if query:
                     data_layer = data_layer_py.DataLayer('database.db')
@@ -143,7 +142,7 @@ if __name__ == '__main__':
                         count -= 1
                         if not count:
                             break
-                    t2 = Process(target=finish_query, args=(collection, data_layer))
+                    t2 = Process(target=finish_query, args=(collection, data_layer, temp_res))
                     t2.start()
                 s2 = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
                 s2.settimeout(0.2)

@@ -4,13 +4,14 @@ from threading import Thread
 from time import sleep, localtime
 import getpass
 import hashlib
+import time
 
 import extra_functions as ef
 import comunication_layer as cl
 import watch_layer
 import data_layer as data_layer_py
 import external_devices_layer as ed
-import time
+
 
 finished = True
 paint = False
@@ -41,12 +42,17 @@ def save_to_disk(engine, q, peer):
                                                                            total_files, count,
                                                                            complete_path,
                                                                            peer=peer, generation=generation)
+            if count > 5000:
+                while data_layer_py.query:
+                    time.sleep(0.5)
+                engine.database.commit()
         except Empty:
             break
     paint = False
     while data_layer_py.query:
         time.sleep(0.5)
     engine.database.commit()
+    print('Termine')
 
 
 def printing():

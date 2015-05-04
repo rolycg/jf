@@ -182,6 +182,7 @@ class DataLayer():
             self.cursor = self.database.cursor()
         parent = self.get_parent(path, real_path, peer)
         for dir in dirs:
+            count += 1
             date = ef.get_date(real_path + os.sep + dir)
             self.insert_file(total_files, dir, parent=parent, file_type='Folder', generation=generation, root='',
                              peer=peer,
@@ -200,6 +201,7 @@ class DataLayer():
             self.database = sqlite3.connect(self.database_url, check_same_thread=False)
             self.cursor = self.database.cursor()
         for file in files:
+            count += 1
             date = ef.get_date(real_path + os.sep + file)
             _type = file.split('.')
             self.insert_file(file_name=file, file_type='' + _type[len(_type) - 1], parent=parent, generation=0,
