@@ -10,7 +10,7 @@ import comunication_layer as cl
 import watch_layer
 import data_layer as data_layer_py
 import external_devices_layer as ed
-
+import time
 
 finished = True
 paint = False
@@ -44,6 +44,8 @@ def save_to_disk(engine, q, peer):
         except Empty:
             break
     paint = False
+    while data_layer_py.query:
+        time.sleep(0.5)
     engine.database.commit()
 
 
@@ -79,7 +81,7 @@ def start(paths):
 def create():
     # TODO: put path  in None
     data_layer = data_layer_py.DataLayer('database.db')
-    path = '/media/roly/Extra/Series'
+    path = '/media/roly/Extra/Info'
     paths = []
     if not path:
         paths = ef.get_initials_paths()

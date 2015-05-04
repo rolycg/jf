@@ -176,7 +176,7 @@ def add_device(name):
     device_name = None
     block = None
     for x in collection.keys():
-        if name.lower() == collection[x][2].lower():
+        if name.lower().strip() == collection[x][2].lower().strip():
             device_name = collection[x]
             block = x
     if device_name:

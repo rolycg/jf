@@ -5,6 +5,10 @@ import hashlib
 import threading
 import socket
 import os
+from multiprocessing import Process
+#from threading import Thread
+import sqlite3
+import time
 
 from external_devices_layer import add_device
 import main
@@ -22,10 +26,15 @@ def finish_query(collection, data_layer):
     temp_res = []
     for item in collection:
         t = localtime(item[8])
-        temp_res.append('>Name: ' + str(item[2]) + '\n' + '>File Type: ' + str(item[4]) + '\n' + '>Address: '
-                        + str(data_layer.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
-                        data_layer.get_peer_from_uuid(item[7]) + '\n' + '>Date: ' + str(t[0]) + '-' + str(
-            t[1]) + '-' + str(t[2]) + '\n')
+        try:
+            temp_res.append('>Name: ' + str(item[2]) + '\n' + '>File Type: ' + str(item[4]) + '\n' + '>Address: '
+                            + str(data_layer.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
+                            data_layer.get_peer_from_uuid(item[7]) + '\n' + '>Date: ' + str(t[0]) + '-' + str(
+                t[1]) + '-' + str(t[2]) + '\n')
+        except sqlite3.InterfaceError:
+            break
+        except sqlite3.ProgrammingError:
+            break
     open_writing()
 
 
@@ -95,65 +104,74 @@ if __name__ == '__main__':
                         conn.send(json.dumps({'login': False}).encode())
                         break
         if _dict['action'] == 'query' or _dict['action'] == 'more':
-            query = None
-            more = None
-            count = 5
             try:
-                query = _dict['query']
-            except KeyError:
-                more = _dict['action']
-            if query and data_layer:
-                data_layer.close()
-            if query and t2 and t2.is_alive():
-                t._stop()
-            cl.set_query(True)
-            data_layer_py.set_query()
-            watch_layer.set_query(True)
-            if query:
-                query.strip()
-            res = []
-            if more:
-                res = temp_res[:5]
-                for x in range(5):
-                    try:
-                        temp_res.pop(0)
-                    except KeyError and IndexError:
-                        break
-            if query:
-                data_layer = data_layer_py.DataLayer('database.db')
+                query = None
+                more = None
+                count = 5
+                try:
+                    query = _dict['query']
+                except KeyError:
+                    more = _dict['action']
+                if query and data_layer:
+                    data_layer.close()
+                if query and t2 and t2.is_alive():
+                    t2.terminate()
                 if query:
-                    collection = data_layer.find_data(query.split())
-                for item in collection:
-                    t = localtime(item[8])
-                    res.append('>Name: ' + str(item[2]) + '\n' + '>File Type: ' + str(item[4]) + '\n' + '>Address: '
-                               + str(data_layer.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
-                               data_layer.get_peer_from_uuid(item[7]) + '\n' + '>Date: ' + str(t[0]) + '-' + str(
-                        t[1]) + '-' + str(t[2]) + '\n')
-                    count -= 1
-                    if not count:
-                        break
-                # TODO: Ver esto esta raro se demora mucho pero hay que hacerlo
-                # t2 = Thread(target=finish_query(collection, data_layer))
-                # t2.start()
-                open_writing()
-            s2 = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
-            try:
-                s2.connect('/tmp/JF_ext_dv')
-            except FileNotFoundError:
-                conn.send(json.dumps({'results': res}).encode())
-                continue
-            s2.send(json.dumps({'messages': True}).encode())
-            s2.settimeout(0.5)
-            recv = s2.recv(10048)
-            print(recv)
-            messages = []
-            if recv:
-                messages = json.loads(recv.decode())
-            if len(messages.keys()):
-                conn.send(json.dumps({'results': res, 'message': convert_message(messages['messages'])}).encode())
+                    cl.set_query(True)
+                    data_layer_py.set_query()
+                    watch_layer.set_query(True)
+                    time.sleep(0.1)
+                    query.strip()
+                res = []
+                if more:
+                    res = temp_res[:5]
+                    for x in range(5):
+                        try:
+                            temp_res.pop(0)
+                        except KeyError and IndexError:
+                            break
+                if query:
+                    data_layer = data_layer_py.DataLayer('database.db')
+                    if query:
+                        collection = data_layer.find_data(query.split())
+                    for item in collection:
+                        t = localtime(item[8])
+                        res.append('>Name: ' + str(item[2]) + '\n' + '>File Type: ' + str(item[4]) + '\n' + '>Address: '
+                                   + str(data_layer.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
+                                   data_layer.get_peer_from_uuid(item[7]) + '\n' + '>Date: ' + str(t[0]) + '-' + str(
+                            t[1]) + '-' + str(t[2]) + '\n')
+                        count -= 1
+                        if not count:
+                            break
+                    t2 = Process(target=finish_query, args=(collection, data_layer))
+                    t2.start()
+                s2 = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
+                s2.settimeout(0.2)
+                try:
+                    s2.connect('/tmp/JF_ext_dv')
+                except FileNotFoundError:
+                    conn.send(json.dumps({'results': res}).encode())
+                    continue
+                except socket.timeout:
+                    conn.send(json.dumps({'results': res}).encode())
+                    continue
+                s2.send(json.dumps({'messages': True}).encode())
+                s2.settimeout(0.5)
+                recv = s2.recv(10048)
                 messages = []
-            else:
-                conn.send(json.dumps({'results': res}).encode())
+                if recv:
+                    messages = json.loads(recv.decode())
+                try:
+                    m = messages['messages']
+                    if len(m):
+                        conn.send(
+                            json.dumps({'results': res, 'message': convert_message(messages['messages'])}).encode())
+                    else:
+                        conn.send(json.dumps({'results': res}).encode())
+                except KeyError:
+                    conn.send(json.dumps({'results': res}).encode())
+            except Exception as e:
+                print(str(e.__traceback__()))
         if _dict['action'] == 'index':
             device = _dict['device']
             ret = add_device(device)
