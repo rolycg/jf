@@ -3,7 +3,6 @@ import time
 from queue import Queue, Empty
 
 from data_layer import semaphore as sem
-
 from watchdog import observers
 from watchdog.events import FileSystemEventHandler
 import data_layer
@@ -93,14 +92,12 @@ def make_watch(machine=1):
     while 1:
         time.sleep(2)
         if not cache.empty():
-            print('Finally works')
             with sem:
                 number = data_obj.get_max_id(machine)
                 generation = data_obj.get_max_generation() + 1
                 while 1:
                     try:
-                        x = cache.get(timeout=2)
-                        print(x)
+                        x = cache.get(timeout=0.5)
                         if not data_obj:
                             data_obj = data_layer.DataLayer('database.db')
                         number += 1
@@ -110,7 +107,6 @@ def make_watch(machine=1):
                         else:
                             data_obj.delete_data(x[1], x[2])
                         if query:
-                            print('es esto')
                             data_obj.database.commit()
                             data_obj.close()
                             data_obj = None

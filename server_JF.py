@@ -16,7 +16,7 @@ import main
 import data_layer as data_layer_py
 import comunication_layer as cl
 import watch_layer
-from extra_functions import convert_message
+from extra_functions import convert_message, get_date
 
 
 def finish_query(collection, data_layer, temp_res):
@@ -27,9 +27,11 @@ def finish_query(collection, data_layer, temp_res):
                          + str(data_layer.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
                          data_layer.get_peer_from_uuid(item[7]) + '\n' + '>Date: ' + str(t[0]) + '-' + str(
                 t[1]) + '-' + str(t[2]) + '\n')
-        except sqlite3.InterfaceError:
+        except sqlite3.InterfaceError as e:
+            print(e.__traceback__())
             break
-        except sqlite3.ProgrammingError:
+        except sqlite3.ProgrammingError as e:
+            print(e.__traceback__())
             break
     open_writing()
 
@@ -42,8 +44,11 @@ def open_writing():
 
 if __name__ == '__main__':
     t = None
+    database_path = './database.db'
     temp_res = Queue()
-    allow_start = os.path.exists('./database.db')
+    data_layer = None
+    t2 = None
+    allow_start = os.path.exists(database_path)
     if os.path.exists('/tmp/JF'):
         os.remove('/tmp/JF')
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -64,17 +69,39 @@ if __name__ == '__main__':
                 password = _dict['password']
             except KeyError:
                 continue
-            data_layer = data_layer_py.DataLayer('database.db')
-            data_layer.create_databases()
-            sha = hashlib.md5(password.encode())
-            data_layer.insert_username_password(user_name, sha.hexdigest())
-            data_layer.close()
-            t = threading.Thread(target=main.create)
-            t.start()
-            t.join()
-            t2 = threading.Thread(target=main.start, args=(main.get_paths(),))
-            t2.start()
-            allow_start = True
+            if not allow_start:
+                data_layer = data_layer_py.DataLayer('database.db')
+                data_layer.create_databases()
+                sha = hashlib.md5(password.encode())
+                data_layer.insert_username_password(user_name, sha.hexdigest())
+                data_layer.close()
+                t = threading.Thread(target=main.create)
+                t.start()
+                t.join()
+                t2 = threading.Thread(target=main.start, args=(main.get_paths(),))
+                t2.start()
+                allow_start = True
+            else:
+                date = get_date(database_path)
+                date = localtime(date)
+                date = str(date[0]) + '-' + str(date[1]) + '-' + str(date[2])
+                message = 'Index has been made on ' + date + ', do you want re-index (Y/N).'
+                conn.send(json.dumps({'message': message}).encode())
+                value = conn.recv(1024)
+                value = json.loads(value.decode())['answer']
+                if value.lower().strip() == 'y':
+                    os.remove(database_path)
+                    data_layer = data_layer_py.DataLayer('database.db')
+                    data_layer.create_databases()
+                    sha = hashlib.md5(password.encode())
+                    data_layer.insert_username_password(user_name, sha.hexdigest())
+                    data_layer.close()
+                    t = threading.Thread(target=main.create)
+                    t.start()
+                    t.join()
+                    t2 = threading.Thread(target=main.start, args=(main.get_paths(),))
+                    t2.start()
+                    allow_start = True
         if _dict['action'] == 'start':
             if not allow_start:
                 conn.send(json.dumps({'message': 'Must create index first.'}).encode())

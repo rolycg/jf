@@ -41,6 +41,28 @@ if __name__ == '__main__':
                         print('Wrong username or password')
                 except KeyError:
                     print(error)
+        if 'create' == args[0].lower():
+            s.settimeout(0.5)
+            try:
+                d = s.recv(2048)
+                d = json.loads(d.decode())
+                try:
+                    message = d['message']
+                    print(message)
+                except KeyError:
+                    print('Server Error')
+                resp = input()
+                while 1:
+                    if resp.lower().strip() == 'y' or resp.lower().strip() == 'n':
+                        break
+                    else:
+                        print('(Y/N)')
+                        resp = input()
+                s.send(json.dumps({'answer': resp}).encode())
+            except socket.timeout:
+                pass
+
+
     elif 'query' == args[0].lower():
         try:
             s.connect('/tmp/JF')

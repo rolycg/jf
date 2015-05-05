@@ -20,7 +20,7 @@ def set_query():
         query = True
 
 
-__author__ = 'roly'
+__author__ = 'Roly'
 
 semaphore = Semaphore()
 
@@ -189,14 +189,13 @@ class DataLayer():
                 self.database.commit()
                 count = 0
             date = ef.get_date(real_path + os.sep + dir)
-            self.insert_file(total_files, dir, parent=parent, file_type='Folder', generation=generation, root='',
+            self.insert_file(total_files, dir, parent=parent, file_type='Folder', generation=0, root='',
                              peer=peer,
                              date=date)
             if query:
                 self.database.commit()
                 self.database.close()
                 self.database = None
-
                 while query:
                     time.sleep(0.5)
                 self.database = sqlite3.connect(self.database_url, check_same_thread=False)

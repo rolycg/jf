@@ -33,7 +33,7 @@ def save_to_disk(engine, q, peer):
         generation = 0
     while 1:
         try:
-            path, dirs, files = q.get(timeout=2)
+            path, dirs, files = q.get(timeout=1)
             complete_path = path
             path = path.split(os.sep)
             path = path[len(path) - 1]
@@ -53,6 +53,7 @@ def save_to_disk(engine, q, peer):
     while data_layer_py.query:
         time.sleep(0.5)
     engine.database.commit()
+    # TODO: Remove this
     print('Termine')
 
 
@@ -88,7 +89,7 @@ def start(paths):
 def create():
     # TODO: put path  in None
     data_layer = data_layer_py.DataLayer('database.db')
-    path = '/media/roly/Extra/Info'
+    path = '/media/roly/Extra/Series'
     paths = []
     if not path:
         paths = ef.get_initials_paths()
