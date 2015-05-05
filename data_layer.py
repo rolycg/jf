@@ -183,6 +183,11 @@ class DataLayer():
         parent = self.get_parent(path, real_path, peer)
         for dir in dirs:
             count += 1
+            if count > 5000:
+                while query:
+                    time.sleep(0.5)
+                self.database.commit()
+                count = 0
             date = ef.get_date(real_path + os.sep + dir)
             self.insert_file(total_files, dir, parent=parent, file_type='Folder', generation=generation, root='',
                              peer=peer,
@@ -202,6 +207,11 @@ class DataLayer():
             self.cursor = self.database.cursor()
         for file in files:
             count += 1
+            if count > 5000:
+                while query:
+                    time.sleep(0.5)
+                self.database.commit()
+                count = 0
             date = ef.get_date(real_path + os.sep + file)
             _type = file.split('.')
             self.insert_file(file_name=file, file_type='' + _type[len(_type) - 1], parent=parent, generation=0,

@@ -46,6 +46,7 @@ def save_to_disk(engine, q, peer):
                 while data_layer_py.query:
                     time.sleep(0.5)
                 engine.database.commit()
+                count = 0
         except Empty:
             break
     paint = False
