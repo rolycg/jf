@@ -78,7 +78,7 @@ def printing():
 
 
 def start(paths):
-    t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(paths,))
+    t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(paths, Queue()))
     t4.start()
     t5 = Thread(target=cl.start, args=())
     t5.start()
@@ -123,7 +123,7 @@ def get_paths():
 
 if __name__ == '__main__':
     print('----------- JF -----------')
-    path = '/media/roly/Extra/Series/'
+    path = '/media/roly/Extra/Series'
     paths = []
     if not path:
         paths = ef.get_initials_paths()
@@ -170,7 +170,7 @@ if __name__ == '__main__':
         print('Username:')
         user_name = input()
         password = getpass.getpass()
-    t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(paths,))
+    t4 = Thread(target=watch_layer.add_multi_platform_watch, args=(paths, Queue()))
     t4.start()
     t5 = Thread(target=cl.start, args=())
     t5.start()
