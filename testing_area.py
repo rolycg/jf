@@ -51,10 +51,10 @@ import time
 from multiprocessing import Queue
 
 
-def a(c):
+def a():
     count = 10
     while count:
-        c.put('Hi from ' + str(count))
+        print('Hi from ' + str(count))
         count -= 1
     print('a finish')
 
@@ -74,18 +74,13 @@ def b():
             continue
 
 from queue import Empty
+import threading
 
 if __name__ == '__main__':
-    c = Queue()
-    t = multiprocessing.Process(target=a, args=(c,))
+    t = threading.Thread(target=a)
     t.start()
-    while 1:
-        try:
-            time.sleep(1)
-            print('Final: ' + c.get(timeout=2))
-        except Empty:
-            break
-
+    t.join()
+    print('Finish')
 
 
 

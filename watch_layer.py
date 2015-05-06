@@ -1,6 +1,6 @@
 import os
 import time
-from queue import Queue, Empty
+from queue import Empty
 
 from data_layer import semaphore as sem
 from watchdog import observers
@@ -11,8 +11,6 @@ import extra_functions
 
 query = False
 
-cache = Queue()
-
 
 def set_query(value):
     global query
@@ -21,8 +19,8 @@ def set_query(value):
 
 class MyFileSystemWatcher(FileSystemEventHandler):
     def __init__(self, cache):
-        self.cache = cache
         super(FileSystemEventHandler).__init__()
+        self.cache = cache
 
     def on_created(self, event):
         if hasattr(event, 'dest_path'):
@@ -32,11 +30,6 @@ class MyFileSystemWatcher(FileSystemEventHandler):
         if event.is_directory:
             self.cache.put(('created', path[len(path) - 1], 'Folder', path[len(path) - 2], None,
                             None, os.path.join(*path[:len(path) - 1])))
-
-            # self.data_obj.insert_data(path[len(path) - 1], 'Folder', path[len(path) - 2], generation,
-            # peer=self.data_obj.get_uuid_from_peer())
-            # extra_functions.copy_data(1, (0, path[len(path) - 1], 'Folder', path[len(path) - 2]),)
-            # self.cache.append((0, path[len(path) - 1], 'Folder', path[len(path) - 2]))
         else:
             _type = path[len(path) - 1].split('.')
             if len(_type) > 1:
@@ -45,16 +38,10 @@ class MyFileSystemWatcher(FileSystemEventHandler):
                 _type = ''
             self.cache.put(('created', path[len(path) - 1], _type, path[len(path) - 2],
                             None, None, os.path.join(*path[:len(path) - 1])))
-            # self.data_obj.insert_data(path[len(path) - 1], _type, path[len(path) - 2],
-            # generation, peer=self.data_obj.get_uuid_from_peer())
-            # extra_functions.wite_data_in_disk(self.f, (0, path[len(path) - 1], _type, path[len(path) - 2]))
-            # self.cache.append((0, path[len(path) - 1], _type, path[len(path) - 2]))
-            # self.data_obj.database.commit()
 
     def on_deleted(self, event):
         path = extra_functions.split_paths(event.src_path)
         self.cache.put(('deleted', path[len(path) - 1], os.path.join(*path[:len(path) - 1])))
-        # self.data_obj.delete_data(path[len(path) - 1])
 
     def on_updated(self, event):
         old_path = extra_functions.split_paths(event.src_path)
@@ -105,9 +92,10 @@ def make_watch(cache, machine=1):
                 generation = data_obj.get_max_generation() + 1
                 while 1:
                     try:
-                        x = cache.get(timeout=0.5)
+                        x = cache.get(timeout=1)
                         if not data_obj:
                             data_obj = data_layer.DataLayer('database.db')
+                            data_obj.cursor = data_obj.database.cursor()
                         number += 1
                         if x[0] == 'created':
                             data_obj.insert_data(number, x[1], x[2], x[3], generation, machine,
@@ -124,8 +112,9 @@ def make_watch(cache, machine=1):
                                 time.sleep(0.5)
                     except Empty:
                         break
+                    while query:
+                        time.sleep(0.5)
                     data_obj.database.commit()
-                    print('Commit Did it')
 
 
 def add_multi_platform_watch(paths, cache):

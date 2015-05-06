@@ -47,7 +47,6 @@ if __name__ == '__main__':
     database_path = './database.db'
     temp_res = Queue()
     data_layer = None
-    t2 = None
     allow_start = os.path.exists(database_path)
     if os.path.exists('/tmp/JF'):
         os.remove('/tmp/JF')
@@ -78,8 +77,7 @@ if __name__ == '__main__':
                 t = threading.Thread(target=main.create)
                 t.start()
                 t.join()
-                t2 = threading.Thread(target=main.start, args=(main.get_paths(),))
-                t2.start()
+                main.start(main.get_paths())
                 allow_start = True
             else:
                 date = get_date(database_path)
@@ -99,8 +97,7 @@ if __name__ == '__main__':
                     t = threading.Thread(target=main.create)
                     t.start()
                     t.join()
-                    t2 = threading.Thread(target=main.start, args=(main.get_paths(),))
-                    t2.start()
+                    main.start(main.get_paths())
                     allow_start = True
         if _dict['action'] == 'start':
             if not allow_start:
@@ -121,8 +118,7 @@ if __name__ == '__main__':
                     sha = hashlib.md5(password.encode())
                     if user_name == u_p[0] and sha.hexdigest() == u_p[1]:
                         conn.send(json.dumps({'login': True}).encode())
-                        t2 = threading.Thread(target=main.start, args=(main.get_paths(),))
-                        t2.start()
+                        main.start(main.get_paths())
                         break
                     else:
                         conn.send(json.dumps({'login': False}).encode())

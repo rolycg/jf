@@ -246,11 +246,9 @@ class DataLayer():
         return address[:len(address) - 1]
 
     def update_data(self, data, peer):
-        cursor = self.database.cursor()
         parent = self.get_parent(data[len(data) - 2], data[len(data) - 1], peer)
-        cursor.execute('UPDATE File SET name_ext=? WHERE name_ext=? AND parent=?',
-                       (data[0], data[len(data) - 2], parent))
-        cursor.close()
+        self.cursor.execute('UPDATE File SET name_ext=? WHERE name_ext=? AND parent=?',
+                            (data[0], data[len(data) - 2], parent))
 
     def find_data(self, word_list):
         cursor = self.database.cursor()
