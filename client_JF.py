@@ -11,6 +11,8 @@ error = 'Something went wrong, call emergency'
 cmd = ['python3', 'server_JF.py']
 
 
+# TODO: Quitar start, levantar el server solo, usar AND
+
 def start_server(s):
     subprocess.Popen(cmd)
     time.sleep(0.8)

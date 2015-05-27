@@ -90,7 +90,6 @@ if __name__ == '__main__':
     s.bind('/tmp/JF')
     s.listen(1)
     collection = []
-    # TODO: Fix all continue
     while 1:
         conn, _ = s.accept()
         data = conn.recv(2048)
@@ -124,7 +123,7 @@ if __name__ == '__main__':
                     sha = hashlib.md5(password.encode())
                     data_layer.insert_password(sha.hexdigest())
                     data_layer.close()
-                    t = threading.Thread(target=main.create)
+                    t = threading.Thread(target=main.create, args=(path,))
                     t.start()
                     allow_start = True
         if _dict['action'] == 'start':

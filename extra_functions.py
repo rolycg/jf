@@ -132,7 +132,7 @@ def get_initials_paths():
 
 
 def get_date(path):
-    return os.stat(path)[7]
+    return os.stat(path)[8]
 
 
 def convert_message(messages):
