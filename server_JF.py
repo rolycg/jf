@@ -10,16 +10,17 @@ from queue import Empty
 from threading import Thread
 import sqlite3
 import time
+import pwd
 
 from external_devices_layer import add_device
 import main
 import data_layer as data_layer_py
 import comunication_layer as cl
 import watch_layer
-from extra_functions import convert_message, get_date
-
+from extra_functions import convert_message
 
 t2 = None
+login = pwd.getpwuid(os.getuid())[0]
 
 
 def finish_query(collection, data_layer, temp_res):
@@ -40,7 +41,7 @@ def finish_query(collection, data_layer, temp_res):
     collection.close()
     data_layer.close()
     try:
-        s_qp.connect('/tmp/process_com')
+        s_qp.connect('/tmp/process_com_' + login)
     except FileNotFoundError:
         print('FileNotFoundError')
     except ConnectionRefusedError:
@@ -57,10 +58,10 @@ def open_writing():
 
 def query_process_communication():
     global t2
-    if os.path.exists('/tmp/process_com'):
-        os.remove('/tmp/process_com')
+    if os.path.exists('/tmp/process_com_' + login):
+        os.remove('/tmp/process_com_' + login)
     sqp = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    sqp.bind('/tmp/process_com')
+    sqp.bind('/tmp/process_com_' + login)
     sqp.listen(1)
     while 1:
         conn_qp, _ = sqp.accept()
@@ -84,73 +85,53 @@ if __name__ == '__main__':
     thread_cq = Thread(target=query_process_communication)
     thread_cq.start()
     allow_start = os.path.exists(database_path)
-    if os.path.exists('/tmp/JF'):
-        os.remove('/tmp/JF')
+    if os.path.exists('/tmp/JF_' + login):
+        os.remove('/tmp/JF_' + login)
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    s.bind('/tmp/JF')
+    s.bind('/tmp/JF_' + login)
     s.listen(1)
     collection = []
     while 1:
         conn, _ = s.accept()
         data = conn.recv(2048)
         _dict = json.loads(data.decode(), encoding='utf-8')
-        if _dict['action'] == 'create':
-            try:
-                password = _dict['password']
-            except KeyError:
-                continue
-            if not allow_start:
-                data_layer = data_layer_py.DataLayer('database.db')
-                data_layer.create_databases()
-                sha = hashlib.md5(password.encode())
-                data_layer.insert_password(sha.hexdigest())
-                data_layer.close()
-                t = threading.Thread(target=main.create)
-                t.start()
-                allow_start = True
-            else:
-                date = get_date(database_path)
-                date = localtime(date)
-                date = str(date[0]) + '-' + str(date[1]) + '-' + str(date[2])
-                message = 'Index has been made on ' + date + ', do you want re-index (Y/N).'
-                conn.send(json.dumps({'message': message}).encode())
-                value = conn.recv(1024)
-                value = json.loads(value.decode())['answer']
-                if value.lower().strip() == 'y':
-                    os.remove(database_path)
-                    data_layer = data_layer_py.DataLayer('database.db')
-                    data_layer.create_databases()
-                    sha = hashlib.md5(password.encode())
-                    data_layer.insert_password(sha.hexdigest())
-                    data_layer.close()
-                    t = threading.Thread(target=main.create, args=(path,))
-                    t.start()
-                    allow_start = True
-        if _dict['action'] == 'start':
-            if not allow_start:
-                conn.send(json.dumps({'message': 'Must create index first.'}).encode())
-            else:
-                while 1:
-                    try:
-                        password = _dict['password']
-                    except KeyError:
-                        continue
-                    data_layer = data_layer_py.DataLayer('database.db')
-                    u_p = data_layer.get_password()
-                    data_layer.close()
-                    sha = hashlib.md5(password.encode())
-                    if sha.hexdigest() == u_p:
+        if _dict['action'] == 'login':
+            if os.path.exists(database_path):
+                try:
+                    data_layer = data_layer_py.DataLayer(database_path)
+                    password = data_layer.get_password()
+                    if password == _dict['password']:
                         conn.send(json.dumps({'login': True}).encode())
-                        try:
-                            with open('/tmp/path_file.jf', 'r') as f:
-                                path = f.readline()
-                        except FileNotFoundError:
-                            print('Path Error')
-                        main.start(path)
-                        break
-                    else:
-                        conn.send(json.dumps({'login': False}).encode())
-                        break
+                except:
+                    pass
+                conn.send(json.dumps({'login': False}).encode())
+        if _dict['action'] == 'create':
+            if os.path.exists(database_path):
+                os.remove(database_path)
+            data_layer = data_layer_py.DataLayer(database_path)
+            data_layer.create_databases()
+            data_layer.insert_password(_dict['password'])
+            data_layer.close()
+            t = threading.Thread(target=main.create)
+            t.start()
+            allow_start = True
+            # date = get_date(database_path)
+            # date = localtime(date)
+            # date = str(date[0]) + '-' + str(date[1]) + '-' + str(date[2])
+            # message = 'Index has been made on ' + date + ', do you want re-index (Y/N).'
+            # conn.send(json.dumps({'message': message}).encode())
+            # value = conn.recv(1024)
+            # value = json.loads(value.decode())['answer']
+            # if value.lower().strip() == 'y':
+            #     os.remove(database_path)
+            #     data_layer = data_layer_py.DataLayer('database.db')
+            #     data_layer.create_databases()
+            #     sha = hashlib.md5(password.encode())
+            #     data_layer.insert_password(sha.hexdigest())
+            #     data_layer.close()
+            #     t = threading.Thread(target=main.create, args=(path,))
+            #     t.start()
+            #     allow_start = True
         if _dict['action'] == 'query' or _dict['action'] == 'more':
             try:
                 query = None
@@ -200,7 +181,7 @@ if __name__ == '__main__':
                 s2 = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
                 s2.settimeout(0.2)
                 try:
-                    s2.connect('/tmp/JF_ext_dv')
+                    s2.connect('/tmp/JF_ext_dv_' + login)
                 except FileNotFoundError:
                     conn.send(json.dumps({'results': res}).encode())
                     continue

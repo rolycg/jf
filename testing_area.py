@@ -1,6 +1,3 @@
-import os
-
-
 def try_os_path(path):
     for pathname, dirname, filename in os.walk(path):
         print(pathname + ':')
@@ -54,36 +51,56 @@ def b():
 
 
 from queue import Empty
-from Crypto.Cipher import AES
-import base64
-import extra_functions as ef
-import data_layer
+import argparse
+import sys
+import pwd
+
+import os
+
+
+def test():
+    print('This way')
+
 
 if __name__ == '__main__':
-    data_obj = data_layer.DataLayer()
-    elements = "'deleted','New folder','C:Users\\\\Carlos\\\\Desktop\\\\WSGI'"
-    elements = ef.convert_to_tuple(elements)
-    elements = [x.strip()[1:-1] for x in elements]
-    if elements[0] == 'deleted':
-        data_obj.delete_data(elements[1], elements[2],
-                             data_obj.get_id_from_uuid('c4dbd4c7-a826-45bf-a888-b3a9da34300a'))
-    elif elements[0] == 'updated':
-        data_obj.update_data(elements[1:], data_obj.get_id_from_uuid('c4dbd4c7-a826-45bf-a888-b3a9da34300a'))
-
-    aes = AES.new('1234567812345678')
-    plaintext = aes.encrypt('*/!234-+12345678')
-    print(plaintext)
-    print(len(plaintext))
-    a = base64.b64encode(plaintext)
-    print(a)
-    print(len(a))
-    print(a.decode())
-    print(len(a.decode()))
-    b = base64.b64decode(a)
-    print(b)
-    print(len(b))
+    print(pwd.getpwuid(os.getuid())[0])
+    parser = argparse.ArgumentParser(description='Testing', prog=sys.argv[0])
+    parser.add_argument('query', metavar='q', type=str, help="query", nargs='*')
+    parse = parser.add_mutually_exclusive_group()
+    parse.add_argument('-c', '--create', nargs='?', help='Create a index from given address', default='/',
+                       )
+    parse.add_argument('-m', '--more', nargs='?', help='More results')
+    parse.add_argument('-i', '--index', nargs='?', help='index devices')
+    arg = parser.parse_args()
+    if arg.query:
+        print('query' + str(arg.query))
+    if arg.more:
+        print('More')
+    if arg.index:
+        print('index')
+    if arg.create:
+        print('Create' + str(arg.create))
 
 
-
-
-
+        # data_obj = data_layer.DataLayer()
+        # elements = "'deleted','New folder','C:Users\\\\Carlos\\\\Desktop\\\\WSGI'"
+        # elements = ef.convert_to_tuple(elements)
+        # elements = [x.strip()[1:-1] for x in elements]
+        # if elements[0] == 'deleted':
+        # data_obj.delete_data(elements[1], elements[2],
+        #                          data_obj.get_id_from_uuid('c4dbd4c7-a826-45bf-a888-b3a9da34300a'))
+        # elif elements[0] == 'updated':
+        #     data_obj.update_data(elements[1:], data_obj.get_id_from_uuid('c4dbd4c7-a826-45bf-a888-b3a9da34300a'))
+        #
+        # aes = AES.new('1234567812345678')
+        # plaintext = aes.encrypt('*/!234-+12345678')
+        # print(plaintext)
+        # print(len(plaintext))
+        # a = base64.b64encode(plaintext)
+        # print(a)
+        # print(len(a))
+        # print(a.decode())
+        # print(len(a.decode()))
+        # b = base64.b64decode(a)
+        # print(b)
+        # print(len(b))

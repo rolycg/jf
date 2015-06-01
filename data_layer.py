@@ -299,7 +299,7 @@ class DataLayer():
             if cont == 0:
                 query += 'name_ext LIKE ?'
             else:
-                query += ' OR name_ext LIKE ?'
+                query += ' AND name_ext LIKE ?'
             cont += 1
         query += ' ORDER BY date_modified DESC'
         word_list = ['%' + x + '%' for x in word_list]

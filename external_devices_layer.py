@@ -7,6 +7,7 @@ import os
 import socket
 import json
 import uuid
+import pwd
 
 import dbus
 from gi.overrides.GLib import MainLoop
@@ -20,9 +21,9 @@ import extra_functions
 from data_layer import semaphore as sem
 import watch_layer
 
-
 collection = None
 messages = []
+login = pwd.getpwuid(os.getuid())[0]
 
 ###
 # TODO: Make the concurrency test
@@ -126,7 +127,10 @@ def device_added_callback(*args):
         operation = values['Operation']
         if operation == 'filesystem-mount':
             block = values['Objects'][0]
-            get_mount_point(block)
+            _id, block, name = get_mount_point(block)
+            exist = data.get_id_from_device(_id)
+            if exist:
+                execute(exist, block, name, False)
         elif operation == 'filesystem-unmount':
             block = values['Objects'][0]
             try:
@@ -167,7 +171,7 @@ def get_mount_point(block):
     collection[block] = [str(mount_point[:-1]), str(dbus_id), str(dbus_name), None, None]
     messages.append(
         'New device was inserted: ' + dbus_name + '\n' + 'write index ' + dbus_name + ', if you want to add it')
-    return dbus_name
+    return dbus_id, block, dbus_name
 
 
 def execute(exist, block, device_name, re_index):
@@ -202,14 +206,20 @@ def add_device(name, re_index):
     device_name = None
     block = None
     for x in collection.keys():
-        if name.lower().strip() == collection[x][2].lower().strip():
+        if name.strip() == collection[x][2].strip():
             device_name = collection[x]
             block = x
     if device_name:
+        if collection[block][4] and collection[block][4].is_alive():
+            try:
+                collection[block][4]._stop()
+            except Exception:
+                pass
+            collection[block][4] = None
         data = data_layer_py.DataLayer()
         exist = data.get_id_from_device(device_name[1])
         data.close()
-        thread = Thread(target=execute, args=(exist, block, device_name, re_index))
+        thread = Thread(target=execute, args=(exist, block, device_name, True))
         thread.start()
     return device_name
 
@@ -235,10 +245,10 @@ def start_observer():
     collection = {}
     t = Thread(target=_start_observer)
     t.start()
-    if os.path.exists('/tmp/JF_ext_dv'):
-        os.remove('/tmp/JF_ext_dv')
+    if os.path.exists('/tmp/JF_ext_dv_' + login):
+        os.remove('/tmp/JF_ext_dv_' + login)
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    s.bind('/tmp/JF_ext_dv')
+    s.bind('/tmp/JF_ext_dv_' + login)
     s.listen(1)
     while 1:
         conn, _ = s.accept()
@@ -269,14 +279,3 @@ if __name__ == '__main__':
             messages = []
         except KeyError:
             continue
-
-
-
-
-
-
-
-
-
-
-
