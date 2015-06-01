@@ -24,7 +24,7 @@ def start_server(s):
         s.connect('/tmp/JF_' + login)
         if os.path.exists(database_path):
             password = getpass.getpass()
-            sha = hashlib.md5(password).hexadigest()
+            sha = hashlib.md5(password.encode()).hexdigest()
             j = json.dumps({'action': 'login', 'password': sha})
             s.send(j.encode())
             d = s.recv(2048)
@@ -34,6 +34,10 @@ def start_server(s):
                 if not message:
                     print('Wrong password')
                     s.close()
+                else:
+                    s = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
+                    s.connect('/tmp/JF_' + login)
+                    return s
             except KeyError:
                 print(error)
     except FileNotFoundError:
@@ -45,6 +49,7 @@ def start_server(s):
 
 def connect_server(s):
     try:
+        s.settimeout(2)
         s.connect('/tmp/JF_' + login)
     except FileNotFoundError:
         return start_server(s)
@@ -57,13 +62,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='JF: desktop finder for local networks', prog=sys.argv[0])
     parser.add_argument('query', metavar='q', type=str, help="Execute a query with arguments values", nargs='*')
     parse = parser.add_mutually_exclusive_group()
-    parse.add_argument('-c', '--create', help='Create a index from given address', nargs='?', default='/')
+    parse.add_argument('-c', '--create', help='Create a index from given address', nargs=1, type=str)
     parse.add_argument('-m', '--more', help='Show more results', nargs='?', default='5')
     parse.add_argument('-i', '--index', help='Index a device', nargs='+')
     arg = parser.parse_args()
 
     s = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
-    connect_server(s)
+    s = connect_server(s)
     if arg.query:
         words = ''
         for word in arg.query:
@@ -71,7 +76,7 @@ if __name__ == '__main__':
         j = json.dumps({'action': 'query', 'query': words})
         s.send(j.encode())
         value = None
-        s.settimeout(2)
+        s.settimeout(3)
         value = s.recv(15048)
         _dict = json.loads(value.decode(), encoding='latin-1')
         for x in _dict['results']:
@@ -83,6 +88,20 @@ if __name__ == '__main__':
             pass
         except socket.timeout:
             print("Server not respond")
+    elif arg.create:
+        password = getpass.getpass()
+        sha = hashlib.md5(password.encode())
+        j = json.dumps({'action': 'create', 'password': sha.hexdigest(), 'path': arg.create[0]})
+        s.send(j.encode())
+    elif arg.index:
+        name = ''
+        for x in arg.index:
+            name += x + ' '
+        j = json.dumps({'action': 'index', 'device': name, 'index': True})
+        s.send(j.encode())
+        d = json.loads(s.recv(100).decode())
+        if not d['results'] == 'OK':
+            print(d['results'])
     elif arg.more:
         j = json.dumps({'action': 'more', 'cant': arg.more})
         s.send(j.encode())
@@ -100,20 +119,6 @@ if __name__ == '__main__':
                 pass
         except socket.timeout:
             print("Server not respond")
-    elif arg.index:
-        name = ''
-        for x in arg.index:
-            name += x + ' '
-        j = json.dumps({'action': 'index', 'device': name, 'index': True})
-        s.send(j.encode())
-        d = json.loads(s.recv(100).decode())
-        if not d['results'] == 'OK':
-            print(d['results'])
-    elif arg.create:
-        password = getpass.getpass()
-        sha = hashlib.md5(password)
-        j = json.dumps({'action': 'create', 'password': sha.hexadigets()})
-        s.send(j.encode())
     s.close()
     # args = sys.argv[1:]
     # s = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)

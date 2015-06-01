@@ -12,7 +12,6 @@ import watch_layer
 import data_layer as data_layer_py
 import external_devices_layer as ed
 
-
 finished = True
 paint = False
 start_time = None
@@ -91,7 +90,7 @@ def start(paths):
 def create(path=None):
     # TODO: put path  in None
     data_layer = data_layer_py.DataLayer('database.db')
-    path = '/home/roly/file_system'
+    # path = '/home/roly/file_system'
     paths = []
     if not path:
         paths = ef.get_initials_paths()

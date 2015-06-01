@@ -1,7 +1,6 @@
 __author__ = 'roly'
 from time import localtime
 import json
-import hashlib
 import threading
 import socket
 import os
@@ -94,27 +93,33 @@ if __name__ == '__main__':
     while 1:
         conn, _ = s.accept()
         data = conn.recv(2048)
-        _dict = json.loads(data.decode(), encoding='utf-8')
+        _dict = json.loads(data.decode(), encoding='latin-1')
         if _dict['action'] == 'login':
             if os.path.exists(database_path):
                 try:
                     data_layer = data_layer_py.DataLayer(database_path)
                     password = data_layer.get_password()
+                    data_layer.close()
                     if password == _dict['password']:
                         conn.send(json.dumps({'login': True}).encode())
+                    else:
+                        conn.send(json.dumps({'login': False}).encode())
+                        print('break')
+                        break
                 except:
-                    pass
-                conn.send(json.dumps({'login': False}).encode())
-        if _dict['action'] == 'create':
+                    conn.send(json.dumps({'login': False}).encode())
+                    print('break')
+                    break
+
+        elif _dict['action'] == 'create':
             if os.path.exists(database_path):
                 os.remove(database_path)
             data_layer = data_layer_py.DataLayer(database_path)
             data_layer.create_databases()
             data_layer.insert_password(_dict['password'])
             data_layer.close()
-            t = threading.Thread(target=main.create)
+            t = threading.Thread(target=main.create, args=(_dict['path'],))
             t.start()
-            allow_start = True
             # date = get_date(database_path)
             # date = localtime(date)
             # date = str(date[0]) + '-' + str(date[1]) + '-' + str(date[2])
@@ -132,11 +137,15 @@ if __name__ == '__main__':
             #     t = threading.Thread(target=main.create, args=(path,))
             #     t.start()
             #     allow_start = True
-        if _dict['action'] == 'query' or _dict['action'] == 'more':
+        elif _dict['action'] == 'query' or _dict['action'] == 'more':
             try:
                 query = None
                 more = None
-                count = 5
+                try:
+                    count = _dict['cant']
+                    count = int(_dict['cant'])
+                except KeyError:
+                    count = 5
                 try:
                     query = _dict['query']
                 except KeyError:
@@ -154,7 +163,6 @@ if __name__ == '__main__':
                     temp_res = Queue()
                 res = []
                 if more:
-                    count = 5
                     while count:
                         try:
                             res.append(temp_res.get(timeout=0.2))
@@ -208,7 +216,7 @@ if __name__ == '__main__':
                     conn.send(json.dumps({'results': res}).encode())
             except Exception as e:
                 print(str(e.args))
-        if _dict['action'] == 'index':
+        elif _dict['action'] == 'index':
             device = _dict['device']
             try:
                 re_index = _dict['index']
@@ -219,8 +227,3 @@ if __name__ == '__main__':
                 conn.send(json.dumps({'results': 'Name device not found'}).encode())
             else:
                 conn.send(json.dumps({'results': 'OK'}).encode())
-
-
-
-
-

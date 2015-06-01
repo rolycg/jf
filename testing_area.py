@@ -61,28 +61,37 @@ import os
 def test():
     print('This way')
 
+import hashlib
 
 if __name__ == '__main__':
     print(pwd.getpwuid(os.getuid())[0])
-    parser = argparse.ArgumentParser(description='Testing', prog=sys.argv[0])
-    parser.add_argument('query', metavar='q', type=str, help="query", nargs='*')
-    parse = parser.add_mutually_exclusive_group()
-    parse.add_argument('-c', '--create', nargs='?', help='Create a index from given address', default='/',
-                       )
-    parse.add_argument('-m', '--more', nargs='?', help='More results')
-    parse.add_argument('-i', '--index', nargs='?', help='index devices')
-    arg = parser.parse_args()
-    if arg.query:
-        print('query' + str(arg.query))
-    if arg.more:
-        print('More')
-    if arg.index:
-        print('index')
-    if arg.create:
-        print('Create' + str(arg.create))
 
-
-        # data_obj = data_layer.DataLayer()
+    sha = hashlib.md5('a'.encode())
+    print(sha)
+    print(sha.hexdigest())
+    # parser = argparse.ArgumentParser(description='Testing', prog=sys.argv[0])
+    # parser.add_argument('query', metavar='q', type=str, help="query", nargs='*')
+    # parse = parser.add_mutually_exclusive_group()
+    # parse.add_argument('-c', '--create', nargs=1, help='Create a index from given address')
+    # parse.add_argument('-m', '--more', nargs='?', help='More results', default=5)
+    # parse.add_argument('-i', '--index', nargs='+', help='index devices')
+    # parser = argparse.ArgumentParser(description='JF: desktop finder for local networks', prog=sys.argv[0])
+    # parser.add_argument('query', metavar='q', type=str, help="Execute a query with arguments values", nargs='*')
+    # parse = parser.add_mutually_exclusive_group()
+    # parse.add_argument('-c', '--create', help='Create a index from given address', nargs='1', type=str)
+    # parse.add_argument('-m', '--more', help='Show more results', nargs='?', default='5')
+    # parse.add_argument('-i', '--index', help='Index a device', nargs='+')
+    # arg = parser.parse_args()
+    # if arg.query:
+    #     print('query ' + str(arg.query))
+    # if arg.more:
+    #     print('More ' + str(arg.more))
+    # if arg.index:
+    #     print('index ' + str(arg.index))
+    # if arg.create:
+    #     print('Create ' + str(arg.create))
+    #
+    #     # data_obj = data_layer.DataLayer()
         # elements = "'deleted','New folder','C:Users\\\\Carlos\\\\Desktop\\\\WSGI'"
         # elements = ef.convert_to_tuple(elements)
         # elements = [x.strip()[1:-1] for x in elements]
