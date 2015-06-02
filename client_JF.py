@@ -75,10 +75,19 @@ if __name__ == '__main__':
             words += word + ' '
         j = json.dumps({'action': 'query', 'query': words})
         s.send(j.encode())
-        value = None
+        value = ''
         s.settimeout(3)
-        value = s.recv(15048)
-        _dict = json.loads(value.decode(), encoding='latin-1')
+        while 1:
+            try:
+                tmp = s.recv(1000)
+                s.settimeout(0.2)
+                tmp = tmp.decode()
+                if not tmp:
+                    break
+                value += tmp
+            except socket.timeout:
+                break
+        _dict = json.loads(value, encoding='latin-1')
         for x in _dict['results']:
             print(x)
         try:
@@ -93,6 +102,10 @@ if __name__ == '__main__':
         sha = hashlib.md5(password.encode())
         j = json.dumps({'action': 'create', 'password': sha.hexdigest(), 'path': arg.create[0]})
         s.send(j.encode())
+        value = s.recv(1024)
+        value = json.loads(value.decode())
+        if value['result'] == 'Not path':
+            print('Wrong path, try another')
     elif arg.index:
         name = ''
         for x in arg.index:

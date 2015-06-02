@@ -114,12 +114,17 @@ if __name__ == '__main__':
         elif _dict['action'] == 'create':
             if os.path.exists(database_path):
                 os.remove(database_path)
+            if not os.path.exists(_dict['path']):
+                conn.send(json.dumps({'result': 'Not path'}).encode())
+                continue
+            conn.send(json.dumps({'result': 'OK'}).encode())
             data_layer = data_layer_py.DataLayer(database_path)
             data_layer.create_databases()
             data_layer.insert_password(_dict['password'])
             data_layer.close()
             t = threading.Thread(target=main.create, args=(_dict['path'],))
             t.start()
+
             # date = get_date(database_path)
             # date = localtime(date)
             # date = str(date[0]) + '-' + str(date[1]) + '-' + str(date[2])
