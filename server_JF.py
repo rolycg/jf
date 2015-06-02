@@ -1,7 +1,6 @@
 __author__ = 'roly'
 from time import localtime
 import json
-import threading
 import socket
 import os
 from multiprocessing import Queue, Process
@@ -12,11 +11,11 @@ import time
 import pwd
 
 from external_devices_layer import add_device
-import main
 import data_layer as data_layer_py
 import comunication_layer as cl
 import watch_layer
 from extra_functions import convert_message
+import main
 
 t2 = None
 login = pwd.getpwuid(os.getuid())[0]
@@ -76,6 +75,7 @@ if __name__ == '__main__':
     database_path = './database.db'
     temp_res = Queue()
     data_layer = None
+    logged = False
     total_answers = 5
     path = '/'
     if not os.path.exists('/tmp/path_file.jf'):
@@ -93,55 +93,23 @@ if __name__ == '__main__':
     while 1:
         conn, _ = s.accept()
         data = conn.recv(2048)
-        _dict = json.loads(data.decode(), encoding='latin-1')
-        if _dict['action'] == 'login':
-            if os.path.exists(database_path):
-                try:
-                    data_layer = data_layer_py.DataLayer(database_path)
-                    password = data_layer.get_password()
-                    data_layer.close()
-                    if password == _dict['password']:
-                        conn.send(json.dumps({'login': True}).encode())
-                    else:
-                        conn.send(json.dumps({'login': False}).encode())
-                        print('break')
-                        break
-                except:
-                    conn.send(json.dumps({'login': False}).encode())
-                    print('break')
-                    break
-
-        elif _dict['action'] == 'create':
-            if os.path.exists(database_path):
-                os.remove(database_path)
+        data = data.decode()
+        if not data:
+            continue
+        _dict = json.loads(data, encoding='latin-1')
+        if _dict['action'] == 'create':
             if not os.path.exists(_dict['path']):
                 conn.send(json.dumps({'result': 'Not path'}).encode())
                 continue
+            if os.path.exists(database_path):
+                os.remove(database_path)
             conn.send(json.dumps({'result': 'OK'}).encode())
             data_layer = data_layer_py.DataLayer(database_path)
             data_layer.create_databases()
             data_layer.insert_password(_dict['password'])
             data_layer.close()
-            t = threading.Thread(target=main.create, args=(_dict['path'],))
+            t = Thread(target=main.create, args=(_dict['path'],))
             t.start()
-
-            # date = get_date(database_path)
-            # date = localtime(date)
-            # date = str(date[0]) + '-' + str(date[1]) + '-' + str(date[2])
-            # message = 'Index has been made on ' + date + ', do you want re-index (Y/N).'
-            # conn.send(json.dumps({'message': message}).encode())
-            # value = conn.recv(1024)
-            # value = json.loads(value.decode())['answer']
-            # if value.lower().strip() == 'y':
-            #     os.remove(database_path)
-            #     data_layer = data_layer_py.DataLayer('database.db')
-            #     data_layer.create_databases()
-            #     sha = hashlib.md5(password.encode())
-            #     data_layer.insert_password(sha.hexdigest())
-            #     data_layer.close()
-            #     t = threading.Thread(target=main.create, args=(path,))
-            #     t.start()
-            #     allow_start = True
         elif _dict['action'] == 'query' or _dict['action'] == 'more':
             try:
                 query = None
