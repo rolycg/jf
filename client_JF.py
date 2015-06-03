@@ -74,7 +74,7 @@ if __name__ == '__main__':
     parser.add_argument('query', metavar='q', type=str, help="Execute a query with arguments values", nargs='*')
     parse = parser.add_mutually_exclusive_group()
     parse.add_argument('-c', '--create', help='Create a index from given address', nargs=1, type=str)
-    parse.add_argument('-m', '--more', help='Show more results', nargs='?', default='5')
+    parse.add_argument('-m', '--more', help='Show more results', nargs='?', default=5)
     parse.add_argument('-i', '--index', help='Add a device', nargs='+')
     arg = parser.parse_args()
     prog = sys.argv[0]
@@ -128,6 +128,7 @@ if __name__ == '__main__':
             if not d['results'] == 'OK':
                 print(d['results'])
         elif arg.more:
+            print(arg.more)
             j = json.dumps({'action': 'more', 'cant': arg.more})
             s.send(j.encode())
             value = ''

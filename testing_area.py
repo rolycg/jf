@@ -64,11 +64,7 @@ def test():
 import hashlib
 
 if __name__ == '__main__':
-    print(pwd.getpwuid(os.getuid())[0])
-
-    sha = hashlib.md5('a'.encode())
-    print(sha)
-    print(sha.hexdigest())
+    pass
     # parser = argparse.ArgumentParser(description='Testing', prog=sys.argv[0])
     # parser.add_argument('query', metavar='q', type=str, help="query", nargs='*')
     # parse = parser.add_mutually_exclusive_group()
@@ -79,7 +75,7 @@ if __name__ == '__main__':
     # parser.add_argument('query', metavar='q', type=str, help="Execute a query with arguments values", nargs='*')
     # parse = parser.add_mutually_exclusive_group()
     # parse.add_argument('-c', '--create', help='Create a index from given address', nargs='1', type=str)
-    # parse.add_argument('-m', '--more', help='Show more results', nargs='?', default='5')
+    # parse.add_argument('-m', '--more', help='Show more results', nargs='?', default=5)
     # parse.add_argument('-i', '--index', help='Index a device', nargs='+')
     # arg = parser.parse_args()
     # if arg.query:
