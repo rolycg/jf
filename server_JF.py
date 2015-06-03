@@ -10,7 +10,7 @@ import sqlite3
 import time
 import pwd
 
-from external_devices_layer import add_device
+import external_devices_layer as edl
 import data_layer as data_layer_py
 import comunication_layer as cl
 import watch_layer
@@ -195,7 +195,7 @@ if __name__ == '__main__':
                 re_index = _dict['index']
             except KeyError:
                 re_index = False
-            ret = add_device(device, re_index)
+            ret = edl.add_device(device, re_index)
             if not ret:
                 conn.send(json.dumps({'results': 'Name device not found'}).encode())
             else:

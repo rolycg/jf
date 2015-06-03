@@ -128,7 +128,9 @@ def device_added_callback(*args):
         if operation == 'filesystem-mount':
             block = values['Objects'][0]
             _id, block, name = get_mount_point(block)
+            print(_id)
             exist = data.get_id_from_device(_id)
+            print(exist)
             if exist:
                 execute(exist, block, name, False)
         elif operation == 'filesystem-unmount':
