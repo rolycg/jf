@@ -107,8 +107,6 @@ if __name__ == '__main__':
                 print('JF says: ' + message)
             except KeyError:
                 pass
-            except socket.timeout:
-                print("Server not respond")
         elif arg.create:
             password = getpass.getpass()
             sha = hashlib.md5(password.encode())
