@@ -78,14 +78,20 @@ if __name__ == '__main__':
     logged = False
     total_answers = 5
     path = '/'
-    if not os.path.exists('/tmp/path_file.jf'):
-        with open('/tmp/path_file.jf', 'w') as f:
-            f.write(path)
     thread_cq = Thread(target=query_process_communication)
     thread_cq.start()
     allow_start = os.path.exists(database_path)
     if os.path.exists('/tmp/JF_' + login):
         os.remove('/tmp/JF_' + login)
+    if os.path.exists('/tmp/path_file.jf'):
+        with open('/tmp/path_file.jf', 'r') as f:
+            paths = f.readlines()
+            print(paths)
+            try:
+                if paths[0]:
+                    main.start([paths[0]])
+            except KeyError:
+                print('Path Error')
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     s.bind('/tmp/JF_' + login)
     s.listen(1)
@@ -104,6 +110,10 @@ if __name__ == '__main__':
             if os.path.exists(database_path):
                 os.remove(database_path)
             conn.send(json.dumps({'result': 'OK'}).encode())
+            if os.path.exists('/tmp/path_file.jf'):
+                os.remove('/tmp/path_file.jf')
+            with open('/tmp/path_file.jf', 'w') as f:
+                f.write(_dict['path'])
             data_layer = data_layer_py.DataLayer(database_path)
             data_layer.create_databases()
             data_layer.insert_password(_dict['password'])
@@ -191,11 +201,7 @@ if __name__ == '__main__':
                 print(str(e.args))
         elif _dict['action'] == 'index':
             device = _dict['device']
-            try:
-                re_index = _dict['index']
-            except KeyError:
-                re_index = False
-            ret = edl.add_device(device, re_index)
+            ret = edl.add_device(device, False)
             if not ret:
                 conn.send(json.dumps({'results': 'Name device not found'}).encode())
             else:

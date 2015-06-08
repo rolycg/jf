@@ -64,7 +64,7 @@ def test():
 import hashlib
 
 if __name__ == '__main__':
-    pass
+    print('\x1b[01;34m' + 'Roly' + '\x1b[0m' + ' Cruz')
     # parser = argparse.ArgumentParser(description='Testing', prog=sys.argv[0])
     # parser.add_argument('query', metavar='q', type=str, help="query", nargs='*')
     # parse = parser.add_mutually_exclusive_group()

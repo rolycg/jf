@@ -129,8 +129,9 @@ def device_added_callback(*args):
             block = values['Objects'][0]
             _id, block, name = get_mount_point(block)
             print(_id)
+            data = data_layer_py.DataLayer()
             exist = data.get_id_from_device(_id)
-            print(exist)
+            data.close()
             if exist:
                 execute(exist, block, name, False)
         elif operation == 'filesystem-unmount':
@@ -172,7 +173,7 @@ def get_mount_point(block):
         dbus_id = uuid.uuid3(uuid.uuid4(), dbus_name)
     collection[block] = [str(mount_point[:-1]), str(dbus_id), str(dbus_name), None, None]
     messages.append(
-        'New device was inserted: ' + dbus_name + '\n' + 'write index ' + dbus_name + ', if you want to add it')
+        'New device inserted: ' + dbus_name + '\n' + '-i ' + dbus_name)
     return dbus_id, block, dbus_name
 
 
