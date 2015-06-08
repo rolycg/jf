@@ -128,13 +128,11 @@ def device_added_callback(*args):
         if operation == 'filesystem-mount':
             block = values['Objects'][0]
             _id, block, name = get_mount_point(block)
-            print(_id)
             data = data_layer_py.DataLayer()
             exist = data.get_id_from_device(_id)
-            print(exist)
             data.close()
             if exist:
-                execute(exist, block, name, False)
+                execute(exist, block, collection[block], False)
         elif operation == 'filesystem-unmount':
             block = values['Objects'][0]
             try:
@@ -191,6 +189,7 @@ def execute(exist, block, device_name, re_index):
         t.start()
         collection[block][4] = t
     if exist:
+        print(str(device_name))
         queue = Queue()
         collection[block][3] = add_watch(device_name[0], queue)
         t = Thread(target=watch_layer.make_watch, args=(queue, exist))
