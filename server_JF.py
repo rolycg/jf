@@ -86,7 +86,6 @@ if __name__ == '__main__':
     if os.path.exists('/tmp/path_file.jf'):
         with open('/tmp/path_file.jf', 'r') as f:
             paths = f.readlines()
-            print(paths)
             try:
                 if paths[0]:
                     main.start([paths[0]])

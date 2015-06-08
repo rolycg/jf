@@ -131,6 +131,7 @@ def device_added_callback(*args):
             print(_id)
             data = data_layer_py.DataLayer()
             exist = data.get_id_from_device(_id)
+            print(exist)
             data.close()
             if exist:
                 execute(exist, block, name, False)
