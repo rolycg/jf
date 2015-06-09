@@ -111,7 +111,7 @@ def checking_server(data_obj):
     conf, _ = sock.recvfrom(1024)
     if conf == b'OK':
         uuid, _ = sock.recvfrom(1024)
-        _dict = json.loads(uuid.decode(), encoding='LATIN1')
+        _dict = json.loads(uuid.decode(), encoding='latin-1')
         uuid = _dict['machine']
         name = _dict['name_machine']
         last_generation = data_obj.get_last_generation(uuid)

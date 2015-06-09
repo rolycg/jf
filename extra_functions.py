@@ -131,6 +131,14 @@ def get_initials_paths():
         return ['/']
 
 
+def convert_to_human_readable(num, suffix='B'):
+    for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
+
+
 def get_date(path):
     return os.stat(path)[8]
 

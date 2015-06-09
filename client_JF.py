@@ -72,10 +72,11 @@ def connect_server(s):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='JF: desktop finder for local networks', prog=sys.argv[0])
     parser.add_argument('query', metavar='q', type=str, help="Execute a query with arguments values", nargs='*')
-    parse = parser.add_mutually_exclusive_group()
-    parse.add_argument('-c', '--create', help='Create a index from given address', nargs=1, type=str)
-    parse.add_argument('-m', '--more', help='Show more results', nargs='?')
-    parse.add_argument('-i', '--index', help='Add a device', nargs='+')
+    # parse = parser.add_mutually_exclusive_group()
+    parser.add_argument('--create', help='Create a index from given address', nargs=1, type=str)
+    parser.add_argument('-m', '--more', help='Show more results', nargs='?')
+    parser.add_argument('-i', '--index', help='Add a device', nargs='+')
+    parser.add_argument('-f', help='Set a device', nargs='1')
     arg = parser.parse_args()
     prog = sys.argv[0]
     s = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
@@ -85,7 +86,7 @@ if __name__ == '__main__':
             words = ''
             for word in arg.query:
                 words += word + ' '
-            j = json.dumps({'action': 'query', 'query': words})
+            j = json.dumps({'action': 'query', 'query': words, 'from': arg.f})
             s.send(j.encode())
             value = ''
             s.settimeout(3)
@@ -126,7 +127,7 @@ if __name__ == '__main__':
             if not d['results'] == 'OK':
                 print(d['results'])
         elif arg.more:
-            j = json.dumps({'action': 'more', 'cant': arg.more})
+            j = json.dumps({'action': 'more', 'cant': arg.more, 'from': arg.f})
             s.send(j.encode())
             value = ''
             s.settimeout(2)
@@ -146,7 +147,7 @@ if __name__ == '__main__':
                     print(x)
                 try:
                     message = _dict['message']
-                    print('JF says: ' + '\x1b[01;34m' + str(message) + '\x1b[0m')
+                    print('\x1b[01;31mm' + 'Note: ' + '\x1b[0m' + str(message))
                 except KeyError:
                     pass
             except socket.timeout:

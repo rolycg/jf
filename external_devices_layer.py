@@ -163,6 +163,7 @@ def get_mount_point(block):
         dbus_mount_point = iface.Get('org.freedesktop.UDisks2.Filesystem', 'MountPoints')
     dbus_id = iface.Get('org.freedesktop.UDisks2.Block', 'Id')
     dbus_name = iface.Get('org.freedesktop.UDisks2.Block', 'IdLabel')
+    dbus_space = iface.Get('org.freedesktop.UDisks2.Block', 'Size')
     for letter in dbus_mount_point[0]:
         mount_point += chr(letter)
     if not dbus_name:
@@ -172,7 +173,8 @@ def get_mount_point(block):
         dbus_id = uuid.uuid3(uuid.uuid4(), dbus_name)
     collection[block] = [str(mount_point[:-1]), str(dbus_id), str(dbus_name), None, None]
     messages.append(
-        'New device inserted: ' + dbus_name + '\n' + '\x1b[01;34m' + '-i ' + dbus_id + '\x1b[0m')
+        'You have a new device connected (' + dbus_name + ', ' + extra_functions.convert_to_human_readable(
+            dbus_space) + '). To have JF track it, execute:' + '\n' + 'jf ' + '-i ' + block)
     return dbus_id, block, dbus_name
 
 
