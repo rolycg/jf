@@ -1,6 +1,5 @@
 __author__ = 'roly'
 
-import sys
 import time
 import subprocess
 import os
@@ -10,6 +9,7 @@ import socket
 import json
 import getpass
 import hashlib
+import sys
 
 error = 'Something went wrong, call emergency'
 cmd = ['python3', 'server_JF.py']
@@ -146,6 +146,8 @@ if __name__ == '__main__':
                     print(x)
                 try:
                     message = _dict['message']
+                    print('JF says: ' + '\x1b[01;34m' + 'Hi' + '\x1b[0m')
+                    print('JF says: ')
                     print('JF says: ' + '\x1b[01;34m' + str(message) + '\x1b[0m')
                 except KeyError:
                     pass

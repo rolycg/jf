@@ -260,7 +260,7 @@ def start_observer():
         try:
             tmp = _dict['messages']
             conn.send(json.dumps({'messages': messages}).encode())
-            messages = []
+            # messages = []
         except KeyError:
             continue
 
