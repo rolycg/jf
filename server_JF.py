@@ -3,7 +3,7 @@ from time import localtime
 import json
 import socket
 import os
-from multiprocessing import Queue, Process
+from multiprocessing import Queue
 from queue import Empty
 from threading import Thread
 import sqlite3
@@ -119,11 +119,16 @@ if __name__ == '__main__':
             try:
                 query = None
                 more = None
+                _from = None
                 try:
                     count = _dict['cant']
                     count = int(_dict['cant'])
                 except KeyError:
                     count = 5
+                try:
+                    _from = _dict['from']
+                except KeyError:
+                    _from = None
                 try:
                     query = _dict['query']
                 except KeyError:
@@ -139,7 +144,7 @@ if __name__ == '__main__':
                     time.sleep(0.1)
                     query.strip()
                     temp_res = Queue()
-                res = []
+                res = {}
                 if more:
                     while count:
                         try:
@@ -148,21 +153,22 @@ if __name__ == '__main__':
                         except Empty:
                             break
                 if query:
-                    data_layer = data_layer_py.DataLayer('database.db')
-                    if query:
-                        collection = data_layer.find_data(query.split())
-                    for item in collection:
-                        t = localtime(item[8])
-                        res.append('>Name: ' + str(item[2]) + '\n' + '>File Type: ' + str(item[4]) + '\n' + '>Address: '
-                                   + str(data_layer.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
-                                   data_layer.get_peer_from_uuid(item[7]) + '\n' + '>Date: ' + str(t[0]) + '-' + str(
-                            t[1]) + '-' + str(t[2]) + '\n')
-                        count -= 1
-                        if not count:
-                            break
-                    t2 = Process(target=finish_query, args=(collection, data_layer, temp_res))
-                    t2.start()
-                    collection.close()
+                    data_layer = data_layer_py.DataLayer()
+                    dev = data_layer_py.get_devices()
+                    devices = {x: data_layer.find_data(query.split(), x[0]) for x in dev}
+                    # collection = data_layer.find_data(query.split())
+                    for x in devices.keys():
+                        c = count
+                        for item in devices[x]:
+                            try:
+                                res[(x[0], x[1], x[2])].append(str(data_layer.get_address(item[1], item[7])))
+                            except KeyError:
+                                res[(x[0], x[1], x[2])] = [str(data_layer.get_address(item[1], item[7]))]
+                            c -= 1
+                            if not count:
+                                break
+                    # t2 = Process(target=finish_query, args=(devices, data_layer, temp_res))
+                    # t2.start()
                     data_layer.close()
                 s2 = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
                 s2.settimeout(0.2)

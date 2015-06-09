@@ -101,8 +101,16 @@ if __name__ == '__main__':
                 except socket.timeout:
                     break
             _dict = json.loads(value, encoding='latin-1')
-            for x in _dict['results']:
-                print(x)
+            results = _dict['results']
+            for x in results.keys():
+                if x[0] == 1:
+                    print('Locally')
+                elif x[2]:
+                    print('@device ' + x[1])
+                else:
+                    print('@machine ' + x[1])
+                for y in results[x]:
+                    print(y)
             try:
                 message = _dict['message']
                 print('JF says: ' + str(message))

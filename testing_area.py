@@ -57,13 +57,15 @@ import os
 
 def test():
     print('This way')
+
+
 import argparse
 import sys
-import extra_functions
 
 if __name__ == '__main__':
-    print('\x1b[01;31m' + 'Note: ' + '\x1b[0m')
-    print(extra_functions.convert_to_human_readable(789552445))
+    a = {}
+    a[1] = 3
+    a[2] ='a'
     # parser = argparse.ArgumentParser(description='Testing', prog=sys.argv[0])
     # parser.add_argument('query', metavar='q', type=str, help="query", nargs='*')
     # parse = parser.add_mutually_exclusive_group()
@@ -87,26 +89,26 @@ if __name__ == '__main__':
         print('index ' + str(arg.index))
     if arg.create:
         print('Create ' + str(arg.create))
-    #
-    #     # data_obj = data_layer.DataLayer()
-    # elements = "'deleted','New folder','C:Users\\\\Carlos\\\\Desktop\\\\WSGI'"
-    # elements = ef.convert_to_tuple(elements)
-    # elements = [x.strip()[1:-1] for x in elements]
-    # if elements[0] == 'deleted':
-    # data_obj.delete_data(elements[1], elements[2],
-    #                          data_obj.get_id_from_uuid('c4dbd4c7-a826-45bf-a888-b3a9da34300a'))
-    # elif elements[0] == 'updated':
-    #     data_obj.update_data(elements[1:], data_obj.get_id_from_uuid('c4dbd4c7-a826-45bf-a888-b3a9da34300a'))
-    #
-    # aes = AES.new('1234567812345678')
-    # plaintext = aes.encrypt('*/!234-+12345678')
-    # print(plaintext)
-    # print(len(plaintext))
-    # a = base64.b64encode(plaintext)
-    # print(a)
-    # print(len(a))
-    # print(a.decode())
-    # print(len(a.decode()))
-    # b = base64.b64decode(a)
-    # print(b)
-    # print(len(b))
+        #
+        #     # data_obj = data_layer.DataLayer()
+        # elements = "'deleted','New folder','C:Users\\\\Carlos\\\\Desktop\\\\WSGI'"
+        # elements = ef.convert_to_tuple(elements)
+        # elements = [x.strip()[1:-1] for x in elements]
+        # if elements[0] == 'deleted':
+        # data_obj.delete_data(elements[1], elements[2],
+        #                          data_obj.get_id_from_uuid('c4dbd4c7-a826-45bf-a888-b3a9da34300a'))
+        # elif elements[0] == 'updated':
+        #     data_obj.update_data(elements[1:], data_obj.get_id_from_uuid('c4dbd4c7-a826-45bf-a888-b3a9da34300a'))
+        #
+        # aes = AES.new('1234567812345678')
+        # plaintext = aes.encrypt('*/!234-+12345678')
+        # print(plaintext)
+        # print(len(plaintext))
+        # a = base64.b64encode(plaintext)
+        # print(a)
+        # print(len(a))
+        # print(a.decode())
+        # print(len(a.decode()))
+        # b = base64.b64decode(a)
+        # print(b)
+        # print(len(b))

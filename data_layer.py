@@ -40,7 +40,7 @@ class DataLayer:
         cursor.execute('CREATE INDEX id_index ON  File (id)')
         cursor.execute(
             'CREATE TABLE Metadata (id INTEGER PRIMARY KEY AUTOINCREMENT,uuid VARCHAR, '
-            'pc_name VARCHAR, last_generation INTEGER, own INTEGER, my_generation INTEGER)')
+            'pc_name VARCHAR, last_generation INTEGER, own INTEGER, my_generation INTEGER, device INTEGER)')
         cursor.execute(
             'CREATE TABLE Journal '
             '(id INTEGER PRIMARY KEY AUTOINCREMENT, actio VARCHAR, machine INTEGER REFERENCES Metadata(id))')
@@ -104,19 +104,19 @@ class DataLayer:
         return cursor.execute('SELECT * FROM File WHERE generation>=? AND machine=? ORDER BY id ASC',
                               (generation, peer))
 
-    def insert_peer(self, uuid=None, pc_name=None):
+    def insert_peer(self, uuid=None, pc_name=None, memory=0):
 
         cursor = self.database.cursor()
         if not uuid and not pc_name:
-            cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?)',
-                           (None, str(uu.uuid4()), socket.gethostname(), -1, 1, -1))
+            cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?,?)',
+                           (None, str(uu.uuid4()), socket.gethostname(), -1, 1, -1, memory))
         else:
             try:
-                cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?)',
-                               (None, uuid.decode(), pc_name, -1, 0, -1))
+                cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?,?)',
+                               (None, uuid.decode(), pc_name, -1, 0, -1, memory))
             except AttributeError:
-                cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?)',
-                               (None, str(uuid), pc_name, -1, 0, -1))
+                cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?,?)',
+                               (None, str(uuid), pc_name, -1, 0, -1, memory))
         self.database.commit()
         cursor.close()
 
@@ -289,7 +289,15 @@ class DataLayer:
             return gen[0]
         return None
 
-    def find_data(self, word_list):
+    def get_devices(self):
+        cursor = self.database.cursor()
+        res = []
+        for x in cursor.execute('SELECT id, pc_name, memory FROM Metadata'):
+            res.append(x)
+        cursor.close()
+        return res
+
+    def find_data(self, word_list, machine=1):
         cursor = self.database.cursor()
         query = 'SELECT * FROM File WHERE '
         cont = 0
@@ -300,7 +308,7 @@ class DataLayer:
             else:
                 query += ' AND name_ext LIKE ?'
             cont += 1
-        query += ' ORDER BY date_modified DESC'
+        query += ' AND machine=' + str(machine) + ' ORDER BY date_modified DESC'
         word_list = ['%' + x + '%' for x in word_list]
         return cursor.execute(query, word_list)
 

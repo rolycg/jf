@@ -97,7 +97,7 @@ def _add_device_(path, device_name, device_id):
     global collection
     with data_layer_py.semaphore:
         data_layer = data_layer_py.DataLayer('database.db')
-        data_layer.insert_peer(uuid=device_id, pc_name=device_name)
+        data_layer.insert_peer(uuid=device_id, pc_name=device_name, memory=1)
         peer = data_layer.get_id_from_uuid(device_id)
         data_layer.insert_data(id=1, file_name='', file_type='Folder', parent=path, generation=0, first=True,
                                peer=peer)
