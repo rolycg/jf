@@ -74,7 +74,7 @@ if __name__ == '__main__':
     t = None
     if not os.path.exists('/usr/share/JF'):
         os.mkdir('/usr/share/JF')
-    database_path = '/home/.local/' + login + 'share/JF/database.db'
+    database_path = '/home/' + login + '/.local/share/JF/database.db'
     temp_res = Queue()
     data_layer = None
     logged = False
@@ -85,6 +85,8 @@ if __name__ == '__main__':
     allow_start = os.path.exists(database_path)
     if os.path.exists('/tmp/JF_' + login):
         os.remove('/tmp/JF_' + login)
+    if not os.path.exists('/home/' + login + '/.local/share/JF'):
+        os.mkdir('/home/' + login + '/.local/share/JF')
     if not os.path.exists(database_path):
         data_layer = data_layer_py.DataLayer()
         data_layer.create_databases()

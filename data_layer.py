@@ -23,7 +23,7 @@ login = pwd.getpwuid(os.getuid())[0]
 
 
 class DataLayer:
-    def __init__(self, database_url='home/.local/' + login + 'share/JF/database.db'):
+    def __init__(self, database_url='/home/' + login + '/.local/share/JF/database.db'):
         self.database_url = database_url
         self.database = sqlite3.connect(self.database_url, check_same_thread=False)
         # self.database.execute('PRAGMA read_uncommitted = FALSE ')
@@ -294,7 +294,7 @@ class DataLayer:
     def get_devices(self):
         cursor = self.database.cursor()
         res = []
-        for x in cursor.execute('SELECT id, pc_name, memory FROM Metadata'):
+        for x in cursor.execute('SELECT id, pc_name, device FROM Metadata'):
             res.append(x)
         cursor.close()
         return res

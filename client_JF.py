@@ -15,7 +15,7 @@ error = 'Something went wrong, call emergency'
 cmd = ['python3', 'server_JF.py']
 login = pwd.getpwuid(os.getuid())[0]
 
-database_path = '/home/.local/' + login + 'share/JF/database.db'
+database_path = '/home/' + login + '/.local/share/JF/database.db'
 
 
 def sign_in(s):
