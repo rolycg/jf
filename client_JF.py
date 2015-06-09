@@ -104,16 +104,16 @@ if __name__ == '__main__':
             results = _dict['results']
             for x in results.keys():
                 if x[0] == 1:
-                    print('Locally')
+                    print('\x1b[01;33mm' + 'Locally' + '\x1b[0m')
                 elif x[2]:
-                    print('@device ' + x[1])
+                    print('\x1b[01;33mm' + '@device ' + '\x1b[0m' + x[1])
                 else:
-                    print('@machine ' + x[1])
+                    print('\x1b[01;33mm' + '@machine ' + '\x1b[0m' + x[1])
                 for y in results[x]:
                     print(y)
             try:
                 message = _dict['message']
-                print('JF says: ' + str(message))
+                print('\x1b[01;31mm' + 'Note: ' + '\x1b[0m' + str(message))
             except KeyError:
                 pass
         elif arg.create:
