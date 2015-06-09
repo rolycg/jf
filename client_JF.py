@@ -11,6 +11,8 @@ import getpass
 import hashlib
 import sys
 
+import extra_functions
+
 error = 'Something went wrong, call emergency'
 cmd = ['python3', 'server_JF.py']
 login = pwd.getpwuid(os.getuid())[0]
@@ -103,18 +105,20 @@ if __name__ == '__main__':
                     break
             _dict = json.loads(value, encoding='latin-1')
             results = _dict['results']
-            for x in results.keys():
-                if x[0] == 1:
-                    print('\x1b[01;33mm' + 'Locally' + '\x1b[0m')
-                elif x[2]:
-                    print('\x1b[01;33mm' + '@device ' + '\x1b[0m' + x[1])
+            for p in results.keys():
+                x = extra_functions.convert_to_tuple(p[1:len(p) - 1])
+                if x[0] == '1':
+                    print('\x1b[01;33m' + 'Locally' + '\x1b[0m')
                 else:
-                    print('\x1b[01;33mm' + '@machine ' + '\x1b[0m' + x[1])
-                for y in results[x]:
-                    print(y)
+                    if x[2] == '1':
+                        print('\x1b[01;33m' + '@device ' + '\x1b[0m' + x[1])
+                    else:
+                        print('\x1b[01;33m' + '@machine ' + '\x1b[0m' + x[1])
+                for y in results[p]:
+                    print('\t' + str(y))
             try:
                 message = _dict['message']
-                print('\x1b[01;31mm' + 'Note: ' + '\x1b[0m' + str(message))
+                print('\x1b[01;31m' + 'Note: ' + '\x1b[0m' + str(message))
             except KeyError:
                 pass
         elif arg.create:

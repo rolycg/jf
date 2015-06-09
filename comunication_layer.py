@@ -69,8 +69,12 @@ def start_broadcast_server(data_obj, port=10101):
 def start():
     while 1:
         data_obj = data_layer.DataLayer()
-        broadcast(data_obj)
-        start_broadcast_server(data_obj=data_obj)
+        password = data_obj.get_password()
+        if password:
+            broadcast(data_obj)
+            start_broadcast_server(data_obj=data_obj)
+        else:
+            time.sleep(10)
 
 
 def set_query(value):

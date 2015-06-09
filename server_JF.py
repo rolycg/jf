@@ -79,7 +79,6 @@ if __name__ == '__main__':
     data_layer = None
     logged = False
     total_answers = 5
-    path = '/'
     thread_cq = Thread(target=query_process_communication)
     thread_cq.start()
     allow_start = os.path.exists(database_path)
@@ -91,6 +90,9 @@ if __name__ == '__main__':
         data_layer = data_layer_py.DataLayer()
         data_layer.create_databases()
         t = Thread(target=main.create, args=('/home',))
+        t.start()
+    else:
+        t = Thread(target=main.start, args=('/home',))
         t.start()
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     s.bind('/tmp/JF_' + login)
@@ -122,11 +124,12 @@ if __name__ == '__main__':
                 query = None
                 more = None
                 _from = None
+                count = None
                 try:
                     count = _dict['cant']
                     count = int(_dict['cant'])
                 except KeyError:
-                    count = 5
+                    count = 15
                 try:
                     _from = _dict['from']
                 except KeyError:
@@ -160,13 +163,12 @@ if __name__ == '__main__':
                     devices = {x: data_layer.find_data(query.split(), x[0]) for x in dev}
                     # collection = data_layer.find_data(query.split())
                     for x in devices.keys():
-                        c = count
                         for item in devices[x]:
                             try:
-                                res[(x[0], x[1], x[2])].append(str(data_layer.get_address(item[1], item[7])))
+                                res[str((x[0], x[1], x[2]))].append(str(data_layer.get_address(item[1], item[7])))
                             except KeyError:
-                                res[(x[0], x[1], x[2])] = [str(data_layer.get_address(item[1], item[7]))]
-                            c -= 1
+                                res[str((x[0], x[1], x[2]))] = [str(data_layer.get_address(item[1], item[7]))]
+                            count -= 1
                             if not count:
                                 break
                     # t2 = Process(target=finish_query, args=(devices, data_layer, temp_res))
@@ -201,7 +203,7 @@ if __name__ == '__main__':
                 except KeyError:
                     conn.send(json.dumps({'results': res}).encode())
             except Exception as e:
-                print(str(e.args))
+                raise e
         elif _dict['action'] == 'index':
             device = _dict['device']
             ret = edl.add_device(device, False)
