@@ -68,7 +68,7 @@ def start_broadcast_server(data_obj, port=10101):
 
 def start():
     while 1:
-        data_obj = data_layer.DataLayer(database_url)
+        data_obj = data_layer.DataLayer()
         broadcast(data_obj)
         start_broadcast_server(data_obj=data_obj)
 

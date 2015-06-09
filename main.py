@@ -90,7 +90,7 @@ def start(paths):
 
 def create(path=None):
     # TODO: put path  in None
-    data_layer = data_layer_py.DataLayer(database_path)
+    data_layer = data_layer_py.DataLayer()
     paths = []
     if not path:
         paths = ef.get_initials_paths()

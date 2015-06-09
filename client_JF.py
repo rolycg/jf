@@ -15,7 +15,7 @@ error = 'Something went wrong, call emergency'
 cmd = ['python3', 'server_JF.py']
 login = pwd.getpwuid(os.getuid())[0]
 
-database_path = './database.db'
+database_path = '/home/.local/' + login + 'share/JF/database.db'
 
 
 def sign_in(s):
@@ -76,7 +76,8 @@ if __name__ == '__main__':
     parser.add_argument('--create', help='Create a index from given address', nargs=1, type=str)
     parser.add_argument('-m', '--more', help='Show more results', nargs='?')
     parser.add_argument('-i', '--index', help='Add a device', nargs='+')
-    parser.add_argument('-f', help='Set a device', nargs='1')
+    parser.add_argument('-f', help='Set a device', nargs='?')
+    parser.add_argument('-p', help='Set a password', nargs='?')
     arg = parser.parse_args()
     prog = sys.argv[0]
     s = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)

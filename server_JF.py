@@ -74,7 +74,7 @@ if __name__ == '__main__':
     t = None
     if not os.path.exists('/usr/share/JF'):
         os.mkdir('/usr/share/JF')
-    database_path = '/usr/share/JF/database.db'
+    database_path = '/home/.local/' + login + 'share/JF/database.db'
     temp_res = Queue()
     data_layer = None
     logged = False
@@ -86,7 +86,7 @@ if __name__ == '__main__':
     if os.path.exists('/tmp/JF_' + login):
         os.remove('/tmp/JF_' + login)
     if not os.path.exists(database_path):
-        data_layer = data_layer_py.DataLayer(database_path)
+        data_layer = data_layer_py.DataLayer()
         data_layer.create_databases()
         t = Thread(target=main.create, args=('/home',))
         t.start()
@@ -109,7 +109,7 @@ if __name__ == '__main__':
                 os.remove(database_path)
             conn.send(json.dumps({'result': 'OK'}).encode())
 
-            data_layer = data_layer_py.DataLayer(database_path)
+            data_layer = data_layer_py.DataLayer()
             data_layer.create_databases()
             data_layer.insert_password(_dict['password'])
             data_layer.close()
@@ -154,7 +154,7 @@ if __name__ == '__main__':
                             break
                 if query:
                     data_layer = data_layer_py.DataLayer()
-                    dev = data_layer_py.get_devices()
+                    dev = data_layer.get_devices()
                     devices = {x: data_layer.find_data(query.split(), x[0]) for x in dev}
                     # collection = data_layer.find_data(query.split())
                     for x in devices.keys():

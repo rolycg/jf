@@ -5,6 +5,7 @@ import os
 import sys
 from threading import Semaphore
 import time
+import pwd
 
 import extra_functions as ef
 
@@ -18,10 +19,11 @@ def set_query(value):
 
 __author__ = 'Roly'
 semaphore = Semaphore()
+login = pwd.getpwuid(os.getuid())[0]
 
 
 class DataLayer:
-    def __init__(self, database_url='/usr/share/JF/database.db'):
+    def __init__(self, database_url='home/.local/' + login + 'share/JF/database.db'):
         self.database_url = database_url
         self.database = sqlite3.connect(self.database_url, check_same_thread=False)
         # self.database.execute('PRAGMA read_uncommitted = FALSE ')

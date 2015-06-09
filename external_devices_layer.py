@@ -42,7 +42,7 @@ class MyFileSystemWatcher(FileSystemEventHandler):
             path = extra_functions.split_paths(event.src_path)
         if event.is_directory:
             with sem:
-                data_obj = data_layer_py.DataLayer('database.db')
+                data_obj = data_layer_py.DataLayer()
                 number = data_obj.get_max_id(self.machine) + 1
                 generation = data_obj.get_max_generation() + 1
                 data_obj.insert_data(number, path[len(path) - 1], 'Folder', path[len(path) - 2], generation,
@@ -58,7 +58,7 @@ class MyFileSystemWatcher(FileSystemEventHandler):
             else:
                 _type = ''
             with sem:
-                data_obj = data_layer_py.DataLayer('database.db')
+                data_obj = data_layer_py.DataLayer()
                 number = data_obj.get_max_id(self.machine) + 1
                 generation = data_obj.get_max_generation() + 1
                 data_obj.insert_data(number, path[len(path) - 1], _type, path[len(path) - 2], generation,
@@ -69,7 +69,7 @@ class MyFileSystemWatcher(FileSystemEventHandler):
     def on_deleted(self, event):
         path = extra_functions.split_paths(event.src_path)
         with sem:
-            data_obj = data_layer_py.DataLayer('database.db')
+            data_obj = data_layer_py.DataLayer()
             data_obj.delete_data(path[len(path) - 1], os.path.join(*path[:len(path) - 1]))
             data_obj.database.commit()
             data_obj.close()
@@ -96,7 +96,7 @@ class MyFileSystemWatcher(FileSystemEventHandler):
 def _add_device_(path, device_name, device_id):
     global collection
     with data_layer_py.semaphore:
-        data_layer = data_layer_py.DataLayer('database.db')
+        data_layer = data_layer_py.DataLayer()
         data_layer.insert_peer(uuid=device_id, pc_name=device_name, memory=1)
         peer = data_layer.get_id_from_uuid(device_id)
         data_layer.insert_data(id=1, file_name='', file_type='Folder', parent=path, generation=0, first=True,
