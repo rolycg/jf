@@ -9,6 +9,8 @@ from data_layer import semaphore as sem
 import data_layer
 import extra_functions as ef
 
+database_url = '/usr/share/JF/database.db'
+
 query = False
 PORT = 10101
 
@@ -66,7 +68,7 @@ def start_broadcast_server(data_obj, port=10101):
 
 def start():
     while 1:
-        data_obj = data_layer.DataLayer('database.db')
+        data_obj = data_layer.DataLayer(database_url)
         broadcast(data_obj)
         start_broadcast_server(data_obj=data_obj)
 
@@ -151,7 +153,7 @@ def receiver(sock, address, uuid, data_obj):
             except UnicodeDecodeError:
                 elements = re.split('\\?+', value.decode(encoding='utf_8'))
             if not data_obj:
-                data_obj = data_layer.DataLayer('database.db')
+                data_obj = data_layer.DataLayer()
             elements[0] = elements[0][1:]
             elements[len(elements) - 1] = ef.unpad(elements[len(elements) - 1])
             elements = [x.strip() for x in elements]
@@ -186,7 +188,7 @@ def receiver(sock, address, uuid, data_obj):
             except UnicodeDecodeError:
                 elements = re.split('\\?+', value.decode(encoding='utf_8'))
             if not data_obj:
-                data_obj = data_layer.DataLayer('database.db')
+                data_obj = data_layer.DataLayer()
             elements[0] = elements[0][1:]
             elements[len(elements) - 1] = ef.unpad(elements[len(elements) - 1], 0)
             elements = ef.convert_to_tuple(elements[0])

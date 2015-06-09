@@ -72,7 +72,9 @@ def query_process_communication():
 
 if __name__ == '__main__':
     t = None
-    database_path = './database.db'
+    if not os.path.exists('/usr/share/JF'):
+        os.mkdir('/usr/share/JF')
+    database_path = '/usr/share/JF/database.db'
     temp_res = Queue()
     data_layer = None
     logged = False
@@ -83,15 +85,11 @@ if __name__ == '__main__':
     allow_start = os.path.exists(database_path)
     if os.path.exists('/tmp/JF_' + login):
         os.remove('/tmp/JF_' + login)
-    if os.path.exists('/tmp/path_file.jf'):
-        with open('/tmp/path_file.jf', 'r') as f:
-            paths = f.readlines()
-            print(paths)
-            try:
-                if paths[0]:
-                    main.start([paths[0]])
-            except KeyError:
-                print('Path Error')
+    if not os.path.exists(database_path):
+        data_layer = data_layer_py.DataLayer(database_path)
+        data_layer.create_databases()
+        t = Thread(target=main.create, args=('/home',))
+        t.start()
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     s.bind('/tmp/JF_' + login)
     s.listen(1)
@@ -110,10 +108,7 @@ if __name__ == '__main__':
             if os.path.exists(database_path):
                 os.remove(database_path)
             conn.send(json.dumps({'result': 'OK'}).encode())
-            if os.path.exists('/tmp/path_file.jf'):
-                os.remove('/tmp/path_file.jf')
-            with open('/tmp/path_file.jf', 'w') as f:
-                f.write(_dict['path'])
+
             data_layer = data_layer_py.DataLayer(database_path)
             data_layer.create_databases()
             data_layer.insert_password(_dict['password'])

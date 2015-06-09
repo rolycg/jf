@@ -211,7 +211,7 @@ def add_device(name, re_index):
     device_name = None
     block = None
     for x in collection.keys():
-        if name.strip() == collection[x][2].strip():
+        if name.strip() == x.strip():
             device_name = collection[x]
             block = x
     if device_name:

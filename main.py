@@ -15,6 +15,7 @@ import external_devices_layer as ed
 finished = True
 paint = False
 start_time = None
+database_path = '/usr/share/JF/database.db'
 
 
 def dfs(path, q):
@@ -89,15 +90,12 @@ def start(paths):
 
 def create(path=None):
     # TODO: put path  in None
-    data_layer = data_layer_py.DataLayer('database.db')
-    # path = '/home/roly/file_system'
+    data_layer = data_layer_py.DataLayer(database_path)
     paths = []
     if not path:
         paths = ef.get_initials_paths()
     else:
         paths = [path]
-    if not path:
-        path = '/'
     _queue = Queue()
     path2 = path.split(os.sep)
     path2 = path2[len(path2) - 1]
