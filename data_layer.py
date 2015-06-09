@@ -226,7 +226,10 @@ class DataLayer:
         parent = self.get_parent(path, real_path, peer)
         for dir in dirs:
             count += 1
-            date = ef.get_date(real_path + os.sep + dir)
+            try:
+                date = ef.get_date(real_path + os.sep + dir)
+            except FileNotFoundError:
+                date = 0
             self.insert_file(total_files, dir, parent=parent, file_type='Folder', generation=0, root='',
                              peer=peer,
                              date=date)
@@ -240,7 +243,10 @@ class DataLayer:
             total_files += 1
         for file in files:
             count += 1
-            date = ef.get_date(real_path + os.sep + file)
+            try:
+                date = ef.get_date(real_path + os.sep + file)
+            except FileNotFoundError:
+                date = 0
             _type = file.split('.')
             self.insert_file(file_name=file, file_type='' + _type[len(_type) - 1], parent=parent, generation=0,
                              root='', peer=peer, id=total_files, date=date)
@@ -295,6 +301,14 @@ class DataLayer:
         cursor = self.database.cursor()
         res = []
         for x in cursor.execute('SELECT id, pc_name, device FROM Metadata'):
+            res.append(x)
+        cursor.close()
+        return res
+
+    def get_device(self, name):
+        cursor = self.database.cursor()
+        res = []
+        for x in cursor.execute('SELECT id, pc_name, device FROM Metadata WHERE pc_name=?', (name,)):
             res.append(x)
         cursor.close()
         return res

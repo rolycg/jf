@@ -16,9 +16,7 @@ from dbus.mainloop.glib import DBusGMainLoop
 import data_layer as data_layer_py
 from main import save_to_disk
 from main import dfs
-from watchdog.events import FileSystemEventHandler
 import extra_functions
-from data_layer import semaphore as sem
 import watch_layer
 
 collection = None
@@ -28,70 +26,6 @@ login = pwd.getpwuid(os.getuid())[0]
 ###
 # TODO: Make the concurrency test
 ###
-
-
-class MyFileSystemWatcher(FileSystemEventHandler):
-    def __init__(self, machine):
-        self.machine = machine
-        super(FileSystemEventHandler).__init__()
-
-    def on_created(self, event):
-        if hasattr(event, 'dest_path'):
-            path = extra_functions.split_paths(event.src_path)
-        else:
-            path = extra_functions.split_paths(event.src_path)
-        if event.is_directory:
-            with sem:
-                data_obj = data_layer_py.DataLayer()
-                number = data_obj.get_max_id(self.machine) + 1
-                generation = data_obj.get_max_generation() + 1
-                data_obj.insert_data(number, path[len(path) - 1], 'Folder', path[len(path) - 2], generation,
-                                     self.machine, real_path=os.path.join(*path[:len(path) - 1]))
-                data_obj.database.commit()
-                data_obj.close()
-                # cache.put(('created', path[len(path) - 1], 'Folder', path[len(path) - 2], None,
-                # None, os.path.join(*path[:len(path) - 1])))
-        else:
-            _type = path[len(path) - 1].split('.')
-            if len(_type) > 1:
-                _type = _type[len(_type) - 1]
-            else:
-                _type = ''
-            with sem:
-                data_obj = data_layer_py.DataLayer()
-                number = data_obj.get_max_id(self.machine) + 1
-                generation = data_obj.get_max_generation() + 1
-                data_obj.insert_data(number, path[len(path) - 1], _type, path[len(path) - 2], generation,
-                                     self.machine, real_path=os.path.join(*path[:len(path) - 1]))
-                data_obj.database.commit()
-                data_obj.close()
-
-    def on_deleted(self, event):
-        path = extra_functions.split_paths(event.src_path)
-        with sem:
-            data_obj = data_layer_py.DataLayer()
-            data_obj.delete_data(path[len(path) - 1], os.path.join(*path[:len(path) - 1]))
-            data_obj.database.commit()
-            data_obj.close()
-            # cache.put(('deleted', , os.path.join(*path[:len(path) - 1])))
-            # self.data_obj.delete_data(path[len(path) - 1])
-
-    def on_moved(self, event):
-        self.on_deleted(event)
-        self.on_created(event)
-
-    def dispatch(self, event):
-        if event.event_type == 'created':
-            self.on_created(event)
-        elif event.event_type == 'deleted':
-            self.on_deleted(event)
-        elif event.event_type == 'moved':
-            self.on_moved(event)
-        elif event.event_type == 'modified':
-            pass
-        else:
-            print(event.event_type)
-
 
 def _add_device_(path, device_name, device_id):
     global collection
@@ -191,7 +125,6 @@ def execute(exist, block, device_name, re_index):
         t.start()
         collection[block][4] = t
     if exist:
-        print(str(device_name))
         queue = Queue()
         collection[block][3] = add_watch(device_name[0], queue)
         t = Thread(target=watch_layer.make_watch, args=(queue, exist))
@@ -262,7 +195,7 @@ def start_observer():
         try:
             tmp = _dict['messages']
             conn.send(json.dumps({'messages': messages}).encode())
-            # messages = []
+            messages = []
         except KeyError:
             continue
 

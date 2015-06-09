@@ -160,7 +160,14 @@ if __name__ == '__main__':
                 if query:
                     data_layer = data_layer_py.DataLayer()
                     dev = data_layer.get_devices()
-                    devices = {x: data_layer.find_data(query.split(), x[0]) for x in dev}
+                    if _from:
+                        dev = data_layer.get_device(_from)
+                        if len(dev):
+                            devices = {dev[0]: data_layer.find_data(query.split(), dev[0][0])}
+                        else:
+                            devices = {}
+                    else:
+                        devices = {x: data_layer.find_data(query.split(), x[0]) for x in dev}
                     # collection = data_layer.find_data(query.split())
                     for x in devices.keys():
                         for item in devices[x]:
@@ -173,6 +180,9 @@ if __name__ == '__main__':
                                 break
                     # t2 = Process(target=finish_query, args=(devices, data_layer, temp_res))
                     # t2.start()
+                    for x in devices.keys():
+                        devices[x].close()
+                    open_writing()
                     data_layer.close()
                 s2 = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
                 s2.settimeout(0.2)

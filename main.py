@@ -56,6 +56,7 @@ def save_to_disk(engine, q, peer):
     while data_layer_py.query:
         time.sleep(0.5)
     engine.database.commit()
+    print('I finish')
     # TODO: Remove this
 
 

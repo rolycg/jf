@@ -8,7 +8,7 @@ import base64
 from data_layer import semaphore as sem
 import data_layer
 import extra_functions as ef
-
+import sqlite3
 database_url = '/usr/share/JF/database.db'
 
 query = False
@@ -69,7 +69,11 @@ def start_broadcast_server(data_obj, port=10101):
 def start():
     while 1:
         data_obj = data_layer.DataLayer()
-        password = data_obj.get_password()
+        try:
+            password = data_obj.get_password()
+        except sqlite3.OperationalError:
+            time.sleep(10)
+            continue
         if password:
             broadcast(data_obj)
             start_broadcast_server(data_obj=data_obj)

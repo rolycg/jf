@@ -110,12 +110,13 @@ if __name__ == '__main__':
                 if x[0] == '1':
                     print('\x1b[01;33m' + 'Locally' + '\x1b[0m')
                 else:
+                    print(x)
                     if x[2] == '1':
                         print('\x1b[01;33m' + '@device ' + '\x1b[0m' + x[1])
                     else:
                         print('\x1b[01;33m' + '@machine ' + '\x1b[0m' + x[1])
                 for y in results[p]:
-                    print('\t' + str(y))
+                    print('  ' + str(y))
             try:
                 message = _dict['message']
                 print('\x1b[01;31m' + 'Note: ' + '\x1b[0m' + str(message))
