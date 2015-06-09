@@ -104,7 +104,7 @@ if __name__ == '__main__':
                 print(x)
             try:
                 message = _dict['message']
-                print('JF says: ' + message)
+                print('JF says: ' + str(message))
             except KeyError:
                 pass
         elif arg.create:
@@ -146,8 +146,6 @@ if __name__ == '__main__':
                     print(x)
                 try:
                     message = _dict['message']
-                    print('JF says: ' + '\x1b[01;34m' + 'Hi' + '\x1b[0m')
-                    print('JF says: ')
                     print('JF says: ' + '\x1b[01;34m' + str(message) + '\x1b[0m')
                 except KeyError:
                     pass

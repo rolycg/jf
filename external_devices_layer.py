@@ -172,7 +172,7 @@ def get_mount_point(block):
         dbus_id = uuid.uuid3(uuid.uuid4(), dbus_name)
     collection[block] = [str(mount_point[:-1]), str(dbus_id), str(dbus_name), None, None]
     messages.append(
-        'New device inserted: ' + dbus_name + '\n' + '-i ' + dbus_name)
+        'New device inserted: ' + dbus_name + '\n' + '\x1b[01;34m' + '-i ' + dbus_id + '\x1b[0m')
     return dbus_id, block, dbus_name
 
 

@@ -9,7 +9,6 @@ from data_layer import semaphore as sem
 import data_layer
 import extra_functions as ef
 
-
 query = False
 PORT = 10101
 
@@ -92,7 +91,8 @@ def checking_client(address, data_obj):
     if value.decode('LATIN-1') == ran_str:
         sock.sendto(b'OK', address)
         machine = data_obj.get_id_from_peer()
-        sock.sendto(machine.encode(), address)
+        name_machine = data_obj.get_peer_from_uuid(1)
+        sock.sendto(json.dumps({'machine': machine, 'name_machine': name_machine}).encode(), address)
         generation, _ = sock.recvfrom(1024)
         sender(sock, address, int(generation), data_obj)
 
@@ -111,12 +111,14 @@ def checking_server(data_obj):
     conf, _ = sock.recvfrom(1024)
     if conf == b'OK':
         uuid, _ = sock.recvfrom(1024)
-        uuid = uuid.decode()
+        _dict = json.loads(uuid.decode(), encoding='LATIN1')
+        uuid = _dict['machine']
+        name = _dict['name_machine']
         last_generation = data_obj.get_last_generation(uuid)
         if last_generation:
             sock.sendto(str(last_generation).encode(), address)
         else:
-            data_obj.insert_peer(uuid, socket.gethostbyname(address[0]))
+            data_obj.insert_peer(uuid, name)
             sock.sendto(str(-1).encode(), address)
         receiver(sock, address, uuid, data_obj)
 

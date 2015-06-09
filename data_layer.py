@@ -8,7 +8,6 @@ import time
 
 import extra_functions as ef
 
-
 query = False
 
 
@@ -309,8 +308,11 @@ class DataLayer():
         return self.database.cursor()
 
     def get_peer_from_uuid(self, name):
-        for value in self.cursor.execute('SELECT pc_name FROM Metadata WHERE id == ?', (name,)):
+        cursor = self.database.cursor()
+        for value in cursor.execute('SELECT pc_name FROM Metadata WHERE id == ?', (name,)):
+            cursor.close()
             return value[0]
+        cursor.close()
 
     def get_peer_from_id(self, id):
         cursor = self.database.cursor()
@@ -354,6 +356,3 @@ if __name__ == '__main__':
     print(data.cursor.execute('DELETE FROM File WHERE id=2'))
     data.database.commit()
     data.close()
-
-
-
