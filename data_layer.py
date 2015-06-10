@@ -115,11 +115,11 @@ class DataLayer:
                            (None, str(uu.uuid4()), socket.gethostname(), -1, 1, -1, memory, size))
         else:
             try:
-                cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?,?)',
-                               (None, uuid.decode(), pc_name, -1, 0, -1, memory))
+                cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?,?,?)',
+                               (None, uuid.decode(), pc_name, -1, 0, -1, memory, size))
             except AttributeError:
-                cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?,?)',
-                               (None, str(uuid), pc_name, -1, 0, -1, memory))
+                cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?,?,?)',
+                               (None, str(uuid), pc_name, -1, 0, -1, memory, size))
         self.database.commit()
         cursor.close()
 
@@ -305,7 +305,7 @@ class DataLayer:
     def get_devices(self):
         cursor = self.database.cursor()
         res = []
-        for x in cursor.execute('SELECT id, pc_name, device FROM Metadata'):
+        for x in cursor.execute('SELECT id, pc_name, device, size FROM Metadata'):
             res.append(x)
         cursor.close()
         return res
@@ -313,7 +313,7 @@ class DataLayer:
     def get_device(self, name):
         cursor = self.database.cursor()
         res = []
-        for x in cursor.execute('SELECT id, pc_name, device FROM Metadata WHERE pc_name=?', (name,)):
+        for x in cursor.execute('SELECT id, pc_name, device, size FROM Metadata WHERE pc_name=?', (name,)):
             res.append(x)
         cursor.close()
         return res

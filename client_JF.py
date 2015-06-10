@@ -79,7 +79,7 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--more', help='Show more results', nargs=1)
     parser.add_argument('-i', '--index', help='Add a device', nargs='+')
     parser.add_argument('-f', help='Set a device', nargs='+')
-    parser.add_argument('-p', help='Set a password', nargs='?')
+    parser.add_argument('-p', help='Set a password')
     arg = parser.parse_args()
     prog = sys.argv[0]
     s = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
@@ -115,7 +115,7 @@ if __name__ == '__main__':
                     print('\x1b[01;39m' + '  to see more results' + ' execute: jf -m 10' + '\x1b[0m')
                 else:
                     if x[2].strip() == '1':
-                        print('\x1b[01;33m' + '@device ' + '\x1b[0m' + x[1])
+                        print('\x1b[01;33m' + '@device ' + x[1] + ' (' + str(x[3]).strip() + ')' + '\x1b[0m')
                         for y in results[p]:
                             print('  ' + str(y))
                         print('\x1b[01;39m' + '  to see more results from ' + str(
@@ -133,6 +133,11 @@ if __name__ == '__main__':
                 print('\x1b[01;31m' + 'Note: ' + '\x1b[0m' + str(message))
             except KeyError:
                 pass
+        elif arg.p:
+            password = getpass.getpass()
+            sha = hashlib.md5(password.encode())
+            j = json.dumps({'action': 'password', 'password': sha.hexdigest()})
+            s.send(j.encode())
         elif arg.create:
             password = getpass.getpass()
             sha = hashlib.md5(password.encode())
@@ -182,7 +187,7 @@ if __name__ == '__main__':
                         print('\x1b[01;39m' + '  to see more results' + ' execute: jf -m 10' + '\x1b[0m')
                     else:
                         if x[2].strip() == '1':
-                            print('\x1b[01;33m' + '@device ' + '\x1b[0m' + x[1])
+                            print('\x1b[01;33m' + '@device ' + x[1] + ' (' + str(x[3]).strip() + ')' + '\x1b[0m')
                             for y in results[p]:
                                 print('  ' + str(y))
                             print('\x1b[01;39m' + '  to see more results from ' + str(

@@ -23,9 +23,9 @@ def finish_query(devices, data_layer, son):
     for x in devices.keys():
         for item in devices[x]:
             try:
-                res[repr((x[0], x[1], x[2]))].append(repr(data_layer.get_address(item[1], item[7])))
+                res[repr((x[0], x[1], x[2], x[3]))].append(repr(data_layer.get_address(item[1], item[7])))
             except KeyError:
-                res[repr((x[0], x[1], x[2]))] = [repr(data_layer.get_address(item[1], item[7]))]
+                res[repr((x[0], x[1], x[2], x[3]))] = [repr(data_layer.get_address(item[1], item[7]))]
     s_qp = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
     son.send(json.dumps(res))
     for x in devices.keys():
@@ -115,6 +115,11 @@ if __name__ == '__main__':
             data_layer.close()
             t = Thread(target=main.create, args=(_dict['path'],))
             t.start()
+        elif _dict['action'] == 'password':
+            password = _dict['password']
+            data_layer = data_layer_py.DataLayer()
+            data_layer.insert_password(_dict['password'])
+            data_layer.close()
         elif _dict['action'] == 'query' or _dict['action'] == 'more':
             try:
                 query = None
@@ -201,9 +206,9 @@ if __name__ == '__main__':
                         c = count
                         for item in devices[x]:
                             try:
-                                res[str((x[0], x[1], x[2]))].append(str(data_layer.get_address(item[1], item[7])))
+                                res[str((x[0], x[1], x[2], x[3]))].append(str(data_layer.get_address(item[1], item[7])))
                             except KeyError:
-                                res[str((x[0], x[1], x[2]))] = [str(data_layer.get_address(item[1], item[7]))]
+                                res[str((x[0], x[1], x[2], x[3]))] = [str(data_layer.get_address(item[1], item[7]))]
                             c -= 1
                             if not c:
                                 break
