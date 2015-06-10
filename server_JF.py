@@ -1,12 +1,9 @@
 __author__ = 'roly'
-from time import localtime
 import json
 import socket
 import os
-from multiprocessing import Queue
-from queue import Empty
+from multiprocessing import Queue, Process
 from threading import Thread
-import sqlite3
 import time
 import pwd
 
@@ -21,22 +18,16 @@ t2 = None
 login = pwd.getpwuid(os.getuid())[0]
 
 
-def finish_query(collection, data_layer, temp_res):
-    for item in collection:
-        t = localtime(item[8])
-        try:
-            temp_res.put('>Name: ' + str(item[2]) + '\n' + '>File Type: ' + str(item[4]) + '\n' + '>Address: '
-                         + str(data_layer.get_address(item[1], item[7])) + '\n' + '>Machine: ' +
-                         data_layer.get_peer_from_uuid(item[7]) + '\n' + '>Date: ' + str(t[0]) + '-' + str(
-                t[1]) + '-' + str(t[2]) + '\n')
-        except sqlite3.InterfaceError as e:
-            print(e.__traceback__)
-            break
-        except sqlite3.ProgrammingError as e:
-            print(e.__traceback__)
-            break
+def finish_query(devices, data_layer, res):
+    for x in devices.keys():
+        for item in devices[x]:
+            try:
+                res[str((x[0], x[1], x[2]))].append(str(data_layer.get_address(item[1], item[7])))
+            except KeyError:
+                res[str((x[0], x[1], x[2]))] = [str(data_layer.get_address(item[1], item[7]))]
     s_qp = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
-    collection.close()
+    for x in devices.keys():
+        devices[x].close()
     data_layer.close()
     try:
         s_qp.connect('/tmp/process_com_' + login)
@@ -147,16 +138,12 @@ if __name__ == '__main__':
                     data_layer_py.set_query(True)
                     watch_layer.set_query(True)
                     time.sleep(0.1)
-                    query.strip()
+                    if query:
+                        query.strip()
                     temp_res = Queue()
                 res = {}
                 if more:
-                    while count:
-                        try:
-                            res.append(temp_res.get(timeout=0.2))
-                            count -= 1
-                        except Empty:
-                            break
+                    pass
                 if query:
                     data_layer = data_layer_py.DataLayer()
                     dev = data_layer.get_devices()
@@ -179,12 +166,13 @@ if __name__ == '__main__':
                             c -= 1
                             if not c:
                                 break
-                    # t2 = Process(target=finish_query, args=(devices, data_layer, temp_res))
-                    # t2.start()
-                    for x in devices.keys():
-                        devices[x].close()
-                    open_writing()
-                    data_layer.close()
+
+                    t2 = Process(target=finish_query, args=(devices, data_layer, temp_res))
+                    t2.start()
+                    # for x in devices.keys():
+                    #    devices[x].close()
+                    # open_writing()
+                    # data_layer.close()
                 s2 = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
                 s2.settimeout(0.2)
                 try:
