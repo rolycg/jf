@@ -8,7 +8,6 @@ from watchdog.events import FileSystemEventHandler
 import data_layer
 import extra_functions
 
-
 query = False
 
 
@@ -67,6 +66,9 @@ class MyFileSystemWatcher(FileSystemEventHandler):
                             None))
 
     def dispatch(self, event):
+        if hasattr(event, 'src_path'):
+            if event.src_path == b'/home/roly/.local/share/JF/database.db-journal':
+                return
         if event.event_type == 'created':
             self.on_created(event)
         elif event.event_type == 'deleted':
@@ -85,8 +87,8 @@ def create_watcher(paths, cache):
     for path in paths:
         watchers.append((observers.Observer(), path))
     for x in range(0, len(watchers)):
-        watchers[x][0].schedule(obj, watchers[x][1], recursive=True)
         try:
+            watchers[x][0].schedule(obj, watchers[x][1], recursive=True)
             watchers[x][0].start()
         except Exception as e:
             print(e.args)
@@ -126,6 +128,8 @@ def make_watch(cache, machine=1):
                                 time.sleep(0.5)
                     except Empty:
                         break
+                    except Exception as e:
+                        print(e.args)
                     while query:
                         time.sleep(0.5)
                 data_obj.database.commit()

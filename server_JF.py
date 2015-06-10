@@ -92,7 +92,7 @@ if __name__ == '__main__':
         t = Thread(target=main.create, args=('/home',))
         t.start()
     else:
-        t = Thread(target=main.start, args=('/home',))
+        t = Thread(target=main.start, args=(['/home'],))
         t.start()
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     s.bind('/tmp/JF_' + login)
@@ -170,13 +170,14 @@ if __name__ == '__main__':
                         devices = {x: data_layer.find_data(query.split(), x[0]) for x in dev}
                     # collection = data_layer.find_data(query.split())
                     for x in devices.keys():
+                        c = count
                         for item in devices[x]:
                             try:
                                 res[str((x[0], x[1], x[2]))].append(str(data_layer.get_address(item[1], item[7])))
                             except KeyError:
                                 res[str((x[0], x[1], x[2]))] = [str(data_layer.get_address(item[1], item[7]))]
-                            count -= 1
-                            if not count:
+                            c -= 1
+                            if not c:
                                 break
                     # t2 = Process(target=finish_query, args=(devices, data_layer, temp_res))
                     # t2.start()

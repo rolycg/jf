@@ -154,7 +154,10 @@ class DataLayer:
     def insert_data(self, id, file_name, file_type, parent, generation, peer=None, first=False, real_path=None,
                     date=None):
         if not first and real_path:
-            _date = ef.get_date(real_path)
+            try:
+                _date = ef.get_date(real_path)
+            except FileNotFoundError:
+                _date = 0
             if date:
                 _date = date
             paren = self.get_parent(parent, real_path, peer)
