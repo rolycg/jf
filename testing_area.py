@@ -64,6 +64,8 @@ import sys
 import json
 
 if __name__ == '__main__':
+    print('\x1b[01;39m' + 'to see more results from ' + str(1) + ' execute: jf -m 10 -f ' + str(
+        1) + '\x1b[0m')
     print(repr((1, 2, 3)))
     a = json.dumps({str((1, 2, 3)): 'abc'})
     b = json.loads(a)
@@ -79,7 +81,7 @@ if __name__ == '__main__':
     parser.add_argument('query', metavar='q', type=str, help="Execute a query with arguments values", nargs='*')
     parse = parser.add_mutually_exclusive_group()
     parse.add_argument('-c', '--create', help='Create a index from given address', nargs='1', type=str)
-    parse.add_argument('-m', '--more', help='Show more results', nargs='?', default=5)
+    parse.add_argument('-m', '--more', help='Show more results', nargs=1)
     parse.add_argument('-i', '--index', help='Index a device', nargs='+')
     parser.add_argument('-f', help='Set a device', nargs='?')
     arg = parser.parse_args()

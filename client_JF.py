@@ -76,7 +76,7 @@ if __name__ == '__main__':
     parser.add_argument('query', metavar='q', type=str, help="Execute a query with arguments values", nargs='*')
     # parse = parser.add_mutually_exclusive_group()
     parser.add_argument('--create', help='Create a index from given address', nargs=1, type=str)
-    parser.add_argument('-m', '--more', help='Show more results', nargs='?')
+    parser.add_argument('-m', '--more', help='Show more results', nargs=1)
     parser.add_argument('-i', '--index', help='Add a device', nargs='+')
     parser.add_argument('-f', help='Set a device', nargs='+')
     parser.add_argument('-p', help='Set a password', nargs='?')
@@ -110,13 +110,24 @@ if __name__ == '__main__':
                 x = extra_functions.convert_to_tuple(p[1:len(p) - 1])
                 if x[0].strip() == '1':
                     print('\x1b[01;33m' + 'Locally' + '\x1b[0m')
+                    for y in results[p]:
+                        print('  ' + str(y))
+                    print('\x1b[01;39m' + '  to see more results' + ' execute: jf -m 10' + '\x1b[0m')
                 else:
                     if x[2].strip() == '1':
                         print('\x1b[01;33m' + '@device ' + '\x1b[0m' + x[1])
+                        for y in results[p]:
+                            print('  ' + str(y))
+                        print('\x1b[01;39m' + '  to see more results from ' + str(
+                            x[1]) + ' execute: jf -m 10 -f ' + str(
+                            x[1]) + '\x1b[0m')
                     else:
                         print('\x1b[01;33m' + '@machine ' + '\x1b[0m' + x[1])
-                for y in results[p]:
-                    print('  ' + str(y))
+                        for y in results[p]:
+                            print('  ' + str(y))
+                        print('\x1b[01;39m' + '  to see more results from ' + str(
+                            x[1]) + ' execute: jf -m 10 -f ' + str(
+                            x[1]) + '\x1b[0m')
             try:
                 message = _dict['message']
                 print('\x1b[01;31m' + 'Note: ' + '\x1b[0m' + str(message))
@@ -166,16 +177,28 @@ if __name__ == '__main__':
                     x = extra_functions.convert_to_tuple(p[1:len(p) - 1])
                     if x[0].strip() == '1':
                         print('\x1b[01;33m' + 'Locally' + '\x1b[0m')
+                        for y in results[p]:
+                            print('  ' + str(y))
+                        print('\x1b[01;39m' + '  to see more results' + ' execute: jf -m 10' + '\x1b[0m')
                     else:
                         if x[2].strip() == '1':
                             print('\x1b[01;33m' + '@device ' + '\x1b[0m' + x[1])
+                            for y in results[p]:
+                                print('  ' + str(y))
+                            print('\x1b[01;39m' + '  to see more results from ' + str(
+                                x[1]) + ' execute: jf -m 10 -f ' + str(
+                                x[1]) + '\x1b[0m')
                         else:
                             print('\x1b[01;33m' + '@machine ' + '\x1b[0m' + x[1])
-                    for y in results[p]:
-                        print('  ' + str(y))
+                            for y in results[p]:
+                                print('  ' + str(y))
+                            print('\x1b[01;39m' + '  to see more results from ' + str(
+                                x[1]) + ' execute: jf -m 10 -f ' + str(
+                                x[1]) + '\x1b[0m')
+
                 try:
                     message = _dict['message']
-                    print('\x1b[01;31mm' + 'Note: ' + '\x1b[0m' + str(message))
+                    print('\x1b[01;31m' + 'Note: ' + '\x1b[0m' + str(message))
                 except KeyError:
                     pass
             except socket.timeout:

@@ -122,8 +122,7 @@ if __name__ == '__main__':
                 _from = None
                 count = None
                 try:
-                    count = _dict['cant']
-                    count = int(_dict['cant'])
+                    count = int(_dict['cant'][0])
                 except KeyError:
                     count = 15
                 try:
@@ -153,7 +152,15 @@ if __name__ == '__main__':
                             d = parent.recv()
                             parent = None
                             more_dict = json.loads(d)
-                            for x in more_dict.keys():
+                        except Exception as e:
+                            raise e
+                    for x in more_dict.keys():
+                        if _from:
+                            __from = ''
+                            for u in _from:
+                                __from += u + ' '
+                            __from.strip()
+                            if __from.strip() == eval(x)[1].strip():
                                 c = count
                                 for item in more_dict[x].copy():
                                     try:
@@ -164,10 +171,7 @@ if __name__ == '__main__':
                                     c -= 1
                                     if not c:
                                         break
-                        except Exception as e:
-                            raise e
-                    else:
-                        for x in more_dict.keys():
+                        else:
                             c = count
                             for item in more_dict[x].copy():
                                 try:
