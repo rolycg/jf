@@ -42,7 +42,8 @@ class DataLayer:
         cursor.execute('CREATE INDEX id_index ON  File (id)')
         cursor.execute(
             'CREATE TABLE Metadata (id INTEGER PRIMARY KEY AUTOINCREMENT,uuid VARCHAR, '
-            'pc_name VARCHAR, last_generation INTEGER, own INTEGER, my_generation INTEGER, device INTEGER)')
+            'pc_name VARCHAR, last_generation INTEGER, own INTEGER, my_generation INTEGER, device INTEGER,'
+            ' size VARCHAR)')
         cursor.execute(
             'CREATE TABLE Journal '
             '(id INTEGER PRIMARY KEY AUTOINCREMENT, actio VARCHAR, machine INTEGER REFERENCES Metadata(id))')
@@ -106,12 +107,12 @@ class DataLayer:
         return cursor.execute('SELECT * FROM File WHERE generation>=? AND machine=? ORDER BY id ASC',
                               (generation, peer))
 
-    def insert_peer(self, uuid=None, pc_name=None, memory=0):
+    def insert_peer(self, uuid=None, pc_name=None, memory=0, size=0):
 
         cursor = self.database.cursor()
         if not uuid and not pc_name:
-            cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?,?)',
-                           (None, str(uu.uuid4()), socket.gethostname(), -1, 1, -1, memory))
+            cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?,?,?)',
+                           (None, str(uu.uuid4()), socket.gethostname(), -1, 1, -1, memory, size))
         else:
             try:
                 cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?,?)',

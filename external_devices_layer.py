@@ -27,11 +27,11 @@ login = pwd.getpwuid(os.getuid())[0]
 # TODO: Make the concurrency test
 ###
 
-def _add_device_(path, device_name, device_id):
+def _add_device_(path, device_name, device_id, device_size=0):
     global collection
     with data_layer_py.semaphore:
         data_layer = data_layer_py.DataLayer()
-        data_layer.insert_peer(uuid=device_id, pc_name=device_name, memory=1)
+        data_layer.insert_peer(uuid=device_id, pc_name=device_name, memory=1, size=device_size)
         peer = data_layer.get_id_from_uuid(device_id)
         data_layer.insert_data(id=1, file_name='', file_type='Folder', parent=path, generation=0, first=True,
                                peer=peer)
@@ -105,7 +105,7 @@ def get_mount_point(block):
         dbus_name = dbus_name[len(dbus_name) - 1]
     if not dbus_id:
         dbus_id = uuid.uuid3(uuid.uuid4(), dbus_name)
-    collection[block] = [str(mount_point[:-1]), str(dbus_id), str(dbus_name), None, None]
+    collection[block] = [str(mount_point[:-1]), str(dbus_id), str(dbus_name), None, None, dbus_space]
     messages.append(
         'You have a new device connected (' + dbus_name + ', ' + extra_functions.convert_to_human_readable(
             dbus_space) + '). To have JF track it, execute:' + '\n' + 'jf ' + '-i ' + block)
@@ -114,11 +114,12 @@ def get_mount_point(block):
 
 def execute(exist, block, device_name, re_index):
     if exist and re_index:
+        size = extra_functions.convert_to_human_readable(collection[block][len(collection[block]) - 1])
         data = data_layer_py.DataLayer()
         with data_layer_py.semaphore:
             data.delete_drive(exist)
         data.close()
-        machine = _add_device_(device_name[0], device_name[2], device_name[1])
+        machine = _add_device_(device_name[0], device_name[2], device_name[1], size)
         queue = Queue()
         collection[block][3] = add_watch(device_name[0], queue)
         t = Thread(target=watch_layer.make_watch, args=(queue, machine))
@@ -132,7 +133,8 @@ def execute(exist, block, device_name, re_index):
         collection[block][4] = t
     else:
         queue = Queue()
-        machine = _add_device_(device_name[0], device_name[2], device_name[1])
+        size = extra_functions.convert_to_human_readable(collection[block][len(collection[block]) - 1])
+        machine = _add_device_(device_name[0], device_name[2], device_name[1], size)
         collection[block][3] = add_watch(device_name[0], queue)
         t = Thread(target=watch_layer.make_watch, args=(queue, machine))
         t.start()
