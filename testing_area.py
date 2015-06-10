@@ -64,7 +64,7 @@ import sys
 import json
 
 if __name__ == '__main__':
-    print('\x1b[01;33m' + 'Note: ' + '\x1b[0m')
+    print(repr((1, 2, 3)))
     a = json.dumps({str((1, 2, 3)): 'abc'})
     b = json.loads(a)
     for x in b.keys():

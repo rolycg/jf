@@ -2,7 +2,7 @@ __author__ = 'roly'
 import json
 import socket
 import os
-from multiprocessing import Queue, Process
+from multiprocessing import Pipe, Process
 from threading import Thread
 import time
 import pwd
@@ -18,14 +18,16 @@ t2 = None
 login = pwd.getpwuid(os.getuid())[0]
 
 
-def finish_query(devices, data_layer, res):
+def finish_query(devices, data_layer, son):
+    res = {}
     for x in devices.keys():
         for item in devices[x]:
             try:
-                res[str((x[0], x[1], x[2]))].append(str(data_layer.get_address(item[1], item[7])))
+                res[repr((x[0], x[1], x[2]))].append(repr(data_layer.get_address(item[1], item[7])))
             except KeyError:
-                res[str((x[0], x[1], x[2]))] = [str(data_layer.get_address(item[1], item[7]))]
+                res[repr((x[0], x[1], x[2]))] = [repr(data_layer.get_address(item[1], item[7]))]
     s_qp = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
+    son.send(json.dumps(res))
     for x in devices.keys():
         devices[x].close()
     data_layer.close()
@@ -66,10 +68,13 @@ if __name__ == '__main__':
     if not os.path.exists('/usr/share/JF'):
         os.mkdir('/usr/share/JF')
     database_path = '/home/' + login + '/.local/share/JF/database.db'
-    temp_res = Queue()
+    temp_res = Pipe()
     data_layer = None
     logged = False
     total_answers = 5
+    parent = None
+    son = None
+    more_dict = None
     thread_cq = Thread(target=query_process_communication)
     thread_cq.start()
     allow_start = os.path.exists(database_path)
@@ -140,10 +145,41 @@ if __name__ == '__main__':
                     time.sleep(0.1)
                     if query:
                         query.strip()
-                    temp_res = Queue()
+                    parent, son = Pipe()
                 res = {}
                 if more:
-                    pass
+                    if parent:
+                        try:
+                            d = parent.recv()
+                            parent = None
+                            more_dict = json.loads(d)
+                            for x in more_dict.keys():
+                                c = count
+                                for item in more_dict[x].copy():
+                                    try:
+                                        res[x].append(item)
+
+                                    except KeyError:
+                                        res[x] = [item]
+                                    more_dict[x].remove(item)
+                                    c -= 1
+                                    if not c:
+                                        break
+                        except Exception as e:
+                            raise e
+                    else:
+                        for x in more_dict.keys():
+                            c = count
+                            for item in more_dict[x].copy():
+                                try:
+                                    res[x].append(item)
+                                except KeyError:
+                                    res[x] = [item]
+                                more_dict[x].remove(item)
+                                c -= 1
+                                if not c:
+                                    break
+
                 if query:
                     data_layer = data_layer_py.DataLayer()
                     dev = data_layer.get_devices()
@@ -166,13 +202,12 @@ if __name__ == '__main__':
                             c -= 1
                             if not c:
                                 break
-
-                    t2 = Process(target=finish_query, args=(devices, data_layer, temp_res))
+                    t2 = Process(target=finish_query, args=(devices.copy(), data_layer, son))
                     t2.start()
-                    # for x in devices.keys():
-                    #    devices[x].close()
-                    # open_writing()
-                    # data_layer.close()
+                    for x in devices.keys():
+                        devices[x].close()
+                    open_writing()
+                    data_layer.close()
                 s2 = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
                 s2.settimeout(0.2)
                 try:

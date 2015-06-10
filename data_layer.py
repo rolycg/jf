@@ -174,7 +174,7 @@ class DataLayer:
                 self.insert_file(id, file_name, -1, file_type, parent, generation, peer)
 
     def delete_data(self, name, real_path, machine):
-        # cursor = self.database.cursor()
+        cursor2 = self.database.cursor()
         # peer = self.get_uuid_from_peer()
         parent = self.get_parent(name, real_path, machine)
         gen = None
@@ -187,8 +187,9 @@ class DataLayer:
                 break
             cursor.close()
 
-        self.cursor.execute('DELETE FROM File WHERE name_ext=? AND parent=? AND machine = ?', (name, parent, machine))
+        cursor2.execute('DELETE FROM File WHERE name_ext=? AND parent=? AND machine = ?', (name, parent, machine))
         self.database.commit()
+        cursor2.close()
         if gen:
             return gen[0]
         return None

@@ -106,30 +106,31 @@ def make_watch(cache, machine=1):
                 generation = data_obj.get_max_generation() + 1
                 while 1:
                     try:
-                        x = cache.get(timeout=1)
-                        if not data_obj:
-                            data_obj = data_layer.DataLayer()
-                            data_obj.cursor = data_obj.database.cursor()
-                        number += 1
-                        if x[0] == 'created':
-                            data_obj.insert_data(number, x[1], x[2], x[3], generation, machine,
-                                                 real_path=x[6])
-                        elif x[0] == 'deleted':
-                            g = data_obj.delete_data(x[1], x[2], machine)
-                            data_obj.add_action(str(x), g)
-                        else:
-                            g = data_obj.update_data(x[1:], machine)
-                            data_obj.add_action(str(x), g)
-                        if query:
-                            data_obj.database.commit()
-                            data_obj.close()
-                            data_obj = None
-                            while query:
-                                time.sleep(0.5)
+                        if not query:
+                            x = cache.get(timeout=1)
+                            if not data_obj:
+                                data_obj = data_layer.DataLayer()
+                                data_obj.cursor = data_obj.database.cursor()
+                            number += 1
+                            if x[0] == 'created':
+                                data_obj.insert_data(number, x[1], x[2], x[3], generation, machine,
+                                                     real_path=x[6])
+                            elif x[0] == 'deleted':
+                                g = data_obj.delete_data(x[1], x[2], machine)
+                                data_obj.add_action(str(x), g)
+                            else:
+                                g = data_obj.update_data(x[1:], machine)
+                                data_obj.add_action(str(x), g)
+                            if query:
+                                data_obj.database.commit()
+                                data_obj.close()
+                                data_obj = None
+                                while query:
+                                    time.sleep(0.5)
                     except Empty:
                         break
                     except Exception as e:
-                        print(e.args)
+                        raise e
                     while query:
                         time.sleep(0.5)
                 data_obj.database.commit()

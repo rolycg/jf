@@ -160,8 +160,19 @@ if __name__ == '__main__':
                     except socket.timeout:
                         break
                 _dict = json.loads(value, encoding='latin-1')
-                for x in _dict['results']:
-                    print(x)
+                results = _dict['results']
+                for p in sorted(results.keys(),
+                                key=lambda k: int(extra_functions.convert_to_tuple(k[1:len(k) - 1])[0].strip())):
+                    x = extra_functions.convert_to_tuple(p[1:len(p) - 1])
+                    if x[0].strip() == '1':
+                        print('\x1b[01;33m' + 'Locally' + '\x1b[0m')
+                    else:
+                        if x[2].strip() == '1':
+                            print('\x1b[01;33m' + '@device ' + '\x1b[0m' + x[1])
+                        else:
+                            print('\x1b[01;33m' + '@machine ' + '\x1b[0m' + x[1])
+                    for y in results[p]:
+                        print('  ' + str(y))
                 try:
                     message = _dict['message']
                     print('\x1b[01;31mm' + 'Note: ' + '\x1b[0m' + str(message))
