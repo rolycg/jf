@@ -84,6 +84,7 @@ if __name__ == '__main__':
     parse.add_argument('-m', '--more', help='Show more results', nargs=1)
     parse.add_argument('-i', '--index', help='Index a device', nargs='+')
     parser.add_argument('-f', help='Set a device', nargs='?')
+    parser.add_argument('-p', help='Set a device', action='store_true')
     arg = parser.parse_args()
     print(arg)
     if arg.query:

@@ -79,7 +79,7 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--more', help='Show more results', nargs=1)
     parser.add_argument('-i', '--index', help='Add a device', nargs='+')
     parser.add_argument('-f', help='Set a device', nargs='+')
-    parser.add_argument('-p', help='Set a password')
+    parser.add_argument('-p', help='Set a password', action='store_true')
     arg = parser.parse_args()
     prog = sys.argv[0]
     s = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
