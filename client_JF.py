@@ -78,7 +78,7 @@ if __name__ == '__main__':
     parser.add_argument('--create', help='Create a index from given address', nargs=1, type=str)
     parser.add_argument('-m', '--more', help='Show more results', nargs='?')
     parser.add_argument('-i', '--index', help='Add a device', nargs='+')
-    parser.add_argument('-f', help='Set a device', nargs='?')
+    parser.add_argument('-f', help='Set a device', nargs='+')
     parser.add_argument('-p', help='Set a password', nargs='?')
     arg = parser.parse_args()
     prog = sys.argv[0]

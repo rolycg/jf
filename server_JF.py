@@ -158,7 +158,6 @@ if __name__ == '__main__':
                                 for item in more_dict[x].copy():
                                     try:
                                         res[x].append(item)
-
                                     except KeyError:
                                         res[x] = [item]
                                     more_dict[x].remove(item)
@@ -179,12 +178,14 @@ if __name__ == '__main__':
                                 c -= 1
                                 if not c:
                                     break
-
                 if query:
                     data_layer = data_layer_py.DataLayer()
                     dev = data_layer.get_devices()
                     if _from:
-                        dev = data_layer.get_device(_from)
+                        __from = ''
+                        for x in _from:
+                            __from += x + ' '
+                        dev = data_layer.get_device(__from.strip())
                         if len(dev):
                             devices = {dev[0]: data_layer.find_data(query.split(), dev[0][0])}
                         else:
