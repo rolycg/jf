@@ -44,7 +44,7 @@ class DataLayer:
         cursor.execute(
             'CREATE TABLE Metadata (id INTEGER PRIMARY KEY AUTOINCREMENT,uuid VARCHAR, '
             'pc_name VARCHAR, last_generation INTEGER, own INTEGER, my_generation INTEGER, device INTEGER,'
-            ' size VARCHAR, date_modified TIMESTAMP)')
+            ' size VARCHAR, date_modified VARCHAR)')
         cursor.execute(
             'CREATE TABLE Journal '
             '(id INTEGER PRIMARY KEY AUTOINCREMENT, actio VARCHAR, machine INTEGER REFERENCES Metadata(id))')
@@ -324,6 +324,14 @@ class DataLayer:
         cursor.close()
         return res
 
+    def get_memory_devices(self):
+        cursor = self.database.cursor()
+        res = []
+        for x in cursor.execute('SELECT uuid, date_modified FROM Metadata WHERE device=1'):
+            res.append((x[0], datetime.datetime.now().timestamp() - float(x[1])))
+        cursor.close()
+        return res
+
     def find_data(self, word_list, machine=1):
         cursor = self.database.cursor()
         query = 'SELECT * FROM File WHERE '
@@ -381,6 +389,12 @@ class DataLayer:
         cursor = self.database.cursor()
         cursor.execute('DELETE FROM File WHERE machine = ?', (device,))
         cursor.execute('DELETE FROM Metadata WHERE id = ?', (device,))
+        self.database.commit()
+        cursor.close()
+
+    def delete_files_from_drive(self, _id):
+        cursor = self.database.cursor()
+        cursor.execute('DELETE FROM File WHERE machine = ?', (_id,))
         self.database.commit()
         cursor.close()
 

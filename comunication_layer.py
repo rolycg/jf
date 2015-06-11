@@ -4,11 +4,12 @@ import re
 import time
 import json
 import base64
+import sqlite3
 
 from data_layer import semaphore as sem
 import data_layer
 import extra_functions as ef
-import sqlite3
+
 database_url = '/usr/share/JF/database.db'
 
 query = False
@@ -138,6 +139,8 @@ def receiver(sock, address, uuid, data_obj):
     sock.send(data_obj.get_id_from_peer().encode())
     password = data_obj.get_password()
     cipher = ef.get_cipher(password)
+    devices = data_obj.get_memory_devices()
+    sock.send(json.dumps({'devices': devices}).encode(encoding='latin-1'))
     _dict = {'add': [], 'delete': [], 'generation': ''}
     with sem:
         cont = 0
@@ -215,6 +218,40 @@ def receiver(sock, address, uuid, data_obj):
             while query:
                 time.sleep(0.5)
         data_obj.database.commit()
+        cont = 0
+        for key in _dict['devices'].keys():
+            for data in _dict['devices'][key]:
+                _id = data_obj.get_id_from_uuid(key)
+                data_obj.delete_files_from_drive(_id)
+                value = cipher.decrypt(base64.b64decode(data))
+                try:
+                    elements = re.split('\\?+', value.decode(encoding='LATIN-1'))
+                except UnicodeDecodeError:
+                    elements = re.split('\\?+', value.decode(encoding='utf_8'))
+                if not data_obj:
+                    data_obj = data_layer.DataLayer()
+                elements[0] = elements[0][1:]
+                elements[len(elements) - 1] = ef.unpad(elements[len(elements) - 1])
+                elements = [x.strip() for x in elements]
+                elements[len(elements) - 2] = data_obj.get_id_from_uuid(elements[len(elements) - 2])
+                if elements[4] == '-1':
+                    data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[2],
+                                         file_type=elements[3], generation=elements[5], peer=_id,
+                                         first=True, date=elements[len(elements) - 1])
+                else:
+                    data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[4],
+                                         file_type=elements[3], generation=elements[5], peer=_id,
+                                         first=False, date=elements[len(elements) - 1])
+                if cont > 10000:
+                    data_obj.database.commit()
+                    cont = 0
+                if query:
+                    data_obj.database.commit()
+                    data_obj.close()
+                    data_obj = None
+                    while query:
+                        time.sleep(0.5)
+    data_obj.database.commit()
 
 
 def sender(sock, address, generation, data_obj):
@@ -223,8 +260,11 @@ def sender(sock, address, generation, data_obj):
     password = data_obj.get_password()
     query = data_obj.get_files(generation, data_obj.get_uuid_from_peer())
     _max = -1
+    d, _ = sock.recvfrom(10024)
+    devices = json.loads(d.decode())
+    devices = devices['devices']
     cipher = ef.get_cipher(password)
-    _dict = {'add': [], 'delete': [], 'generation': ''}
+    _dict = {'add': [], 'delete': [], 'generation': '', 'devices': {}}
     for x in query:
         tmp = data_obj.get_peer_from_id(x[len(x) - 2])
         x = (x[0], x[1], x[2], x[3], x[4], x[5], x[6], tmp, x[len(x) - 1])
@@ -244,6 +284,25 @@ def sender(sock, address, generation, data_obj):
         else:
             data_obj.insert_peer(uuid, socket.gethostbyname(address[0]))
         data_obj.edit_my_generation(uuid, _max)
+    my_devices = data_obj.get_memory_devices()
+    result_devices = []
+    for x in my_devices:
+        for y in devices:
+            if x[0] == y[0]:
+                if x[1] < y[1]:
+                    result_devices.append(x)
+            else:
+                result_devices.append(x)
+    for y in result_devices:
+        q = data_obj.get_files(-1, data_obj.get_id_from_uuid(y[0]))
+        for x in q:
+            tmp = data_obj.get_peer_from_id(x[len(x) - 2])
+            x = (x[0], x[1], x[2], x[3], x[4], x[5], x[6], tmp, x[len(x) - 1])
+            send = cipher.encrypt(ef.convert_to_str(x))
+            try:
+                _dict['devices'][y[0]].append(base64.b64encode(send).decode())
+            except KeyError:
+                _dict['devices'][y[0]] = [base64.b64encode(send).decode()]
     sock.sendto(json.dumps(_dict).encode(), address)
     sock.close()
     with sem:

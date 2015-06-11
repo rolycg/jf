@@ -62,7 +62,6 @@ def test():
 import argparse
 import sys
 import json
-import sqlite3
 import datetime
 
 if __name__ == '__main__':
@@ -74,8 +73,10 @@ if __name__ == '__main__':
     for x in b.keys():
         print(x[1:len(x) - 1])
     now = datetime.datetime.now().timestamp()
-    print(time.localtime(float(str(now))))
-    print(now)
+
+    now2 = datetime.datetime.now().timestamp()
+
+    print(now2 - now)
     # parser = argparse.ArgumentParser(description='Testing', prog=sys.argv[0])
     # parser.add_argument('query', metavar='q', type=str, help="query", nargs='*')
     # parse = parser.add_mutually_exclusive_group()
