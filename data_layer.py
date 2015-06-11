@@ -228,7 +228,7 @@ class DataLayer:
             raise Exception('Error in database')
 
     def edit_date(self, machine):
-        self.cursor.execute('UPDATE Metadata SET date_modified=? WHERE machine=? AND memory=1',
+        self.cursor.execute('UPDATE Metadata SET date_modified=? WHERE id=? AND device=1',
                             (datetime.datetime.now().timestamp(), machine))
         self.database.commit()
 
