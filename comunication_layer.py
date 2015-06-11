@@ -223,14 +223,11 @@ def receiver(sock, address, uuid, data_obj):
         cont = 0
         for key in _dict['devices'].keys():
             for data in _dict['devices'][key]:
-                print(key)
-                print(data)
                 _id = data_obj.get_id_from_uuid(key)
+                description = _dict['devices_description'][key][0]
                 if _id:
-                    data_obj.delete_files_from_drive(_id)
+                    data_obj.delete_files_from_drive(description[0])
                 else:
-                    print(_dict['devices_description'][key])
-                    description = _dict['devices_description'][key]
                     data_obj.insert_peer(description[0], description[2], 1, description[3],
                                          datetime.datetime.now().timestamp())
                 value = cipher.decrypt(base64.b64decode(data))
@@ -243,14 +240,14 @@ def receiver(sock, address, uuid, data_obj):
                 elements[0] = elements[0][1:]
                 elements[len(elements) - 1] = ef.unpad(elements[len(elements) - 1])
                 elements = [x.strip() for x in elements]
-                elements[len(elements) - 2] = data_obj.get_id_from_uuid(elements[len(elements) - 2])
+                peer = data_obj.get_id_from_uuid(description[0])
                 if elements[4] == '-1':
                     data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[2],
-                                         file_type=elements[3], generation=elements[5], peer=_id,
+                                         file_type=elements[3], generation=elements[5], peer=peer,
                                          first=True, date=elements[len(elements) - 1])
                 else:
                     data_obj.insert_data(id=elements[0], file_name=elements[1], parent=elements[4],
-                                         file_type=elements[3], generation=elements[5], peer=_id,
+                                         file_type=elements[3], generation=elements[5], peer=peer,
                                          first=False, date=elements[len(elements) - 1])
                 if cont > 10000:
                     data_obj.database.commit()
@@ -296,16 +293,20 @@ def sender(sock, address, generation, data_obj):
         data_obj.edit_my_generation(uuid, _max)
     my_devices = data_obj.get_memory_devices()
     result_devices = []
-    for x in my_devices:
-        for y in devices:
-            if x[0] == y[0]:
-                if x[1] < y[1]:
+    if len(devices):
+        for x in my_devices:
+            for y in devices:
+                if x[0] == y[0]:
+                    if x[1] < y[1]:
+                        _dict['devices_description'][x[0]] = result_devices
+                        result_devices.append(x)
+                else:
                     _dict['devices_description'][x[0]] = result_devices
                     result_devices.append(x)
-            else:
-                _dict['devices_description'][x[0]] = result_devices
-                result_devices.append(x)
-
+    else:
+        for x in my_devices:
+            _dict['devices_description'][x[0]] = result_devices
+            result_devices.append(x)
     for y in result_devices:
         q = data_obj.get_files(-1, data_obj.get_id_from_uuid(y[0]))
         for x in q:
