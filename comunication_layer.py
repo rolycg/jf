@@ -5,6 +5,7 @@ import time
 import json
 import base64
 import sqlite3
+import datetime
 
 from data_layer import semaphore as sem
 import data_layer
@@ -50,7 +51,6 @@ def start_broadcast_server(data_obj, port=10101):
             s.settimeout(15)
             while 1:
                 message, address = s.recvfrom(1024)
-                print(message)
                 if not message:
                     s.close()
                     break
@@ -140,7 +140,9 @@ def receiver(sock, address, uuid, data_obj):
     password = data_obj.get_password()
     cipher = ef.get_cipher(password)
     devices = data_obj.get_memory_devices()
-    sock.send(json.dumps({'devices': devices}).encode(encoding='latin-1'))
+    a = json.dumps({'devices': devices})
+    time.sleep(2)
+    sock.send(a.encode())
     _dict = {'add': [], 'delete': [], 'generation': ''}
     with sem:
         cont = 0
@@ -221,8 +223,16 @@ def receiver(sock, address, uuid, data_obj):
         cont = 0
         for key in _dict['devices'].keys():
             for data in _dict['devices'][key]:
+                print(key)
+                print(data)
                 _id = data_obj.get_id_from_uuid(key)
-                data_obj.delete_files_from_drive(_id)
+                if _id:
+                    data_obj.delete_files_from_drive(_id)
+                else:
+                    print(_dict['devices_description'][key])
+                    description = _dict['devices_description'][key]
+                    data_obj.insert_peer(description[0], description[2], 1, description[3],
+                                         datetime.datetime.now().timestamp())
                 value = cipher.decrypt(base64.b64decode(data))
                 try:
                     elements = re.split('\\?+', value.decode(encoding='LATIN-1'))
@@ -255,7 +265,7 @@ def receiver(sock, address, uuid, data_obj):
 
 
 def sender(sock, address, generation, data_obj):
-    uuid, _ = sock.recvfrom(10024)
+    uuid, _ = sock.recvfrom(100)
     uuid = uuid.decode()
     password = data_obj.get_password()
     query = data_obj.get_files(generation, data_obj.get_uuid_from_peer())
@@ -264,7 +274,7 @@ def sender(sock, address, generation, data_obj):
     devices = json.loads(d.decode())
     devices = devices['devices']
     cipher = ef.get_cipher(password)
-    _dict = {'add': [], 'delete': [], 'generation': '', 'devices': {}}
+    _dict = {'add': [], 'delete': [], 'generation': '', 'devices': {}, 'devices_description': {}}
     for x in query:
         tmp = data_obj.get_peer_from_id(x[len(x) - 2])
         x = (x[0], x[1], x[2], x[3], x[4], x[5], x[6], tmp, x[len(x) - 1])
@@ -290,9 +300,12 @@ def sender(sock, address, generation, data_obj):
         for y in devices:
             if x[0] == y[0]:
                 if x[1] < y[1]:
+                    _dict['devices_description'][x[0]] = result_devices
                     result_devices.append(x)
             else:
+                _dict['devices_description'][x[0]] = result_devices
                 result_devices.append(x)
+
     for y in result_devices:
         q = data_obj.get_files(-1, data_obj.get_id_from_uuid(y[0]))
         for x in q:
