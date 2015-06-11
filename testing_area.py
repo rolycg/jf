@@ -62,6 +62,8 @@ def test():
 import argparse
 import sys
 import json
+import sqlite3
+import datetime
 
 if __name__ == '__main__':
     print('\x1b[01;39m' + 'to see more results from ' + str(1) + ' execute: jf -m 10 -f ' + str(
@@ -71,6 +73,9 @@ if __name__ == '__main__':
     b = json.loads(a)
     for x in b.keys():
         print(x[1:len(x) - 1])
+    now = datetime.datetime.now().timestamp()
+    print(time.localtime(float(str(now))))
+    print(now)
     # parser = argparse.ArgumentParser(description='Testing', prog=sys.argv[0])
     # parser.add_argument('query', metavar='q', type=str, help="query", nargs='*')
     # parse = parser.add_mutually_exclusive_group()

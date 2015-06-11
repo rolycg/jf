@@ -8,6 +8,7 @@ import socket
 import json
 import uuid
 import pwd
+import datetime
 
 import dbus
 from gi.overrides.GLib import MainLoop
@@ -31,7 +32,8 @@ def _add_device_(path, device_name, device_id, device_size=0):
     global collection
     with data_layer_py.semaphore:
         data_layer = data_layer_py.DataLayer()
-        data_layer.insert_peer(uuid=device_id, pc_name=device_name, memory=1, size=device_size)
+        data_layer.insert_peer(uuid=device_id, pc_name=device_name, memory=1, size=device_size,
+                               date=datetime.datetime.now().timestamp())
         peer = data_layer.get_id_from_uuid(device_id)
         data_layer.insert_data(id=1, file_name='', file_type='Folder', parent=path, generation=0, first=True,
                                peer=peer)

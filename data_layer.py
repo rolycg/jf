@@ -6,6 +6,7 @@ import sys
 from threading import Semaphore
 import time
 import pwd
+import datetime
 
 import extra_functions as ef
 
@@ -43,7 +44,7 @@ class DataLayer:
         cursor.execute(
             'CREATE TABLE Metadata (id INTEGER PRIMARY KEY AUTOINCREMENT,uuid VARCHAR, '
             'pc_name VARCHAR, last_generation INTEGER, own INTEGER, my_generation INTEGER, device INTEGER,'
-            ' size VARCHAR)')
+            ' size VARCHAR, date_modified TIMESTAMP)')
         cursor.execute(
             'CREATE TABLE Journal '
             '(id INTEGER PRIMARY KEY AUTOINCREMENT, actio VARCHAR, machine INTEGER REFERENCES Metadata(id))')
@@ -107,19 +108,19 @@ class DataLayer:
         return cursor.execute('SELECT * FROM File WHERE generation>=? AND machine=? ORDER BY id ASC',
                               (generation, peer))
 
-    def insert_peer(self, uuid=None, pc_name=None, memory=0, size=0):
+    def insert_peer(self, uuid=None, pc_name=None, memory=0, size=0, date=0):
 
         cursor = self.database.cursor()
         if not uuid and not pc_name:
-            cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?,?,?)',
-                           (None, str(uu.uuid4()), socket.gethostname(), -1, 1, -1, memory, size))
+            cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?,?,?,?)',
+                           (None, str(uu.uuid4()), socket.gethostname(), -1, 1, -1, memory, size, date))
         else:
             try:
                 cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?,?,?)',
-                               (None, uuid.decode(), pc_name, -1, 0, -1, memory, size))
+                               (None, uuid.decode(), pc_name, -1, 0, -1, memory, size, date))
             except AttributeError:
-                cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?,?,?)',
-                               (None, str(uuid), pc_name, -1, 0, -1, memory, size))
+                cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?,?,?,?)',
+                               (None, str(uuid), pc_name, -1, 0, -1, memory, size, date))
         self.database.commit()
         cursor.close()
 
@@ -225,6 +226,11 @@ class DataLayer:
 
         else:
             raise Exception('Error in database')
+
+    def edit_date(self, machine):
+        self.cursor.execute('UPDATE Metadata SET date_modified=? WHERE machine=? AND memory=1',
+                            (datetime.datetime.now().timestamp(), machine))
+        self.database.commit()
 
     def dynamic_insert_data(self, path, dirs, files, session_count, total_files, count, real_path, peer, generation=0):
         global query

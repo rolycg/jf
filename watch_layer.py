@@ -133,6 +133,7 @@ def make_watch(cache, machine=1):
                         raise e
                     while query:
                         time.sleep(0.5)
+                data_obj.edit_date(machine)
                 data_obj.database.commit()
 
 
