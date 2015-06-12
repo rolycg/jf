@@ -310,6 +310,9 @@ def sender(sock, address, generation, data_obj):
         for x in q:
             tmp = data_obj.get_peer_from_id(x[len(x) - 2])
             x = (x[0], x[1], x[2], x[3], x[4], x[5], x[6], tmp, x[len(x) - 1])
+            print(x)
+            a = ef.convert_to_str(x)
+            print(len(a))
             send = cipher.encrypt(ef.convert_to_str(x))
             try:
                 _dict['devices'][y[0]].append(base64.b64encode(send).decode())

@@ -134,6 +134,7 @@ if __name__ == '__main__':
             except KeyError:
                 pass
         elif arg.p:
+            print('\x1b[01;31m' + 'WARNING: ' + '\x1b[0m' + '')
             password = getpass.getpass()
             sha = hashlib.md5(password.encode())
             j = json.dumps({'action': 'password', 'password': sha.hexdigest()})

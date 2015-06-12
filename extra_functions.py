@@ -44,9 +44,21 @@ def convert_to_str(data):
     for x in range(0, 16 - (len(res) % 16)):
         res += '*'
     try:
-        return res.encode(encoding='LATIN-1')
+        a = res.encode(encoding='LATIN-1')
+        if not len(a) % 16:
+            return a
+        else:
+            for x in range(0, 16 - (len(a) % 16)):
+                a += '*'.encode()
+            return a
     except UnicodeEncodeError:
-        return res.encode(encoding='utf_32')
+        a = res.encode(encoding='utf_32')
+        if not len(a) % 16:
+            return a
+        else:
+            for x in range(0, 16 - (len(a) % 16)):
+                a += '*'.encode()
+            return a
 
 
 def get_cipher(password):

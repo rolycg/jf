@@ -67,7 +67,8 @@ class MyFileSystemWatcher(FileSystemEventHandler):
 
     def dispatch(self, event):
         if hasattr(event, 'src_path'):
-            if event.src_path == b'/home/roly/.local/share/JF/database.db-journal':
+            home = os.path.expanduser('~')
+            if event.src_path == home.encode() + b'/.local/share/JF/database.db-journal':
                 return
         if event.event_type == 'created':
             self.on_created(event)

@@ -65,8 +65,6 @@ def query_process_communication():
 
 if __name__ == '__main__':
     t = None
-    if not os.path.exists('/usr/share/JF'):
-        os.mkdir('/usr/share/JF')
     database_path = '/home/' + login + '/.local/share/JF/database.db'
     temp_res = Pipe()
     data_layer = None
