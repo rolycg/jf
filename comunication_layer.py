@@ -318,7 +318,7 @@ def sender(sock, address, generation, data_obj):
                 _dict['devices'][y[0]].append(base64.b64encode(send).decode())
             except KeyError:
                 _dict['devices'][y[0]] = [base64.b64encode(send).decode()]
-    sock.sendto(json.dumps(_dict).encode(), address)
+    sock.sendto(json.dumps(_dict).encode() + b'finish', address)
     sock.close()
     with sem:
         data_obj.delete_actions_from_machine(_id)
