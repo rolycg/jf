@@ -11,8 +11,6 @@ from data_layer import semaphore as sem
 import data_layer
 import extra_functions as ef
 
-database_url = '/usr/share/JF/database.db'
-
 query = False
 PORT = 10101
 

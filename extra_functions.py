@@ -2,6 +2,8 @@ import string
 import random
 import os
 import sys
+import datetime
+import time
 from ctypes import *
 
 from Crypto.Cipher import AES
@@ -143,6 +145,15 @@ def get_date(path):
     return os.stat(path)[8]
 
 
+def convert_dates(now, before):
+    now = time.localtime(now)
+    before = time.localtime(before)
+    return (datetime.datetime(now.tm_year, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min,
+                              now.tm_sec) - datetime.datetime(before.tm_year, before.tm_mon, before.tm_mday,
+                                                              before.tm_hour, before.tm_min,
+                                                              before.tm_sec)).total_seconds()
+
+
 def convert_message(messages):
     ret = ''
     for x in messages:
@@ -151,5 +162,6 @@ def convert_message(messages):
 
 
 if __name__ == '__main__':
-    print((get_date('/media/roly/Extra/Series/')))
-    print((get_date('/media/roly/Extra/Work/')))
+    a = datetime.datetime.now().timestamp()
+    time.sleep(5)
+    print(convert_dates(datetime.datetime.now().timestamp(), a))

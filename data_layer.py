@@ -328,7 +328,7 @@ class DataLayer:
         cursor = self.database.cursor()
         res = []
         for x in cursor.execute('SELECT uuid, date_modified, pc_name, size FROM Metadata WHERE device=1'):
-            res.append((x[0], datetime.datetime.now().timestamp() - float(x[1]), x[2], x[3]))
+            res.append((x[0], ef.convert_dates(datetime.datetime.now().timestamp(), float(x[1])), x[2], x[3]))
         cursor.close()
         return res
 
