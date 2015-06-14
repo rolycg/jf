@@ -22,6 +22,7 @@ status_sem = Semaphore()
 
 
 def edit_status(key, value):
+    global status
     with status_sem:
         status[key] = value
 

@@ -135,7 +135,8 @@ if __name__ == '__main__':
             except KeyError:
                 pass
         elif arg.p:
-            print('\x1b[01;31m' + 'WARNING: ' + '\x1b[0m' + '')
+            print('\x1b[01;31m' + 'WARNING: ' + '\x1b[0m' +
+                  ' This password should be a good one. It going to be used for network communication')
             password = getpass.getpass()
             sha = hashlib.md5(password.encode())
             j = json.dumps({'action': 'password', 'password': sha.hexdigest()})
@@ -153,12 +154,13 @@ if __name__ == '__main__':
             s.send(json.dumps({'action': 'status'}).encode())
             tmp = s.recv(1000)
             status = json.loads(tmp.decode())
+            print(status)
             if len(status['main']):
                 print('\x1b[01;39m' + 'Indexing: ' + '\x1b[0m' + status['main'][0])
             if len(status['network']):
-                print('\x1b[01;39m' + 'Communicating with: ' + '\x1b[0m' + status['main'][0])
+                print('\x1b[01;39m' + 'Communicating with: ' + '\x1b[0m' + status['network'][0])
             if len(status['watch']):
-                print('\x1b[01;39m' + 'Watching: ' + '\x1b[0m' + status['main'][0])
+                print('\x1b[01;39m' + 'Watching: ' + '\x1b[0m' + status['watch'][0])
         elif arg.index:
             name = ''
             for x in arg.index:
