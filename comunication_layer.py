@@ -10,7 +10,6 @@ import datetime
 from data_layer import semaphore as sem
 import data_layer
 import extra_functions as ef
-import server_JF as server
 
 query = False
 PORT = 10101
@@ -30,8 +29,8 @@ def broadcast(data_obj):
                 if not buf:
                     break
                 if buf == b'Mee too':
-                    server.edit_status('network', [])
-                    server.edit_status('network', [address[0]])
+                    data_layer.edit_status('network', [])
+                    data_layer.edit_status('network', [address[0]])
                     checking_client(address, data_obj)
                     break
             except socket.error:
@@ -58,8 +57,8 @@ def start_broadcast_server(data_obj, port=10101):
                     break
                 if message == b'I am everything':
                     s.sendto(b'Mee too', address)
-                    server.edit_status('network', [])
-                    server.edit_status('network', [address[0]])
+                    data_layer.edit_status('network', [])
+                    data_layer.edit_status('network', [address[0]])
                     checking_server(data_obj)
         except socket.timeout:
             s.close()
@@ -110,7 +109,7 @@ def checking_client(address, data_obj):
         generation, _ = sock.recvfrom(1024)
         sender(sock, address, int(generation), data_obj)
     else:
-        server.edit_status('network', [])
+        data_layer.edit_status('network', [])
 
 
 def checking_server(data_obj):
@@ -138,7 +137,7 @@ def checking_server(data_obj):
             sock.sendto(str(-1).encode(), address)
         receiver(sock, address, uuid, data_obj)
     else:
-        server.edit_status('network', [])
+        data_layer.edit_status('network', [])
 
 
 def receiver(sock, address, uuid, data_obj):
@@ -165,7 +164,7 @@ def receiver(sock, address, uuid, data_obj):
         try:
             _dict = json.loads(test.decode())
         except ValueError:
-            server.edit_status('network', [])
+            data_layer.edit_status('network', [])
             return
         for data in _dict['add']:
             value = cipher.decrypt(base64.b64decode(data))
@@ -267,7 +266,7 @@ def receiver(sock, address, uuid, data_obj):
                     while query:
                         time.sleep(0.5)
     data_obj.database.commit()
-    server.edit_status('network', [])
+    data_layer.edit_status('network', [])
 
 
 def sender(sock, address, generation, data_obj):
@@ -333,4 +332,4 @@ def sender(sock, address, generation, data_obj):
     sock.close()
     with sem:
         data_obj.delete_actions_from_machine(_id)
-    server.edit_status('network', [])
+    data_layer.edit_status('network', [])

@@ -7,7 +7,7 @@ from watchdog import observers
 from watchdog.events import FileSystemEventHandler
 import data_layer
 import extra_functions
-import server_JF as server
+
 query = False
 
 
@@ -113,8 +113,8 @@ def make_watch(cache, machine=1):
                                 data_obj = data_layer.DataLayer()
                                 data_obj.cursor = data_obj.database.cursor()
                             number += 1
-                            server.edit_status('watch', [])
-                            server.edit_status('watch', [x[1]])
+                            data_layer.edit_status('watch', [])
+                            data_layer.edit_status('watch', [x[1]])
                             if x[0] == 'created':
                                 data_obj.insert_data(number, x[1], x[2], x[3], generation, machine,
                                                      real_path=x[6])
@@ -137,7 +137,7 @@ def make_watch(cache, machine=1):
                     while query:
                         time.sleep(0.5)
                 data_obj.edit_date(machine)
-                server.edit_status('watch', [])
+                data_layer.edit_status('watch', [])
                 data_obj.database.commit()
 
 

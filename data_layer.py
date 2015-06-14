@@ -10,6 +10,14 @@ import datetime
 import extra_functions as ef
 
 query = False
+status = {'main': [], 'watch': [], 'network': []}
+status_sem = Semaphore()
+
+
+def edit_status(key, value):
+    global status
+    with status_sem:
+        status[key] = value
 
 
 def set_query(value):

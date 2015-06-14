@@ -11,7 +11,6 @@ import comunication_layer as cl
 import watch_layer
 import data_layer as data_layer_py
 import external_devices_layer as ed
-import server_JF as server
 
 finished = True
 paint = False
@@ -28,7 +27,6 @@ def save_to_disk(engine, q, peer):
     global paint
     global finished
     global start_time
-
     start_time = time.time()
     count = 1
     total_files = 2
@@ -39,8 +37,8 @@ def save_to_disk(engine, q, peer):
     while 1:
         try:
             path, dirs, files = q.get(timeout=1)
-            server.edit_status('main', [])
-            server.edit_status('main', [path])
+            data_layer_py.edit_status('main', [])
+            data_layer_py.edit_status('main', [path])
             complete_path = path
             path = path.split(os.sep)
             path = path[len(path) - 1]
@@ -60,7 +58,7 @@ def save_to_disk(engine, q, peer):
     while data_layer_py.query:
         time.sleep(0.5)
     engine.database.commit()
-    server.edit_status('main', [])
+    data_layer_py.edit_status('main', [])
     print('I finish')
     # TODO: Remove this
 
