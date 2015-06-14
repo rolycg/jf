@@ -154,7 +154,6 @@ if __name__ == '__main__':
             s.send(json.dumps({'action': 'status'}).encode())
             tmp = s.recv(1000)
             status = json.loads(tmp.decode())
-            print(status)
             if len(status['main']):
                 print('\x1b[01;39m' + 'Indexing: ' + '\x1b[0m' + status['main'][0])
             if len(status['network']):
