@@ -148,6 +148,16 @@ if __name__ == '__main__':
             value = json.loads(value.decode())
             if value['result'] == 'Not path':
                 print('Wrong path, try another')
+        elif arg.status:
+            s.send(json.dumps({'action': 'status'}).encode())
+            tmp = s.recv(1000)
+            status = json.loads(tmp.decode())
+            if len(status['main']):
+                print('\x1b[01;39m' + 'Indexing: ' + '\x1b[0m' + status['main'][0])
+            if len(status['network']):
+                print('\x1b[01;39m' + 'Communicating with: ' + '\x1b[0m' + status['main'][0])
+            if len(status['watch']):
+                print('\x1b[01;39m' + 'Watching: ' + '\x1b[0m' + status['main'][0])
         elif arg.index:
             name = ''
             for x in arg.index:

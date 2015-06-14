@@ -6,6 +6,7 @@ from multiprocessing import Pipe, Process
 from threading import Thread
 import time
 import pwd
+from threading import Semaphore
 
 import external_devices_layer as edl
 import data_layer as data_layer_py
@@ -16,6 +17,13 @@ import main
 
 t2 = None
 login = pwd.getpwuid(os.getuid())[0]
+status = {'main': [], 'watch': [], 'network': []}
+status_sem = Semaphore()
+
+
+def edit_status(key, value):
+    with status_sem:
+        status[key] = value
 
 
 def finish_query(devices, data_layer, son):
@@ -118,6 +126,8 @@ if __name__ == '__main__':
             data_layer = data_layer_py.DataLayer()
             data_layer.insert_password(_dict['password'])
             data_layer.close()
+        elif _dict['action'] == 'status':
+            conn.send(json.dumps(status).encode())
         elif _dict['action'] == 'query' or _dict['action'] == 'more':
             try:
                 query = None
