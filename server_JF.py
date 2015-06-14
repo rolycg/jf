@@ -65,7 +65,8 @@ def query_process_communication():
 
 if __name__ == '__main__':
     t = None
-    database_path = '/home/' + login + '/.local/share/JF/database.db'
+    home_path = os.path.expanduser('~')
+    database_path = home_path + '/.local/share/JF/database.db'
     temp_res = Pipe()
     data_layer = None
     logged = False
@@ -78,15 +79,15 @@ if __name__ == '__main__':
     allow_start = os.path.exists(database_path)
     if os.path.exists('/tmp/JF_' + login):
         os.remove('/tmp/JF_' + login)
-    if not os.path.exists('/home/' + login + '/.local/share/JF'):
-        os.mkdir('/home/' + login + '/.local/share/JF')
+    if not os.path.exists(home_path + '/.local/share/JF'):
+        os.mkdir(home_path + '/.local/share/JF')
     if not os.path.exists(database_path):
         data_layer = data_layer_py.DataLayer()
         data_layer.create_databases()
-        t = Thread(target=main.create, args=('/home',))
+        t = Thread(target=main.create, args=(home_path,))
         t.start()
     else:
-        t = Thread(target=main.start, args=(['/home'],))
+        t = Thread(target=main.start, args=([home_path],))
         t.start()
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     s.bind('/tmp/JF_' + login)
@@ -106,7 +107,6 @@ if __name__ == '__main__':
             if os.path.exists(database_path):
                 os.remove(database_path)
             conn.send(json.dumps({'result': 'OK'}).encode())
-
             data_layer = data_layer_py.DataLayer()
             data_layer.create_databases()
             data_layer.insert_password(_dict['password'])

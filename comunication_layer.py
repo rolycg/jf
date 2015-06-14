@@ -46,6 +46,7 @@ def start_broadcast_server(data_obj, port=10101):
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((host, port))
+            r = random.uniform(1, 5)
             s.settimeout(15)
             while 1:
                 message, address = s.recvfrom(1024)
@@ -56,10 +57,8 @@ def start_broadcast_server(data_obj, port=10101):
                     s.sendto(b'Mee too', address)
                     checking_server(data_obj)
         except socket.timeout:
-            r = random.uniform(1, 5)
-            if r == 3:
-                break
-            continue
+            s.close()
+            break
         except socket.error:
             s.close()
             continue

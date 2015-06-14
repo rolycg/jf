@@ -5,7 +5,6 @@ import os
 import sys
 from threading import Semaphore
 import time
-import pwd
 import datetime
 
 import extra_functions as ef
@@ -20,11 +19,11 @@ def set_query(value):
 
 __author__ = 'Roly'
 semaphore = Semaphore()
-login = pwd.getpwuid(os.getuid())[0]
+login = os.path.expanduser('~')
 
 
 class DataLayer:
-    def __init__(self, database_url='/home/' + login + '/.local/share/JF/database.db'):
+    def __init__(self, database_url=login + '/.local/share/JF/database.db'):
         self.database_url = database_url
         self.database = sqlite3.connect(self.database_url, check_same_thread=False)
         # self.database.execute('PRAGMA read_uncommitted = FALSE ')
@@ -92,10 +91,14 @@ class DataLayer:
             return value[0]
 
     def insert_password(self, password):
-        cursor = self.database.cursor()
-        cursor.execute('INSERT INTO Login VALUES (?)', (password,))
-        self.database.commit()
-        cursor.close()
+        with semaphore:
+            cursor = self.database.cursor()
+            p = self.get_password()
+            if p:
+                cursor.execute('DELETE FROM Login WHERE password =?', (p,))
+            cursor.execute('INSERT INTO Login VALUES (?)', (password,))
+            self.database.commit()
+            cursor.close()
 
     def get_password(self):
         cursor = self.database.cursor()
