@@ -110,7 +110,7 @@ def get_mount_point(block):
     collection[block] = [str(mount_point[:-1]), str(dbus_id), str(dbus_name), None, None, dbus_space]
     messages.append(
         'You have a new device connected (' + dbus_name + ', ' + extra_functions.convert_to_human_readable(
-            dbus_space) + '). To have JF track it, execute:' + '\n' + 'jf ' + '-i ' + block)
+            dbus_space) + '). To have JF track it, execute:' + '\n' + '      jf ' + '-i ' + str(mount_point[:-1]))
     return dbus_id, block, dbus_name
 
 
@@ -148,7 +148,7 @@ def add_device(name, re_index):
     device_name = None
     block = None
     for x in collection.keys():
-        if name.strip() == x.strip():
+        if name.strip() == collection[x][0].strip():
             device_name = collection[x]
             block = x
     if device_name:

@@ -168,8 +168,11 @@ def convert_dates(now, before):
 
 def convert_message(messages):
     ret = ''
-    for x in messages:
-        ret += x + '\n'
+    for x in range(len(messages)):
+        if not x:
+            ret += messages[x] + '\n'
+        else:
+            ret += '      ' + messages[x] + '\n'
     return ret
 
 
