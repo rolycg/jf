@@ -32,37 +32,37 @@ def get_broadcast_address():
     return broadcasts
 
 
-def broadcast(data_obj):
-    try:
-        msg = b'I am JF'
-        dest = get_broadcast_address()
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        for d in dest:
-            s.sendto(msg, (d, PORT))
-        s.settimeout(5)
-        while 1:
-            try:
-                s.bind(('', PORT))
-                s.listen(1)
-                threads = []
-                while 1:
-                    sock, address = s.accept()
-                    sock.settimeout(1)
-                    print(sock.recvfrom(10))
-                    sock.close()
-                    data_layer.edit_status('network', [])
-                    data_layer.edit_status('network', [address[0]])
-                    threads.append(Thread(target=checking_client, args=(address, data_obj)))
-                    threads[len(threads) - 1].start()
-                    # checking_client(address, data_obj)
-                break
-            except socket.error:
-                break
-            except socket.timeout:
-                break
-    except OSError:
-        pass
+def message_broadcast():
+    msg = b'I am JF'
+    dest = get_broadcast_address()
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    for d in dest:
+        s.sendto(msg, (d, 10102))
+    s.close()
+
+
+def receive_broadcast(data_obj):
+    while 1:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.bind(('', PORT))
+            s.listen(1)
+            threads = []
+            while 1:
+                sock, address = s.accept()
+                sock.settimeout(1)
+                print(sock.recvfrom(10))
+                sock.close()
+                data_layer.edit_status('network', [])
+                data_layer.edit_status('network', [address[0]])
+                threads.append(Thread(target=checking_client, args=(address, data_obj)))
+                threads[len(threads) - 1].start()
+                # checking_client(address, data_obj)
+        except socket.error:
+            continue
+        except socket.timeout:
+            continue
 
 
 def start_broadcast_server(data_obj, port=10101):
@@ -71,7 +71,7 @@ def start_broadcast_server(data_obj, port=10101):
             host = ''
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind((host, port))
+            s.bind((host, 10102))
             r = random.uniform(5, 15)
             s.settimeout(int(r))
             while 1:
@@ -80,7 +80,9 @@ def start_broadcast_server(data_obj, port=10101):
                     s.close()
                     break
                 if message == b'I am JF':
-                    s.connect(address)
+                    s.close()
+                    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    s.connect((address[0], PORT))
                     s.send(b'Lets talk')
                     s.close()
                     data_layer.edit_status('network', [])
@@ -91,7 +93,13 @@ def start_broadcast_server(data_obj, port=10101):
             break
         except socket.error:
             s.close()
-            continue
+            break
+
+
+def network_main(data_obj):
+    while 1:
+        message_broadcast()
+        start_broadcast_server(data_obj)
 
 
 def start():
@@ -103,8 +111,9 @@ def start():
             time.sleep(10)
             continue
         if password:
-            broadcast(data_obj)
-            start_broadcast_server(data_obj=data_obj)
+            t = Thread(target=receive_broadcast, args=(data_obj,))
+            t.start()
+            network_main(data_obj=data_obj)
         else:
             time.sleep(10)
 
