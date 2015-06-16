@@ -17,7 +17,7 @@ PORT = 10101
 
 def broadcast(data_obj):
     try:
-        msg = b'I am everything'
+        msg = b'I am JF'
         dest = ('255.255.255.255', 10101)
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -49,13 +49,13 @@ def start_broadcast_server(data_obj, port=10101):
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((host, port))
             r = random.uniform(5, 15)
-            s.settimeout(r)
+            s.settimeout(int(r))
             while 1:
                 message, address = s.recvfrom(1024)
                 if not message:
                     s.close()
                     break
-                if message == b'I am everything':
+                if message == b'I am JF':
                     s.sendto(b'Mee too', address)
                     data_layer.edit_status('network', [])
                     data_layer.edit_status('network', [address[0]])
@@ -97,15 +97,15 @@ def checking_client(address, data_obj):
     ran_str = ef.random_string()
     sol = cipher.encrypt(ran_str)
     sock.settimeout(2)
-    sock.sendto(sol, address)
+    sock.send(sol)
     value, _ = sock.recvfrom(1000)
     sock.settimeout(15)
     if value.decode('LATIN-1') == ran_str:
-        sock.sendto(b'OK', address)
+        sock.send(b'OK')
         machine = data_obj.get_id_from_peer()
         name_machine = data_obj.get_peer_from_uuid(1)
 
-        sock.sendto(json.dumps({'machine': machine, 'name_machine': name_machine}).encode(), address)
+        sock.send(json.dumps({'machine': machine, 'name_machine': name_machine}).encode())
         generation, _ = sock.recvfrom(1024)
         sender(sock, address, int(generation), data_obj)
     else:
@@ -121,7 +121,7 @@ def checking_server(data_obj):
     cipher = ef.get_cipher(password)
     plain_text, _ = sock.recvfrom(1000)
     value = cipher.decrypt(plain_text)
-    sock.sendto(value, address)
+    sock.send(value)
     sock.settimeout(2)
     conf, _ = sock.recvfrom(1024)
     if conf == b'OK':
@@ -131,10 +131,10 @@ def checking_server(data_obj):
         name = _dict['name_machine']
         last_generation = data_obj.get_last_generation(uuid)
         if last_generation:
-            sock.sendto(str(last_generation).encode(), address)
+            sock.send(str(last_generation).encode())
         else:
             data_obj.insert_peer(uuid, name)
-            sock.sendto(str(-1).encode(), address)
+            sock.send(str(-1).encode())
         receiver(sock, address, uuid, data_obj)
     else:
         data_layer.edit_status('network', [])
@@ -154,7 +154,7 @@ def receiver(sock, address, uuid, data_obj):
         cont = 0
         test = b''
         while 1:
-            data, _ = sock.recvfrom(1000)
+            data, _ = sock.recvfrom(10000)
             if not data:
                 break
             if b'finish' in data:
@@ -328,7 +328,7 @@ def sender(sock, address, generation, data_obj):
                 _dict['devices'][y[0]].append(base64.b64encode(send).decode())
             except KeyError:
                 _dict['devices'][y[0]] = [base64.b64encode(send).decode()]
-    sock.sendto(json.dumps(_dict).encode() + b'finish', address)
+    sock.send(json.dumps(_dict).encode())
     sock.close()
     with sem:
         data_obj.delete_actions_from_machine(_id)

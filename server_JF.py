@@ -56,11 +56,14 @@ def query_process_communication():
     sqp.listen(1)
     while 1:
         conn_qp, _ = sqp.accept()
-        data = conn_qp.recv(10)
-        if data:
-            if t2 and t2.is_alive():
-                t2.terminate()
-            open_writing()
+        while 1:
+            data = conn_qp.recv(10)
+            if data:
+                if t2 and t2.is_alive():
+                    t2.terminate()
+                open_writing()
+                conn_qp.close()
+                break
 
 
 if __name__ == '__main__':
