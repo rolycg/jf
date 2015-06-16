@@ -6,6 +6,8 @@ import json
 import base64
 import sqlite3
 import datetime
+import netifaces
+from threading import Thread
 
 from data_layer import semaphore as sem
 import data_layer
@@ -15,24 +17,46 @@ query = False
 PORT = 10101
 
 
+def get_broadcast_address():
+    broadcasts = []
+    for x in netifaces.interfaces():
+        addrs = netifaces.ifaddresses(x)
+        try:
+            q = addrs[netifaces.AF_INET]
+        except KeyError:
+            continue
+        try:
+            broadcasts.append(q[0]['broadcast'])
+        except KeyError:
+            continue
+    return broadcasts
+
+
 def broadcast(data_obj):
     try:
         msg = b'I am JF'
-        dest = ('255.255.255.255', 10101)
+        dest = get_broadcast_address()
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        s.sendto(msg, dest)
+        for d in dest:
+            s.sendto(msg, (d, PORT))
         s.settimeout(5)
         while 1:
             try:
-                buf, address = s.recvfrom(1024)
-                if not buf:
-                    break
-                if buf == b'Mee too':
+                s.bind(('', PORT))
+                s.listen(1)
+                threads = []
+                while 1:
+                    sock, address = s.accept()
+                    sock.settimeout(1)
+                    print(sock.recvfrom(10))
+                    sock.close()
                     data_layer.edit_status('network', [])
                     data_layer.edit_status('network', [address[0]])
-                    checking_client(address, data_obj)
-                    break
+                    threads.append(Thread(target=checking_client, args=(address, data_obj)))
+                    threads[len(threads) - 1].start()
+                    # checking_client(address, data_obj)
+                break
             except socket.error:
                 break
             except socket.timeout:
@@ -56,7 +80,9 @@ def start_broadcast_server(data_obj, port=10101):
                     s.close()
                     break
                 if message == b'I am JF':
-                    s.sendto(b'Mee too', address)
+                    s.connect(address)
+                    s.send(b'Lets talk')
+                    s.close()
                     data_layer.edit_status('network', [])
                     data_layer.edit_status('network', [address[0]])
                     checking_server(data_obj)
@@ -168,6 +194,7 @@ def receiver(sock, address, uuid, data_obj):
                 break
         try:
             _dict = json.loads(test.decode())
+            print(_dict)
         except ValueError:
             data_layer.edit_status('network', [])
             return

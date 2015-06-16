@@ -63,8 +63,42 @@ import argparse
 import sys
 import json
 import datetime
+import socket
+import fcntl
+import struct
+import ipaddress
+
+
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', ifname[:15].encode())
+    )[20:24])
+
+
+def get_netmask(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x891b, struct.pack('256s', ifname.encode()))[20:24])
+
+
+import netifaces
 
 if __name__ == '__main__':
+    print(netifaces.interfaces())
+    for x in netifaces.interfaces():
+        addrs = netifaces.ifaddresses(x)
+        try:
+            q = addrs[netifaces.AF_INET]
+        except KeyError:
+            continue
+        try:
+            print(q[0]['broadcast'])
+        except KeyError:
+            print(x)
+
+    print(a)
     print('\x1b[01;39m' + 'to see more results from ' + str(1) + ' execute: jf -m 10 -f ' + str(
         1) + '\x1b[0m')
     print(repr((1, 2, 3)))
