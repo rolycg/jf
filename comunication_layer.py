@@ -154,12 +154,20 @@ def receiver(sock, address, uuid, data_obj):
     with sem:
         cont = 0
         test = b''
+        balance = 0
         while 1:
             data = sock.recv(1000)
-            if not data:
-                break
             test += data
+            if data:
+                for x in data.decode():
+                    if x == '{':
+                        balance += 1
+                    if x == '}':
+                        balance -= 1
+            if not balance:
+                break
         try:
+            print(test)
             _dict = json.loads(test.decode())
             print(_dict)
         except ValueError:
@@ -266,6 +274,7 @@ def receiver(sock, address, uuid, data_obj):
                         time.sleep(0.5)
     data_obj.database.commit()
     data_layer.edit_status('network', [])
+    sock.close()
 
 
 def sender(sock, address, generation, data_obj):
@@ -327,7 +336,11 @@ def sender(sock, address, generation, data_obj):
                 _dict['devices'][y[0]].append(base64.b64encode(send).decode())
             except KeyError:
                 _dict['devices'][y[0]] = [base64.b64encode(send).decode()]
-    sock.send(json.dumps(_dict).encode())
+    try:
+        sock.sendall(json.dumps(_dict).encode())
+    except:
+        data_layer.edit_status('network', [])
+        return
     sock.close()
     with sem:
         data_obj.delete_actions_from_machine(_id)
