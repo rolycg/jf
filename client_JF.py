@@ -79,7 +79,7 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--more', help='Show more results', nargs=1)
     parser.add_argument('-i', '--index', help='Add a device', nargs='+')
     parser.add_argument('-f', help='Set a device', nargs='+')
-    parser.add_argument('-p', help='Set a password', action='store_true')
+    parser.add_argument('-p', help='Set a password for network communication', action='store_true')
     parser.add_argument('-s', '--status', help='Get status from app', action='store_true')
     arg = parser.parse_args()
     prog = sys.argv[0]
@@ -140,7 +140,7 @@ if __name__ == '__main__':
                 pass
         elif arg.p:
             print('\x1b[01;31m' + 'WARNING: ' + '\x1b[0m' +
-                  ' This password should be a good one. It going to be used for network communication')
+                  ' This is used for network communication.')
             password = getpass.getpass()
             sha = hashlib.md5(password.encode())
             j = json.dumps({'action': 'password', 'password': sha.hexdigest()})
@@ -159,11 +159,11 @@ if __name__ == '__main__':
             tmp = s.recv(1000)
             status = json.loads(tmp.decode())
             if len(status['main']):
-                print('\x1b[01;39m' + 'Indexing: ' + '\x1b[0m' + status['main'][0])
+                print('\x1b[01;33m' + 'Indexing: ' + '\x1b[0m' + status['main'][0])
             if len(status['network']):
-                print('\x1b[01;39m' + 'Communicating with: ' + '\x1b[0m' + status['network'][0])
+                print('\x1b[01;33m' + 'Communicating with: ' + '\x1b[0m' + status['network'][0])
             if len(status['watch']):
-                print('\x1b[01;39m' + 'Watching: ' + '\x1b[0m' + status['watch'][0])
+                print('\x1b[01;33m' + 'Watching: ' + '\x1b[0m' + status['watch'][0])
         elif arg.index:
             name = ''
             for x in arg.index:
@@ -208,15 +208,13 @@ if __name__ == '__main__':
                             for y in results[p]:
                                 print('  ' + str(y))
                             print('\x1b[01;39m' + '  to see more results from ' + str(
-                                x[1]) + ' execute: jf -m 10 -f ' + str(
-                                x[1]) + '\x1b[0m')
+                                x[1]) + ' execute: jf -m 10 -f ' + str(x[1]) + '\x1b[0m')
                         else:
                             print('\x1b[01;33m' + '@machine ' + '\x1b[0m' + x[1])
                             for y in results[p]:
                                 print('  ' + str(y))
                             print('\x1b[01;39m' + '  to see more results from ' + str(
-                                x[1]) + ' execute: jf -m 10 -f ' + str(
-                                x[1]) + '\x1b[0m')
+                                x[1]) + ' execute: jf -m 10 -f ' + str(x[1]) + '\x1b[0m')
 
                 try:
                     message = _dict['message']
