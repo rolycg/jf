@@ -167,9 +167,7 @@ def receiver(sock, address, uuid, data_obj):
             if not balance:
                 break
         try:
-            print(test)
             _dict = json.loads(test.decode())
-            print(_dict)
         except ValueError:
             data_layer.edit_status('network', [])
             return

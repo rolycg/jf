@@ -91,7 +91,11 @@ if __name__ == '__main__':
             for word in arg.query:
                 words += word + ' '
             j = json.dumps({'action': 'query', 'query': words, 'from': arg.f})
-            s.send(j.encode())
+            try:
+                s.send(j.encode())
+            except OSError:
+                time.sleep(1)
+                s.send(j.encode())
             value = ''
             s.settimeout(3)
             while 1:
