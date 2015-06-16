@@ -65,8 +65,7 @@ import json
 import datetime
 
 if __name__ == '__main__':
-    for x in range(len([1,2,3])):
-        print(x)
+    print(int(b'1'))
     print(b'a' + b'b')
     print('\x1b[01;39m' + 'to see more results from ' + str(1) + ' execute: jf -m 10 -f ' + str(
         1) + '\x1b[0m')

@@ -98,7 +98,7 @@ def checking_client(address, data_obj):
     sol = cipher.encrypt(ran_str)
     sock.settimeout(2)
     sock.send(sol)
-    value, _ = sock.recv(1000)
+    value = sock.recv(1000)
     sock.settimeout(15)
     if value.decode('LATIN-1') == ran_str:
         sock.send(b'OK')
@@ -106,10 +106,11 @@ def checking_client(address, data_obj):
         name_machine = data_obj.get_peer_from_uuid(1)
 
         sock.send(json.dumps({'machine': machine, 'name_machine': name_machine}).encode())
-        generation, _ = sock.recv(1024)
+        generation = sock.recv(1024)
         sender(sock, address, int(generation), data_obj)
     else:
         data_layer.edit_status('network', [])
+        sock.close()
 
 
 def checking_server(data_obj):
@@ -119,13 +120,13 @@ def checking_server(data_obj):
     sock, address = s.accept()
     password = data_obj.get_password()
     cipher = ef.get_cipher(password)
-    plain_text, _ = sock.recv(1000)
+    plain_text = sock.recv(1000)
     value = cipher.decrypt(plain_text)
     sock.send(value)
     sock.settimeout(2)
-    conf, _ = sock.recv(1024)
+    conf = sock.recv(1024)
     if conf == b'OK':
-        uuid, _ = sock.recv(1024)
+        uuid = sock.recv(1024)
         _dict = json.loads(uuid.decode(), encoding='LATIN-1')
         uuid = _dict['machine']
         name = _dict['name_machine']
@@ -154,11 +155,8 @@ def receiver(sock, address, uuid, data_obj):
         cont = 0
         test = b''
         while 1:
-            data, _ = sock.recv(10000)
+            data = sock.recv(1000)
             if not data:
-                break
-            if b'finish' in data:
-                test += data[:len(data) - 6]
                 break
             test += data
         try:
@@ -271,12 +269,12 @@ def receiver(sock, address, uuid, data_obj):
 
 
 def sender(sock, address, generation, data_obj):
-    uuid, _ = sock.recv(100)
+    uuid = sock.recv(100)
     uuid = uuid.decode()
     password = data_obj.get_password()
     query = data_obj.get_files(generation, data_obj.get_uuid_from_peer())
     _max = -1
-    d, _ = sock.recv(10024)
+    d = sock.recv(10024)
     devices = json.loads(d.decode())
     devices = devices['devices']
     cipher = ef.get_cipher(password)
