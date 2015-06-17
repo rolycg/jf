@@ -86,6 +86,7 @@ def get_netmask(ifname):
 import netifaces
 
 if __name__ == '__main__':
+
     print(netifaces.interfaces())
     for x in netifaces.interfaces():
         addrs = netifaces.ifaddresses(x)

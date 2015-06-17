@@ -43,22 +43,18 @@ def message_broadcast():
 
 
 def receive_broadcast(data_obj):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('', PORT))
+    s.listen(1)
+    threads = []
     while 1:
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.bind(('', PORT))
-            s.listen(1)
-            threads = []
-            while 1:
-                sock, address = s.accept()
-                sock.settimeout(1)
-                print(sock.recvfrom(10))
-                sock.close()
-                data_layer.edit_status('network', [])
-                data_layer.edit_status('network', [address[0]])
-                threads.append(Thread(target=checking_client, args=(address, data_obj)))
-                threads[len(threads) - 1].start()
-                # checking_client(address, data_obj)
+            sock, address = s.accept()
+            sock.close()
+            data_layer.edit_status('network', [])
+            data_layer.edit_status('network', [address[0]])
+            threads.append(Thread(target=checking_client, args=(address, data_obj)))
+            threads[len(threads) - 1].start()
         except socket.error:
             continue
         except socket.timeout:
@@ -81,9 +77,8 @@ def start_broadcast_server(data_obj, port=10101):
                     break
                 if message == b'I am JF':
                     s.close()
-                    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     s.connect((address[0], PORT))
-                    s.send(b'Lets talk')
                     s.close()
                     data_layer.edit_status('network', [])
                     data_layer.edit_status('network', [address[0]])
@@ -124,6 +119,8 @@ def set_query(value):
 
 
 def checking_client(address, data_obj):
+    print('I am in checking client')
+    time.sleep(50)
     time.sleep(0.5)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((address[0], PORT))
@@ -149,6 +146,8 @@ def checking_client(address, data_obj):
 
 
 def checking_server(data_obj):
+    print('I am in checking server')
+    time.sleep(50)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('', PORT))
     s.listen(1)
