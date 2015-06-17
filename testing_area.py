@@ -88,19 +88,17 @@ def a():
     print('I am leaving A')
 
 
-import threading
+import data_layer
 
 if __name__ == '__main__':
+    d = data_layer.DataLayer()
+    res = []
+    q = d.get_files(int(b'-1'), int(1))
+    for x in q:
+        res.append(x[2])
+    print(len(res))
+    q.close()
 
-    threads = []
-    threads.append(threading.Thread(target=a))
-    threads[len(threads) - 1].start()
-    cont = 3
-    while cont:
-        threads.append(threading.Thread(target=a))
-        threads[len(threads) - 1].start()
-        cont -= 1
-        time.sleep(3)
     # print(netifaces.interfaces())
     # for x in netifaces.interfaces():
     #     addrs = netifaces.ifaddresses(x)

@@ -219,7 +219,7 @@ if __name__ == '__main__':
                     t2.start()
                     for x in devices.keys():
                         devices[x].close()
-                    open_writing()
+                    # open_writing()
                     data_layer.close()
                 s2 = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
                 s2.settimeout(0.2)

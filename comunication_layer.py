@@ -50,7 +50,6 @@ def receive_broadcast(data_obj):
     while 1:
         try:
             sock, address = s.accept()
-            sock.close()
             data_layer.edit_status('network', [])
             data_layer.edit_status('network', [address[0]])
             threads.append(Thread(target=checking_client, args=(sock, address, data_obj)))
@@ -118,11 +117,6 @@ def set_query(value):
 
 
 def checking_client(sock, address, data_obj):
-    # print('I am in checking client')
-    # time.sleep(20)
-    # time.sleep(0.5)
-    # sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # sock.connect((address[0], PORT))
     password = data_obj.get_password()
     cipher = ef.get_cipher(password)
     ran_str = ef.random_string()
@@ -144,12 +138,6 @@ def checking_client(sock, address, data_obj):
 
 
 def checking_server(sock, data_obj):
-    # print('I am in checking server')
-    # time.sleep(20)
-    # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # s.bind(('', PORT))
-    # s.listen(1)
-    # sock, address = s.accept()
     password = data_obj.get_password()
     cipher = ef.get_cipher(password)
     plain_text = sock.recv(1000)
@@ -200,7 +188,6 @@ def receiver(sock, uuid, data_obj):
                 break
         try:
             _dict = json.loads(test.decode())
-            print(_dict)
         except ValueError:
             data_layer.edit_status('network', [])
             return
@@ -324,7 +311,13 @@ def sender(sock, address, generation, data_obj):
         x = (x[0], x[1], x[2], x[3], x[4], x[5], x[6], tmp, x[len(x) - 1])
         send = cipher.encrypt(ef.convert_to_str(x))
         _dict['add'].append(base64.b64encode(send).decode())
-        _max = max(_max, x[6])
+        try:
+            _max = max(_max, x[6])
+        except:
+            print(_max)
+            print(x[6])
+            time.sleep(50)
+    query.close()
     if _max == -1:
         _dict['generation'] = ''
     else:
@@ -359,14 +352,13 @@ def sender(sock, address, generation, data_obj):
         for x in q:
             tmp = data_obj.get_peer_from_id(x[len(x) - 2])
             x = (x[0], x[1], x[2], x[3], x[4], x[5], x[6], tmp, x[len(x) - 1])
-            print(x)
             a = ef.convert_to_str(x)
-            print(len(a))
             send = cipher.encrypt(ef.convert_to_str(x))
             try:
                 _dict['devices'][y[0]].append(base64.b64encode(send).decode())
             except KeyError:
                 _dict['devices'][y[0]] = [base64.b64encode(send).decode()]
+        q.close()
     try:
         sock.sendall(json.dumps(_dict).encode())
     except:
