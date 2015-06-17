@@ -68,7 +68,7 @@ def start_broadcast_server(data_obj, port=10101):
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((host, 10102))
-            r = random.uniform(5, 15)
+            r = random.uniform(10, 20)
             s.settimeout(int(r))
             while 1:
                 message, address = s.recvfrom(1024)
@@ -83,12 +83,14 @@ def start_broadcast_server(data_obj, port=10101):
                     data_layer.edit_status('network', [])
                     data_layer.edit_status('network', [address[0]])
                     checking_server(data_obj)
+                    break
         except socket.timeout:
             s.close()
             break
         except socket.error:
             s.close()
             break
+        break
 
 
 def network_main(data_obj):
@@ -98,19 +100,20 @@ def network_main(data_obj):
 
 
 def start():
+    data_obj = data_layer.DataLayer()
     while 1:
-        data_obj = data_layer.DataLayer()
         try:
             password = data_obj.get_password()
         except sqlite3.OperationalError:
             time.sleep(10)
             continue
-        if password:
-            t = Thread(target=receive_broadcast, args=(data_obj,))
-            t.start()
-            network_main(data_obj=data_obj)
-        else:
+        if not password:
             time.sleep(10)
+        else:
+            break
+    t = Thread(target=receive_broadcast, args=(data_obj,))
+    t.start()
+    network_main(data_obj=data_obj)
 
 
 def set_query(value):
