@@ -66,7 +66,6 @@ import datetime
 import socket
 import fcntl
 import struct
-import ipaddress
 
 
 def get_ip_address(ifname):
@@ -83,21 +82,36 @@ def get_netmask(ifname):
     return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x891b, struct.pack('256s', ifname.encode()))[20:24])
 
 
-import netifaces
+def a():
+    print('I am A')
+    time.sleep(1)
+    print('I am leaving A')
+
+
+import threading
 
 if __name__ == '__main__':
 
-    print(netifaces.interfaces())
-    for x in netifaces.interfaces():
-        addrs = netifaces.ifaddresses(x)
-        try:
-            q = addrs[netifaces.AF_INET]
-        except KeyError:
-            continue
-        try:
-            print(q[0]['broadcast'])
-        except KeyError:
-            print(x)
+    threads = []
+    threads.append(threading.Thread(target=a))
+    threads[len(threads) - 1].start()
+    cont = 3
+    while cont:
+        threads.append(threading.Thread(target=a))
+        threads[len(threads) - 1].start()
+        cont -= 1
+        time.sleep(3)
+    # print(netifaces.interfaces())
+    # for x in netifaces.interfaces():
+    #     addrs = netifaces.ifaddresses(x)
+    #     try:
+    #         q = addrs[netifaces.AF_INET]
+    #     except KeyError:
+    #         continue
+    #     try:
+    #         print(q[0]['broadcast'])
+    #     except KeyError:
+    #         print(x)
 
     print(a)
     print('\x1b[01;39m' + 'to see more results from ' + str(1) + ' execute: jf -m 10 -f ' + str(

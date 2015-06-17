@@ -53,7 +53,7 @@ def receive_broadcast(data_obj):
             sock.close()
             data_layer.edit_status('network', [])
             data_layer.edit_status('network', [address[0]])
-            threads.append(Thread(target=checking_client, args=(address, data_obj)))
+            threads.append(Thread(target=checking_client, args=(sock, address, data_obj)))
             threads[len(threads) - 1].start()
         except socket.error:
             continue
@@ -72,17 +72,13 @@ def start_broadcast_server(data_obj, port=10101):
             s.settimeout(int(r))
             while 1:
                 message, address = s.recvfrom(1024)
-                if not message:
-                    s.close()
-                    break
                 if message == b'I am JF':
                     s.close()
                     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     s.connect((address[0], PORT))
-                    s.close()
                     data_layer.edit_status('network', [])
                     data_layer.edit_status('network', [address[0]])
-                    checking_server(data_obj)
+                    checking_server(s, data_obj)
                     break
         except socket.timeout:
             s.close()
@@ -121,12 +117,12 @@ def set_query(value):
     query = value
 
 
-def checking_client(address, data_obj):
-    print('I am in checking client')
-    time.sleep(50)
-    time.sleep(0.5)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((address[0], PORT))
+def checking_client(sock, address, data_obj):
+    # print('I am in checking client')
+    # time.sleep(20)
+    # time.sleep(0.5)
+    # sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # sock.connect((address[0], PORT))
     password = data_obj.get_password()
     cipher = ef.get_cipher(password)
     ran_str = ef.random_string()
@@ -139,7 +135,6 @@ def checking_client(address, data_obj):
         sock.send(b'OK')
         machine = data_obj.get_id_from_peer()
         name_machine = data_obj.get_peer_from_uuid(1)
-
         sock.send(json.dumps({'machine': machine, 'name_machine': name_machine}).encode())
         generation = sock.recv(1024)
         sender(sock, address, int(generation), data_obj)
@@ -148,13 +143,13 @@ def checking_client(address, data_obj):
         sock.close()
 
 
-def checking_server(data_obj):
-    print('I am in checking server')
-    time.sleep(50)
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(('', PORT))
-    s.listen(1)
-    sock, address = s.accept()
+def checking_server(sock, data_obj):
+    # print('I am in checking server')
+    # time.sleep(20)
+    # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # s.bind(('', PORT))
+    # s.listen(1)
+    # sock, address = s.accept()
     password = data_obj.get_password()
     cipher = ef.get_cipher(password)
     plain_text = sock.recv(1000)
@@ -173,12 +168,12 @@ def checking_server(data_obj):
         else:
             data_obj.insert_peer(uuid, name)
             sock.send(str(-1).encode())
-        receiver(sock, address, uuid, data_obj)
+        receiver(sock, uuid, data_obj)
     else:
         data_layer.edit_status('network', [])
 
 
-def receiver(sock, address, uuid, data_obj):
+def receiver(sock, uuid, data_obj):
     global query
     sock.send(data_obj.get_id_from_peer().encode())
     password = data_obj.get_password()
