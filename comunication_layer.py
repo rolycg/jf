@@ -117,7 +117,6 @@ def set_query(value):
 
 
 def checking_client(sock, address, data_obj):
-    print('I am in checking client')
     password = data_obj.get_password()
     cipher = ef.get_cipher(password)
     ran_str = ef.random_string()
@@ -139,7 +138,6 @@ def checking_client(sock, address, data_obj):
 
 
 def checking_server(sock, data_obj):
-    print('i am in checking server')
     password = data_obj.get_password()
     cipher = ef.get_cipher(password)
     plain_text = sock.recv(1000)
