@@ -153,6 +153,7 @@ def checking_server(sock, data_obj):
         last_generation = data_obj.get_last_generation(uuid)
         if last_generation:
             sock.send(str(last_generation).encode())
+            data_obj.update_name(uuid, name)
         else:
             data_obj.insert_peer(uuid, name)
             sock.send(str(-1).encode())
@@ -164,8 +165,6 @@ def checking_server(sock, data_obj):
 def receiver(sock, uuid, data_obj):
     global query
     sock.send(data_obj.get_id_from_peer().encode())
-    time.sleep(1.5)
-    sock.send(data_obj.get_peer_from_id(1).encode())
     password = data_obj.get_password()
     cipher = ef.get_cipher(password)
     devices = data_obj.get_memory_devices()
@@ -303,9 +302,6 @@ def receiver(sock, uuid, data_obj):
 def sender(sock, address, generation, data_obj):
     sock.settimeout(1)
     uuid = sock.recv(100)
-    uuid = uuid.decode()
-    name = sock.recv(100)
-    name = name.decode()
     password = data_obj.get_password()
     query = data_obj.get_files(generation, data_obj.get_uuid_from_peer())
     _max = -1
@@ -332,10 +328,7 @@ def sender(sock, address, generation, data_obj):
                 send = cipher.encrypt(ef.convert_to_str(y[0]))
                 _dict['delete'].append(base64.b64encode(send).decode())
         else:
-            if name:
-                data_obj.insert_peer(uuid, name)
-            else:
-                data_obj.insert_peer(uuid, socket.gethostbyname(address[0]))
+            data_obj.insert_peer(uuid, socket.gethostbyname(address[0]))
         data_obj.edit_my_generation(uuid, _max)
     my_devices = data_obj.get_memory_devices()
     result_devices = []

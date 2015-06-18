@@ -86,6 +86,15 @@ class DataLayer:
             cursor.close()
             return value[0]
 
+    def update_name(self, uuid, name):
+        cursor = self.database.cursor()
+        cursor.execute('UPDATE Metadata SET pc_name=? WHERE uuid=?', (name, uuid))
+        try:
+            self.database.commit()
+        except sqlite3.OperationalError:
+            pass
+        cursor.close()
+
     def get_all_databases_elements(self, table):
         cursor = self.database.cursor()
         execute = 'SELECT * FROM ' + table
