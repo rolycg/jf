@@ -148,7 +148,10 @@ class DataLayer:
         cursor = self.database.cursor()
         with semaphore:
             cursor.execute('UPDATE Metadata SET my_generation=? WHERE uuid=?', (generation, uuid))
-            self.database.commit()
+            try:
+                self.database.commit()
+            except sqlite3.OperationalError:
+                pass
         cursor.close()
 
     def get_uuid_from_peer(self, owner=1):

@@ -177,8 +177,11 @@ def receiver(sock, uuid, data_obj):
         cont = 0
         test = b''
         balance = 0
+        sock.settimeout(60)
         while 1:
             data = sock.recv(1000)
+            if not data:
+                break
             test += data
             if data:
                 for x in data.decode():
