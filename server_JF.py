@@ -204,7 +204,6 @@ if __name__ == '__main__':
                             devices = {}
                     else:
                         devices = {x: data_layer.find_data(query.split(), x[0]) for x in dev}
-                    # collection = data_layer.find_data(query.split())
                     for x in devices.keys():
                         c = count
                         for item in devices[x]:
@@ -219,7 +218,7 @@ if __name__ == '__main__':
                     t2.start()
                     for x in devices.keys():
                         devices[x].close()
-                    # open_writing()
+                    open_writing()
                     data_layer.close()
                 s2 = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
                 s2.settimeout(0.2)

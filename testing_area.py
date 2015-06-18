@@ -95,6 +95,7 @@ if __name__ == '__main__':
     res = []
     q = d.get_files(int(b'-1'), int(1))
     for x in q:
+        print(x[2])
         res.append(x[2])
     print(len(res))
     q.close()

@@ -363,6 +363,7 @@ def sender(sock, address, generation, data_obj):
         sock.sendall(json.dumps(_dict).encode())
     except:
         data_layer.edit_status('network', [])
+        sock.close()
         return
     sock.close()
     with sem:

@@ -116,13 +116,8 @@ class DataLayer:
 
     def get_files(self, generation, peer):
         cursor = self.database.cursor()
-        try:
-            return cursor.execute('SELECT * FROM File WHERE generation>=? AND machine=? ORDER BY id ASC',
+        return cursor.execute('SELECT * FROM File WHERE generation>=? AND machine=? ORDER BY id ASC',
                               (int(generation), int(peer)))
-        except:
-            print(generation)
-            print(peer)
-            time.sleep(50)
 
     def insert_peer(self, uuid=None, pc_name=None, memory=0, size=0, date=0):
 
