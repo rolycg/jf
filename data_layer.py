@@ -145,8 +145,11 @@ class DataLayer:
 
     def edit_my_generation(self, uuid, generation):
         generation = int(generation)
-        self.cursor.execute('UPDATE Metadata SET my_generation=? WHERE uuid=?', (generation, uuid))
-        self.database.commit()
+        cursor = self.database.cursor()
+        with semaphore:
+            cursor.execute('UPDATE Metadata SET my_generation=? WHERE uuid=?', (generation, uuid))
+            self.database.commit()
+        cursor.close()
 
     def get_uuid_from_peer(self, owner=1):
         cursor = self.database.cursor()

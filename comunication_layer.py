@@ -52,7 +52,7 @@ def receive_broadcast(data_obj):
             sock, address = s.accept()
             data_layer.edit_status('network', [])
             data_layer.edit_status('network', [address[0]])
-            threads.append(Thread(target=checking_client, args=(sock, address, data_obj)))
+            threads.append(Thread(target=checking_client, args=(sock, address, data_layer.DataLayer())))
             threads[len(threads) - 1].start()
         except socket.error:
             continue
@@ -117,6 +117,7 @@ def set_query(value):
 
 
 def checking_client(sock, address, data_obj):
+    print('I am in checking client')
     password = data_obj.get_password()
     cipher = ef.get_cipher(password)
     ran_str = ef.random_string()
@@ -138,6 +139,7 @@ def checking_client(sock, address, data_obj):
 
 
 def checking_server(sock, data_obj):
+    print('i am in checking server')
     password = data_obj.get_password()
     cipher = ef.get_cipher(password)
     plain_text = sock.recv(1000)
@@ -311,12 +313,7 @@ def sender(sock, address, generation, data_obj):
         x = (x[0], x[1], x[2], x[3], x[4], x[5], x[6], tmp, x[len(x) - 1])
         send = cipher.encrypt(ef.convert_to_str(x))
         _dict['add'].append(base64.b64encode(send).decode())
-        try:
-            _max = max(_max, x[6])
-        except:
-            print(_max)
-            print(x[6])
-            time.sleep(50)
+        _max = max(_max, x[6])
     query.close()
     if _max == -1:
         _dict['generation'] = ''
@@ -369,3 +366,4 @@ def sender(sock, address, generation, data_obj):
     with sem:
         data_obj.delete_actions_from_machine(_id)
     data_layer.edit_status('network', [])
+    data_obj.close()
