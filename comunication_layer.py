@@ -300,8 +300,8 @@ def receiver(sock, uuid, data_obj):
 
 
 def sender(sock, address, generation, data_obj):
-    sock.settimeout(1)
     uuid = sock.recv(100)
+    uuid = uuid.decode()
     password = data_obj.get_password()
     query = data_obj.get_files(generation, data_obj.get_uuid_from_peer())
     _max = -1

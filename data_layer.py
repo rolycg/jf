@@ -129,7 +129,6 @@ class DataLayer:
                               (int(generation), int(peer)))
 
     def insert_peer(self, uuid=None, pc_name=None, memory=0, size=0, date=0):
-
         cursor = self.database.cursor()
         if not uuid and not pc_name:
             cursor.execute('INSERT INTO Metadata VALUES (?,?,?,?,?,?,?,?,?)',
